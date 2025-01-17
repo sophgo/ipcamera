@@ -1,0 +1,11 @@
+out
+pqtool_definition.json
+cmd/cmdTest
+mercury/ipcam_mercury
+mars/ipcam_mars
+install
+.config
+.config.old
+scripts
+solutions/**/obj/
+modules/**/obj/

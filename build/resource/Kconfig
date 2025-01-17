@@ -1,0 +1,151 @@
+menu "resource options"
+
+config RESOURCE_INSTALL_BITMAP
+	bool "install tiger.bmp"
+	default n
+	help
+		"support install tiger.bmp"
+
+menu "ai models resource"
+
+menu "CV186X"
+
+config RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D0_384
+	bool "install mobiledetv2-pedestrian-d0-384"
+	default n
+	help
+		"support install 186x mobiledetv2-pedestrian-d0-384"
+
+config RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D0_448
+	bool "install mobiledetv2-pedestrian-d0-448"
+	default n
+	help
+		"support install 186x mobiledetv2-pedestrian-d0-448"
+
+config RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D1_896
+	bool "install mobiledetv2-pedestrian-d1-896"
+	default n
+	help
+		"support install 186x mobiledetv2-pedestrian-d1-896"
+
+config RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D1_LS_896
+	bool "install mobiledetv2-pedestrian-d1-ls-896"
+	default n
+	help
+		"support install 186x mobiledetv2-pedestrian-d1-ls-896"
+
+config RESOURCE_INSTALL_AI_CV186X_SCRFD_500M_BNKPS_432X768_INT8
+	bool "install scrfd_500m_bnkps_432_768"
+	default n
+	help
+		"support install 186x scrfd_500m_bnkps_432_768"
+
+config RESOURCE_INSTALL_AI_CV186X_HAND_DET_QAT_640X384_INT8
+	bool "install hand_det_qat_640x384_int8"
+	default n
+	help
+		"support install 186x hand_det_qat_640x384_int8"
+
+config RESOURCE_INSTALL_AI_CV186X_HAND_KPT_128X128_INT8
+	bool "install hand_kpt_128x128_int8"
+	default n
+	help
+		"support install 186x hand_kpt_128x128_int8"
+
+config RESOURCE_INSTALL_AI_CV186X_HAND_KPT_CLS9_INT8
+	bool "install hand_kpt_cls9_int8"
+	default n
+	help
+		"support install 186x hand_kpt_cls9_int8"
+
+config RESOURCE_INSTALL_AI_CV186X_CVIFACE_V6_S_MIX
+	bool "install cviface-v6-s_mix"
+	default n
+	help
+		"support install 186x cviface-v6-s_mix"
+
+endmenu
+
+endmenu
+
+menu "file recover"
+
+config RESOURCE_INSTALL_H264_PCM_TEMPLATE
+	bool "install h264 pcm template"
+	default n
+	help
+		"support install record h264 & pcm fix file"
+
+config RESOURCE_INSTALL_H265_PCM_TEMPLATE
+	bool "install h265 pcm template"
+	default n
+	help
+		"support install record h265 & pcm fix file"
+
+config RESOURCE_INSTALL_MP4_AAC_TEMPLATE
+	bool "install mp4 aac template"
+	default n
+	help
+		"support install record mp4 & aac fix file"
+
+endmenu
+
+config RESOURCE_INSTALL_NETWORK_WWW
+	bool "install www"
+	default n
+	help
+		"support install www for websock"
+
+menu "param resource"
+
+
+
+choice
+prompt "Select FBM Parameter"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_GC4653
+	bool "install fbm_cv186ah_wevb_gc4653"
+	help
+		"support install fbm cv186ah_wevb_gc4653.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_GC4653_MULITRECORD
+	bool "install fbm_cv186ah_wevb_gc4653_mulitrecord"
+	help
+		"support install fbm cv186ah_wevb_gc4653_mulitrecord.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_SC4336P_SC4336P
+	bool "install fbm_cv186ah_wevb_sc4336p_sc4336p"
+	help
+		"support install fbm cv186ah_wevb_sc4336p_sc4336p.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_OS04E10_OS04E10
+	bool "install fbm_cv186ah_wevb_os04e10_os04e10"
+	help
+		"support install fbm cv186ah_wevb_os04e10_os04e10.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OS04E10_2SC4336P
+	bool "install fbm_cv186ah_wevb_2os04e10_2sc4336p"
+	help
+		"support install fbm cv186ah_wevb_2os04e10_2sc4336p.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_GC4653_AI
+	bool "install fbm_cv186ah_wevb_gc4653_ai"
+	help
+		"support install fbm cv186ah_wevb_gc4653_ai.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_6IMX307
+	bool "install fbm_cv186ah_wevb_6imx307"
+	help
+		"support install fbm cv186ah_wevb_6imx307.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_AUTOTEST
+	bool "install cv186ah_wevb_autotest"
+	help
+		"support install fbm cv186ah_wevb_autotest.ini"
+
+endchoice
+
+
+endmenu
+
+endmenu
