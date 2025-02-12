@@ -24,6 +24,7 @@ ipcamera是一款网络摄像机管理软件，是网络视频服务器和摄像
 |             | bitmap               |rgn叠图功能的资源文件|
 |             | file_recover         |文件修复（录像模块使用）功能的资源文件|
 |             | www                  |网络功能的资源文件|
+|             | parameter            |ini配置文件|
 | solutions   | ipcamera             |ipcamera程序的主函数|
 
 ## 2 环境准备和编译
@@ -65,8 +66,8 @@ ubuntu推荐安装20.04或者22.04，并需要安装依赖的工具。
 5. 编译sdk
 ```bash
     export TPU_REL=1                    # 如果不需要算法功能这一步可以不执行
-    source build/cvisetup.sh
-    defconfig cv186ah_wevb_emmc         # 选择对应的卡板，这里以cv186ah_wevb_emmc为例
+    source build/envsetup_soc.sh
+    defconfig device_wevb_emmc         # 选择对应的卡板，这里以device_wevb_emmc为例
     clean_all && build_all              # 编译sdk
 ```
 6. 烧录固件
