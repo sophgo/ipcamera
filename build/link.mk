@@ -21,6 +21,8 @@ LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_paramparse_ai_face
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_paramparse_ai_ir_face
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_paramparse_ai_babycry
 LIBS-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)        += -lapp_paramparse_ai_consumer_counting
+LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_paramparse_ai_human_keypoint_detect
+LIBS-$(CONFIG_MODULE_AI_OCCLUSION)                += -lapp_paramparse_ai_occlusion_detect
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_paramparse_frmbuf
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
@@ -47,6 +49,8 @@ LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_ai_fd_cace
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_ai_irface
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_ai_babycry
 LIBS-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)        += -lapp_ai_consumer_counting
+LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_ai_human_keypoint_detect
+LIBS-$(CONFIG_MODULE_AI_OCCLUSION)                += -lapp_ai_occlusion_detect
 
 LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
@@ -141,7 +145,7 @@ LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib
 LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/libsophon-0.4.9/lib
 LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/lib
 ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # AI libs static link
-  AISDK := -lcvi_tdl -lcvi_tdl_app
+  AISDK := -lcvi_tdl -lcvi_tdl_app -lcvi_kit
   TPU := -lcvikernel-static -lcviruntime-static -lcnpy -lcvimath-static -lz
   ifeq ($(SOC_SEGMENT), CV180X)
     IVE := -lcvi_ive_tpu-static
@@ -155,7 +159,7 @@ ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # AI libs static link
   LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(IVE) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
 else
   IVE := -lcvi_ive
-  AISDK := -lcvi_tdl -lcvi_tdl_app
+  AISDK := -lcvi_tdl -lcvi_tdl_app -lcvi_kit
   TPU := -lcnpy  -lcvikernel  -lcvimath  -lcviruntime  -lz
   LIBS-$(CONFIG_MODULE_AI) += $(AISDK) $(TPU) $(IVE) $(JPEG-TUBRO)
 endif

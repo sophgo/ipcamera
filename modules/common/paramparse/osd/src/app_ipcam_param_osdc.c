@@ -68,14 +68,17 @@ int Load_Param_Osdc(const char *file)
                 Osdc->mmfChn[j].enModId = enum_num;
             }
 
-            Osdc->mmfChn[j].s32DevId = ini_getl(tmp_section, "dev_id", 0, file);
-            Osdc->mmfChn[j].s32ChnId = ini_getl(tmp_section, "chn_id", 0, file);
-            Osdc->bShowPdRect[j]     = ini_getl(tmp_section, "show_pd_rect", 0, file);
-            Osdc->bShowMdRect[j]     = ini_getl(tmp_section, "show_md_rect", 0, file);
-            Osdc->bShowHdRect[j]     = ini_getl(tmp_section, "show_hd_rect", 0, file);
-            Osdc->bShowCountRect[j]  = ini_getl(tmp_section, "show_count_rect", 0, file);
-            Osdc->bShowFdRect[j]     = ini_getl(tmp_section, "show_fd_rect", 0, file);
-            Osdc->osdcObjNum[j]      = ini_getl(tmp_section, "cnt", 0, file);
+            Osdc->mmfChn[j].s32DevId        = ini_getl(tmp_section, "dev_id", 0, file);
+            Osdc->mmfChn[j].s32ChnId        = ini_getl(tmp_section, "chn_id", 0, file);
+            Osdc->bShowPdRect[j]            = ini_getl(tmp_section, "show_pd_rect", 0, file);
+            Osdc->bShowMdRect[j]            = ini_getl(tmp_section, "show_md_rect", 0, file);
+            Osdc->bShowHdRect[j]            = ini_getl(tmp_section, "show_hd_rect", 0, file);
+            Osdc->bShowCountRect[j]         = ini_getl(tmp_section, "show_count_rect", 0, file);
+            Osdc->bShowFdRect[j]            = ini_getl(tmp_section, "show_fd_rect", 0, file);
+            Osdc->bShowHumanKeypointRect[j] = ini_getl(tmp_section, "show_human_keypoint_rect", 0, file);
+            Osdc->bShowOcclusionRect[j]     = ini_getl(tmp_section, "show_occlusion_rect", 0, file);
+            Osdc->osdcObjNum[j]             = ini_getl(tmp_section, "cnt", 0, file);
+
             APP_PROF_LOG_PRINT(LEVEL_INFO, "handle=%d bShow=%d Format=0x%x cpsSize=%d ModeId=%d DevId=%d ChnId=%d PdRect=%d MdRect=%d HdRect=%d CountRect=%d FdRect=%d osdcObjNum=%d\n",
                 Osdc->handle[j], Osdc->bShow[j], Osdc->format[j], Osdc->CompressedSize[j], Osdc->mmfChn[j].enModId,
                 Osdc->mmfChn[j].s32DevId, Osdc->mmfChn[j].s32ChnId, Osdc->bShowPdRect[j], Osdc->bShowMdRect[j], Osdc->bShowHdRect[j], Osdc->bShowCountRect[j], Osdc->bShowFdRect[j], Osdc->osdcObjNum[j]);
@@ -84,7 +87,7 @@ int Load_Param_Osdc(const char *file)
                 memset(tmp_section, 0, sizeof(tmp_section));
                 snprintf(tmp_section, sizeof(tmp_section), "osdc%d_obj_info%d", j, i);
 
-                Osdc->osdcObj[j][i].bShow      = ini_getl(tmp_section, "bShow", 0, file);
+                Osdc->osdcObj[j][i].bShow   = ini_getl(tmp_section, "bShow", 0, file);
 
                 ini_gets(tmp_section, "type", " ", str_name, PARAM_STRING_NAME_LEN, file);
                 ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, rgn_cmpr_type, RGN_CMPR_BUTT, &enum_num);

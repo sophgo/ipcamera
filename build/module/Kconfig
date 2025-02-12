@@ -196,6 +196,20 @@ config MODULE_AI_CONSUMER_COUNTING
 	help
 		enable ai consumer counting in applicant
 
+config MODULE_AI_HUMAN_KEYPOINT
+	bool "enable module ai human keypoint detect"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai human keypoint detect in applicant
+
+config MODULE_AI_OCCLUSION
+	bool "enable module ai occlusion detection"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai occlusion detection in applicant
+
 menuconfig MODULE_ENABLE_FRAMEBUFFER
 	bool "enable module eanble framebuffer"
 	default n

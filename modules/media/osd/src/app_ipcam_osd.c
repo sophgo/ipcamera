@@ -84,12 +84,16 @@ static APP_OSDC_CANVAS_CFG_S g_stOsdcCanvasCfg = {0};
 APP_OSDC_MD_RECT_RATIO_S g_stMdRectRatio = {0};
 static cvimd_object_t g_objMetaMd = {0};
 #endif
-
+#ifdef OCCLUSION_SUPPORT
+APP_OSDC_AI_RECT_RATIO_S g_stOcclusionRectRatio = {0};
+static cvtdl_occlusion_meta_t g_objMetaOcclusion = {0};
+#endif
 #ifdef AI_SUPPORT
 APP_OSDC_AI_RECT_RATIO_S g_stPdRectRatio = {0};
 APP_OSDC_AI_RECT_RATIO_S g_stHdRectRatio = {0};
 APP_OSDC_AI_RECT_RATIO_S g_stCountRectRatio = {0};
 APP_OSDC_AI_RECT_RATIO_S g_stFdRectRatio = {0};
+APP_OSDC_AI_RECT_RATIO_S g_stHumanKeypointRectRatio = {0};
 #ifdef PD_SUPPORT
 static cvtdl_object_t g_objMetaPd = {0};
 #endif
@@ -102,6 +106,9 @@ static cvtdl_object_t g_objMetaCountPed = {0};
 #endif
 #ifdef FACE_SUPPORT
 static cvtdl_face_t g_objMetaFd = {0};
+#endif
+#ifdef HUMAN_KEYPOINT_SUPPORT
+static cvtdl_object_t g_objMetaHumanKeypoint = {0};
 #endif
 #endif
 
@@ -674,6 +681,31 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
     }
 #endif
 
+#ifdef OCCLUSION_SUPPORT
+    if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowOcclusionRect[iOsdcIndex]) {
+        app_ipcam_Ai_Occlusion_ObjDrawInfo_Get(&g_objMetaOcclusion);
+        if (OsdcObjsNum >= OSDC_OBJS_MAX) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
+        } else {
+            pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stOcclusionRectRatio.ScaleX * g_objMetaOcclusion.crop_bbox.x1);
+            pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stOcclusionRectRatio.ScaleY * g_objMetaOcclusion.crop_bbox.y1);
+            pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = (int)(g_stOcclusionRectRatio.ScaleX * 
+                                                            (g_objMetaOcclusion.crop_bbox.x2 - g_objMetaOcclusion.crop_bbox.x1));
+            pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = (int)(g_stOcclusionRectRatio.ScaleY * 
+                                                            (g_objMetaOcclusion.crop_bbox.y2 - g_objMetaOcclusion.crop_bbox.y1));
+            pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 8;
+            if(g_objMetaOcclusion.occ_class == 0) {
+                pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_GREEN(0);
+            } else {
+                pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_RED(0);
+            }
+            pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_FALSE;
+            pstObjAttr[OsdcObjsNum].enObjType = RGN_CMPR_RECT;
+        }
+        OsdcObjsNum++;
+    }
+#endif
+
 #ifdef PD_SUPPORT
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowPdRect[iOsdcIndex]) {
         app_ipcam_Ai_PD_ObjDrawInfo_Get(&g_objMetaPd);
@@ -800,6 +832,34 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
                 OsdcObjsNum++;
             }
             CVI_TDL_Free(&g_objMetaFd);
+        }
+    }
+#endif
+
+#ifdef HUMAN_KEYPOINT_SUPPORT
+    if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowHumanKeypointRect[iOsdcIndex]) {
+        app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(&g_objMetaHumanKeypoint);
+        if (g_objMetaHumanKeypoint.size > 0) {
+            // printf("obj_meta.size:%d\n", g_objMetaHumanKeypoint.size);
+            for (i = 0; i < g_objMetaHumanKeypoint.size; i++) {
+                for (int j = 0; j < 17; j++) {
+                    if (OsdcObjsNum >= OSDC_OBJS_MAX) {
+                        APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
+                        break;
+                    }
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].pedestrian_properity->pose_17.x[j]) - 8;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stHumanKeypointRectRatio.ScaleY * (g_objMetaHumanKeypoint.info[i].pedestrian_properity->pose_17.y[j]-12)) - 8;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = 16 ;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = 16 ;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 8;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_RED(0);
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_TRUE;
+                    pstObjAttr[OsdcObjsNum].enObjType = RGN_CMPR_RECT;
+
+                    OsdcObjsNum++;
+                }
+            }
+            CVI_TDL_Free(&g_objMetaHumanKeypoint);
         }
     }
 #endif
@@ -973,6 +1033,28 @@ static int app_ipcam_ObjRectRatio_Set(void)
     g_stMdRectRatio.ScaleY = (float)stOdecSize_md.u32Height / (float)g_stMdRectRatio.VpssChn_H;
     #endif
 
+    #ifdef OCCLUSION_SUPPORT
+    APP_PARAM_AI_OCCLUSION_CFG_S *pstOcclusionCfg = app_ipcam_Ai_Occlusion_Param_Get();
+    _NULL_POINTER_CHECK_(pstOcclusionCfg, -1);
+
+    /* get main-streaming VPSS Grp0Chn0 size */
+    APP_VPSS_GRP_CFG_T *pstVpssCfg_occlusion = &app_ipcam_Vpss_Param_Get()->astVpssGrpCfg[0];
+    _NULL_POINTER_CHECK_(pstVpssCfg_occlusion, -1);
+    /* OSD Codec size form main streaming (vpss group_0 channel_0) */
+    SIZE_S stOdecSize_occlusion;
+    stOdecSize_occlusion.u32Width = pstVpssCfg_occlusion->astVpssChnAttr[0].u32Width;
+    stOdecSize_occlusion.u32Height = pstVpssCfg_occlusion->astVpssChnAttr[0].u32Height;
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "draw canvas size W=%d H=%d\n", stOdecSize_occlusion.u32Width, stOdecSize_occlusion.u32Height);
+
+    /* set AI Occlusion rect-ratio */
+    g_stOcclusionRectRatio.VpssChn_W = pstOcclusionCfg->u32ChnWidth;
+    g_stOcclusionRectRatio.VpssChn_H = pstOcclusionCfg->u32ChnHeight;
+    g_stOcclusionRectRatio.ScaleX = (float)stOdecSize_occlusion.u32Width;
+    g_stOcclusionRectRatio.ScaleY = (float)stOdecSize_occlusion.u32Height;
+    // g_stOcclusionRectRatio.ScaleX = (float)stOdecSize_occlusion.u32Width / (float)g_stOcclusionRectRatio.VpssChn_W;
+    // g_stOcclusionRectRatio.ScaleY = (float)stOdecSize_occlusion.u32Height / (float)g_stOcclusionRectRatio.VpssChn_H;
+    #endif
+
     #ifdef AI_SUPPORT
     /* get main-streaming VPSS Grp0Chn0 size */
     APP_VPSS_GRP_CFG_T *pstVpssCfg = &app_ipcam_Vpss_Param_Get()->astVpssGrpCfg[0];
@@ -1019,6 +1101,14 @@ static int app_ipcam_ObjRectRatio_Set(void)
     g_stFdRectRatio.VpssChn_H = pstFdCfg->u32GrpHeight;
     g_stFdRectRatio.ScaleX = (float)stOdecSize.u32Width / (float)g_stFdRectRatio.VpssChn_W;
     g_stFdRectRatio.ScaleY = (float)stOdecSize.u32Height / (float)g_stFdRectRatio.VpssChn_H;
+    #endif
+    
+    #ifdef HUMAN_KEYPOINT_SUPPORT
+    APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S *pstHumanKeypointCfg = app_ipcam_Ai_Human_Keypoint_Param_Get();
+    _NULL_POINTER_CHECK_(pstHumanKeypointCfg, -1);
+    /* set AI Human Keypoint Detect rect-ratio */
+    g_stHumanKeypointRectRatio.ScaleX = g_stHumanKeypointRectRatio.ScaleY =
+        fmax(((float)stOdecSize.u32Width / (float)pstHumanKeypointCfg->model_size_w), ((float)stOdecSize.u32Height / (float)pstHumanKeypointCfg->model_size_h));
     #endif
     #endif
 

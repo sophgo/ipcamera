@@ -198,6 +198,10 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_Ai_PD_Stop(), "PD Stop");
     #endif
 
+    #ifdef HUMAN_KEYPOINT_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Stop(), "Human Keypoint Detection Stop");
+    #endif
+
     #ifdef FACE_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_FD_Stop(), "FD Stop");
     #endif
@@ -205,6 +209,10 @@ static int app_ipcam_Exit(void)
 
     #ifdef MD_SUPPORT
     APP_CHK_RET(app_ipcam_MD_Stop(), "MD Stop");
+    #endif
+
+    #ifdef OCCLUSION_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Occlusion_Stop(), "Occlusion Detection Stop");
     #endif
 
     #ifdef AUDIO_SUPPORT
@@ -360,9 +368,18 @@ int main(int argc, char *argv[])
     APP_CHK_RET(app_ipcam_MD_Start(), "running MD");
     #endif
 
+    #ifdef OCCLUSION_SUPPORT
+    /* start Occlusion Detection*/
+    APP_CHK_RET(app_ipcam_Ai_Occlusion_Start(), "running Occlusion Detection");
+    #endif
+
     #ifdef PD_SUPPORT
     /* start AI PD (Pedestrian Detection) */
     APP_CHK_RET(app_ipcam_Ai_PD_Start(), "Start AI PD");
+    #endif
+
+    #ifdef HUMAN_KEYPOINT_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Start(), "Human Keypoint Detection Start");
     #endif
 
     #ifdef HAND_DETECT_SUPPORT
