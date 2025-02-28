@@ -11,7 +11,6 @@
 #include "app_ipcam_comm.h"
 #include "cvi_audio.h"
 #include "cvi_audio_aac_adp.h"
-#include "acodec.h"
 #include "app_ipcam_gpio.h"
 #include "app_ipcam_rtsp.h"
 /**************************************************************************

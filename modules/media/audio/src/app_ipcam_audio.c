@@ -15,7 +15,6 @@
 #include "app_ipcam_comm.h"
 #include "cvi_audio.h"
 #include "cvi_audio_aac_adp.h"
-#include "acodec.h"
 #include "app_ipcam_gpio.h"
 #include "cvi_mbuf.h"
 #ifdef RECORD_SUPPORT
@@ -708,83 +707,6 @@ static CVI_VOID *Thread_AudioAi_Proc(CVI_VOID *pArgs)
     }
     APP_PROF_LOG_PRINT(LEVEL_WARN, "Thread_AudioAi_Proc EXIT!\n");
     return NULL;
-}
-
-static CVI_S32 app_ipcam_Audio_CfgAcodec()
-{
-    CVI_S32 s32Ret = CVI_SUCCESS;
-
-    /*** INNER AUDIO CODEC ***/
-    CVI_S32 fdAcodec_adc = -1;
-    CVI_S32 fdAcodec_dac = -1;
-    CVI_U32 u32Val = 0;
-
-    /* ao gpio enable*/
-    app_ipcam_Gpio_Value_Set(SPEAKER_GPIO, CVI_GPIO_VALUE_H);
-
-    fdAcodec_adc = open(ACODEC_ADC, O_RDWR);
-    if (fdAcodec_adc < 0)
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "can't open Acodec,%s!!\n", ACODEC_ADC);
-        s32Ret = CVI_FAILURE;
-        goto FINAL_STEPS;
-    }
-
-    fdAcodec_dac = open(ACODEC_DAC, O_RDWR);
-    if (fdAcodec_dac < 0)
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "can't open Acodec,%s!!\n", ACODEC_DAC);
-        s32Ret = CVI_FAILURE;
-        goto FINAL_STEPS;
-    }
-
-    ACODEC_VOL_CTRL vol_ctrl;
-
-    if (ioctl(fdAcodec_adc, ACODEC_SET_I2S1_FS, &u32Val))
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "ACODEC_ADC ACODEC_SET_I2S1_FS failed!!\n");
-    }
-
-    if (ioctl(fdAcodec_dac, ACODEC_SET_I2S1_FS, &u32Val))
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "ACODEC_DAC ACODEC_SET_I2S1_FS failed!!\n");
-    }
-
-    vol_ctrl.vol_ctrl_mute = (g_pstAudioCfg->astAudioVol.iDacLVol == 0) ? 1 : 0;
-    vol_ctrl.vol_ctrl = g_pstAudioCfg->astAudioVol.iDacLVol;
-    if (ioctl(fdAcodec_dac, ACODEC_SET_DACL_VOL, &vol_ctrl))
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "ACODEC_SET_DACL_VOL failed!!\n");
-    }
-
-    vol_ctrl.vol_ctrl_mute = (g_pstAudioCfg->astAudioVol.iDacRVol == 0) ? 1 : 0;
-    vol_ctrl.vol_ctrl = g_pstAudioCfg->astAudioVol.iDacRVol;
-    if (ioctl(fdAcodec_dac, ACODEC_SET_DACR_VOL, &vol_ctrl))
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "ACODEC_SET_DACR_VOL failed!!\n");
-    }
-
-    vol_ctrl.vol_ctrl_mute = (g_pstAudioCfg->astAudioVol.iAdcLVol == 0) ? 1 : 0;
-    vol_ctrl.vol_ctrl = g_pstAudioCfg->astAudioVol.iAdcLVol;
-    if (ioctl(fdAcodec_adc, ACODEC_SET_ADCL_VOL, &vol_ctrl))
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "ACODEC_SET_ADCL_VOL failed!!\n");
-    }
-
-    vol_ctrl.vol_ctrl_mute = (g_pstAudioCfg->astAudioVol.iAdcRVol == 0) ? 1 : 0;
-    vol_ctrl.vol_ctrl = g_pstAudioCfg->astAudioVol.iAdcRVol;
-    if (ioctl(fdAcodec_adc, ACODEC_SET_ADCR_VOL, &vol_ctrl))
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "ACODEC_SET_ADCR_VOL failed!!\n");
-    }
-
-FINAL_STEPS:
-    if (fdAcodec_adc > 0)
-        close(fdAcodec_adc);
-    if (fdAcodec_dac > 0)
-        close(fdAcodec_dac);
-
-    return s32Ret;
 }
 
 /******************************************************************************/
@@ -1682,13 +1604,6 @@ int app_ipcam_Audio_Init(void)
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_AUDIO_INIT failed with %#x!\n", s32Ret);
-    }
-
-    s32Ret = app_ipcam_Audio_CfgAcodec();
-    if (s32Ret != CVI_SUCCESS)
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Audio_CfgAcodec failed with %#x!\n", s32Ret);
-        return s32Ret;
     }
 
     s32Ret = app_ipcam_Audio_AiStart(pstAudioCfg, pstAudioVqe);

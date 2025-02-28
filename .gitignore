@@ -9,3 +9,5 @@ install
 scripts
 solutions/**/obj/
 modules/**/obj/
+components/**/lib/
+components/mbuf/obj/

@@ -96,9 +96,35 @@ config RESOURCE_INSTALL_NETWORK_WWW
 	help
 		"support install www for websock"
 
+menu "vdec files"
+
+config RESOURCE_INSTALL_VDEC_FILES_H264
+	bool "install 1080p.h264"
+	default n
+	help
+		"support install 1080p.h264"
+
+config RESOURCE_INSTALL_VDEC_FILES_H265
+	bool "install enc-1-1.265"
+	default n
+	help
+		"support install enc-1-1.265"
+
+config RESOURCE_INSTALL_VDEC_FILES_JPG
+	bool "install 1080p.jpg"
+	default n
+	help
+		"support install 1080p.jpg"
+
+config RESOURCE_INSTALL_VDEC_FILES_MJP
+	bool "install 1080p.mjp"
+	default n
+	help
+		"support install 1080p.mjp"
+
+endmenu
+
 menu "param resource"
-
-
 
 choice
 prompt "Select FBM Parameter"

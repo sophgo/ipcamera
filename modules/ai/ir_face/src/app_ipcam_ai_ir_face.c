@@ -456,6 +456,9 @@ void * Ir_Face_Task(void * args)
 
 CVI_S32 app_ipcam_Ai_IR_FD_Stop(void)
 {
+    if (g_AI_IrFdCtx.bEnable == 0) {
+        return CVI_SUCCESS;
+    }
     if (g_TaskRunStatus == 1) {
         g_TaskRunStatus = 0;
         pthread_join(g_TaskPthreadID, NULL);
@@ -470,6 +473,9 @@ CVI_S32 app_ipcam_Ai_IR_FD_Stop(void)
 CVI_S32 app_ipcam_Ai_IR_FD_Start(void)
 {
     //关闭IRCUT自动 进入IR夜视 IR Senosr不需要这步
+    if (g_AI_IrFdCtx.bEnable == 0) {
+        return CVI_SUCCESS;
+    }
     extern void app_ipcam_IRCutMode_ManualCtrl(CVI_S32 value, CVI_S32 state);
     app_ipcam_IRCutMode_ManualCtrl(CVI_TRUE, 1);
     if (access(FEATURE_GALLERY_DIR, F_OK) != 0) {

@@ -7,31 +7,31 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_BITMAP), y)
 endif
 #CV186AH AI MODEL
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D0_384),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/mobiledetv2-pedestrian-d0-384_cv186x.cvimodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d0-384_cv186x.cvimodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D0_448),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/mobiledetv2-pedestrian-d0-448_cv186x.cvimodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d0-448_cv186x.cvimodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D1_896),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/mobiledetv2-pedestrian-d1-896_cv186x.cvimodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d1-896_cv186x.cvimodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D1_LS_896),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/mobiledetv2-pedestrian-d1-ls-896_cv186x.cvimodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d1-ls-896_cv186x.cvimodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_CVIFACE_V6_S_MIX),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/cviface-v6-s_mix_cv186x.bmodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/cviface-v6-s_mix_cv186x.bmodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_HAND_DET_QAT_640X384_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/hand_det_qat_640x384_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/hand_det_qat_640x384_int8_cv186x.bmodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_HAND_KPT_128X128_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/hand_kpt_128x128_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/hand_kpt_128x128_int8_cv186x.bmodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_HAND_KPT_CLS9_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/hand_kpt_cls9_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/hand_kpt_cls9_int8_cv186x.bmodel $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_SCRFD_500M_BNKPS_432X768_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/186x/scrfd_500m_bnkps_432_768_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/scrfd_500m_bnkps_432_768_int8_cv186x.bmodel $(APP_INSTALL_DIR)
 endif
 #FILE  RECOVRY
 ifeq ($(CONFIG_RESOURCE_INSTALL_H264_PCM_TEMPLATE),y)
@@ -71,4 +71,17 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_6IMX307),y)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_AUTOTEST),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_autotest.ini $(APP_INSTALL_DIR)/param_config.ini
+endif
+#VDEC
+ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_H264),y)
+	@cp -rf $(APP_RESOURCE_DIR)/vdec/1080p.h264 $(APP_INSTALL_DIR)
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_H265),y)
+	@cp -rf $(APP_RESOURCE_DIR)/vdec/enc-1-1.265 $(APP_INSTALL_DIR)
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_JPG),y)
+	@cp -rf $(APP_RESOURCE_DIR)/vdec/1080p.jpg $(APP_INSTALL_DIR)
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_MJP),y)
+	@cp -rf $(APP_RESOURCE_DIR)/vdec/1080p.mjp $(APP_INSTALL_DIR)
 endif
