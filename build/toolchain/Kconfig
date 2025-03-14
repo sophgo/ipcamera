@@ -26,6 +26,15 @@ config TOOLCHAIN_GLIBC_64BIT_ARM
 	help
 	  glibc library for arm(arm64)
 
+config TOOLCHAIN_GLIBC_ARM64_V930
+	bool "arm glibc 64bit toolchain 9.3.0"
+	help
+	  glibc library for arm(arm64) version 9.3.0
+
+config TOOLCHAIN_GLIBC_ARM64_V1131
+	bool "arm glibc 64bit toolchain 11.3.1"
+	help
+	  glibc library for arm(arm64) version 11.3.1
 
 endchoice
 
@@ -35,6 +44,8 @@ config CROSS_COMPILE
 	default "riscv64-unknown-linux-musl-" if TOOLCHAIN_MUSL_RISCV64
 	default "arm-linux-gnueabihf-" if TOOLCHAIN_GLIBC_32BIT_ARM
 	default "aarch64-linux-gnu-" if TOOLCHAIN_GLIBC_64BIT_ARM
+	default "aarch64-linux-" if TOOLCHAIN_GLIBC_ARM64_V930
+	default "aarch64-none-linux-gnu-" if TOOLCHAIN_GLIBC_ARM64_V1131
 	help
 	  Cross compile toolchain.
 

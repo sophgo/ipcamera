@@ -34,6 +34,8 @@ const char *sensor_type[SENSOR_BUTT] = {
     [SENSOR_OV_OV5647] = "SENSOR_OV_OV5647",
     [SENSOR_OV_OS04E10] = "SENSOR_OV_OS04E10",
     [SENSOR_OV_OS04E10_SLAVE] = "SENSOR_OV_OS04E10_SLAVE",
+    [SENSOR_OV_OV9282] = "SENSOR_OV_OV9282",
+    [SENSOR_OV_OV9282_SLAVE] = "SENSOR_OV_OV9282_SLAVE",
     [SENSOR_PICO_384] = "SENSOR_PICO_384",
     [SENSOR_PICO_640] = "SENSOR_PICO_640",
     [SENSOR_PIXELPLUS_PR2020] = "SENSOR_PIXELPLUS_PR2020",
@@ -197,7 +199,6 @@ int Load_Param_Vi(const char *file)
     for (i = 0; i< (int)pViIniCfg->u32WorkSnsCnt; i++) {
         memset(tmp_section, 0, sizeof(tmp_section));
         snprintf(tmp_section, sizeof(tmp_section), "vi_cfg_dev%d", i);
-        pViIniCfg->astDevInfo[i].ViDev = ini_getl(tmp_section, "videv", 0, file);
 
         ini_gets(tmp_section, "wdrmode", " ", str_name, PARAM_STRING_NAME_LEN, file);
         ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, wdr_mode, WDR_MODE_MAX, &enum_num);

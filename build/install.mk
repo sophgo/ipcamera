@@ -69,6 +69,9 @@ endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_6IMX307),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_6imx307.ini $(APP_INSTALL_DIR)/param_config.ini
 endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OV9282_DPU),y)
+	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_ov9282_ov9282_dpu.ini $(APP_INSTALL_DIR)/param_config.ini
+endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_AUTOTEST),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_autotest.ini $(APP_INSTALL_DIR)/param_config.ini
 endif
@@ -84,4 +87,18 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_JPG),y)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_MJP),y)
 	@cp -rf $(APP_RESOURCE_DIR)/vdec/1080p.mjp $(APP_INSTALL_DIR)
+endif
+#DPU
+ifeq ($(CONFIG_RESOURCE_INSTALL_DPU_GRIDINFO_L),y)
+	@cp -rf $(APP_RESOURCE_DIR)/dpu/gridinfoL.dat $(APP_INSTALL_DIR)
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_DPU_GRIDINFO_R),y)
+	@cp -rf $(APP_RESOURCE_DIR)/dpu/gridinfoR.dat $(APP_INSTALL_DIR)
+endif
+#FISHEYE
+ifeq ($(CONFIG_RESOURCE_INSTALL_FISHEYE_GRIDINFO_L),y)
+	@cp -rf $(APP_RESOURCE_DIR)/fisheye/L_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat $(APP_INSTALL_DIR)
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_FISHEYE_GRIDINFO_R),y)
+	@cp -rf $(APP_RESOURCE_DIR)/fisheye/R_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat $(APP_INSTALL_DIR)
 endif

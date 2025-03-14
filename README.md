@@ -68,7 +68,7 @@ ubuntu推荐安装20.04或者22.04，并需要安装依赖的工具。
     export TPU_REL=1                    # 如果不需要算法功能这一步可以不执行
     source build/envsetup_soc.sh
     defconfig device_wevb_emmc         # 选择对应的卡板，这里以device_wevb_emmc为例
-    clean_all && build_all              # 编译sdk
+    clean_device_all && build_device_all              # 编译sdk
 ```
 6. 烧录固件
 sdk编译完成后，将在install目录下生成固件，将固件放置在tf卡中，插入板端，重新上电后即可进入升级。关于烧录的具体流程可以参考《裸烧与非裸烧升级使用手册》，地址为：https://developer.sophgo.com/thread/600.html
@@ -78,7 +78,7 @@ sdk编译完成后，将在install目录下生成固件，将固件放置在tf�
 ```bash
     cd ipcamera                         # 进入ipcamera目录
     make cv186ah_gc4653_wevb_defconfig  # 配置需要编译的组件，这里以cv186ah_gc4653_wevb_defconfig为例，文件在configs目录下
-    make ipcamera clean && make ipcamera && make ipcamera install
+    make ipcamera clean_all && make ipcamera && make ipcamera install
 ```
 
 ## 3 程序运行

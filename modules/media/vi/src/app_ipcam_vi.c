@@ -492,6 +492,16 @@ static ISP_SNS_OBJ_S *app_ipcam_SnsObj_Get(SENSOR_TYPE_E enSnsType)
 return &stSnsOv5647_Obj;
 #endif
 
+#ifdef SNS0_OV_OV9282
+    case SENSOR_OV_OV9282:
+    return &stSnsOv9282_Obj;
+#endif
+
+#ifdef SNS0_OV_OV9282_SLAVE
+    case SENSOR_OV_OV9282_SLAVE:
+    return &stSnsOv9282_Obj;
+#endif
+
 #ifdef SNS0_OV_OS04E10
     case SENSOR_OV_OS04E10:
 return &stSnsOs04e10_Obj;
@@ -776,6 +786,8 @@ CVI_S32 app_ipcam_Vi_DevAttr_Get(SENSOR_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDe
     case SENSOR_OV_OS08A20_SLAVE:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OV9282:
+    case SENSOR_OV_OV9282_SLAVE:
         pstViDevAttr->enBayerFormat = BAYER_FORMAT_BG;
         break;
     case SENSOR_PICO_384:
@@ -910,6 +922,8 @@ CVI_S32 app_ipcam_Vi_PipeAttr_Get(SENSOR_TYPE_E enSnsType, VI_PIPE_ATTR_S *pstVi
     case SENSOR_OV_OS08A20_SLAVE:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OV9282:
+    case SENSOR_OV_OV9282_SLAVE:
         break;
     case SENSOR_PICO_384:
     case SENSOR_PICO_640:
@@ -1012,6 +1026,8 @@ CVI_S32 app_ipcam_Vi_ChnAttr_Get(SENSOR_TYPE_E enSnsType, VI_CHN_ATTR_S *pstViCh
     case SENSOR_OV_OS08A20_SLAVE:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OV9282:
+    case SENSOR_OV_OV9282_SLAVE:
         break;
     case SENSOR_PICO_384:
     case SENSOR_PICO_640:
@@ -1095,6 +1111,8 @@ CVI_S32 app_ipcam_Isp_InitAttr_Get(SENSOR_TYPE_E enSnsType, WDR_MODE_E enWDRMode
     case SENSOR_GCORE_GC2053:
     case SENSOR_GCORE_GC2053_1L:
     case SENSOR_OV_OV5647:
+    case SENSOR_OV_OV9282:
+    case SENSOR_OV_OV9282_SLAVE:
     case SENSOR_GCORE_GC2053_SLAVE:
     case SENSOR_GCORE_GC1084:
     case SENSOR_GCORE_GC1084_SLAVE:
@@ -1194,6 +1212,10 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_SMS_SC1346_1L_60:
         pstIspPubAttr->f32FrameRate = 60;
         break;
+    case SENSOR_OV_OV9282:
+    case SENSOR_OV_OV9282_SLAVE:
+        pstIspPubAttr->f32FrameRate = 15;
+        break;
     default:
         pstIspPubAttr->f32FrameRate = 25;
         break;
@@ -1229,6 +1251,8 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_OV_OV5647:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OV9282:
+    case SENSOR_OV_OV9282_SLAVE:
         pstIspPubAttr->enBayer = BAYER_BGGR;
         break;
     case SENSOR_PICO_384:
@@ -1311,6 +1335,8 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     switch (enSnsType) {
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OV9282:
+    case SENSOR_OV_OV9282_SLAVE:
 		pstIspPubAttr->u8LaneNum = 2;
 		break;
 	default:
@@ -1319,9 +1345,11 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
 	}
     switch (enSnsType) {
 	case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OV9282_SLAVE:
 		pstIspPubAttr->u8EnableMaster = 0;
 		break;
 	case SENSOR_OV_OS04E10:
+    case SENSOR_OV_OV9282:
 		pstIspPubAttr->u8EnableMaster = 1;
 		break;
 	default:

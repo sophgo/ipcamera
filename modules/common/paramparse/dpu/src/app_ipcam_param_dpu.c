@@ -162,6 +162,38 @@ int Load_Param_Dpu(const char *file)
             APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][dpu_DpuDepthUnit] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
             Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.enDpuDepthUnit = enum_num;
         }
+
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_enable: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].bEnable);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_send_to: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].SendTo);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_venc_id: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].VencId);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_bColorMap: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].bColorMap);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_vpss_grp_l: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].VpssGrpL);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_vpss_chn_l: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].VpssChnL);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_vpss_grp_r: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].VpssGrpR);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_vpss_chn_r: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].VpssChnR);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_vpss_chn_r: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].VpssChnR);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_width: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.stLeftImageSize.u32Width);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_height: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.stLeftImageSize.u32Height);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_chn_width: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuChnAttr.stImgSize.u32Width);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_chn_height: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuChnAttr.stImgSize.u32Height);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_DispStartPos: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u16DispStartPos);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_Rshift1: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32Rshift1);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_Rshift2: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32Rshift2);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_CaP1: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32CaP1);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_CaP2: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32CaP2);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_UniqRatio: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32UniqRatio);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_DispShift: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32DispShift);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_CensusShift: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32CensusShift);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_FxBaseline: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32FxBaseline);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_FgsMaxCount: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32FgsMaxCount);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_FgsMaxT: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.u32FgsMaxT);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_bIsBtcostOut: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.bIsBtcostOut);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_bNeedSrcFrame: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.bNeedSrcFrame);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_SrcFrameRate: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.stFrameRate.s32SrcFrameRate);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_DstFrameRate: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].stDpuGrpAttr.stFrameRate.s32DstFrameRate);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_gdc_en: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].bGdcGrid);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_gdc_config_l: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].GdcCfgL);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[dpugrp%d]dpu_gdc_config_r: %d\n", grp_idx, Dpu->stDpuGrpCfg[grp_idx].GdcCfgR);
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading Dpu config ------------------> done \n\n");
