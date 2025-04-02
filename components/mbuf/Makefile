@@ -15,10 +15,7 @@ INCS		+= -I$(CURDIR)/include
 #
 LIB_DIR		?= lib
 TARGET_DIR	:= $(CURDIR)/$(LIB_DIR)
-TARGET_A	:= $(TARGET_DIR)/libcvi_comp_mbuf.a
-TARGET_SO	:= $(TARGET_DIR)/libcvi_comp_mbuf.so
-# log level.
-#CFLAGS		+= -DBUILT_LOG_LEVEL=CVI_LOG_DEBUG
-#CXXFLAGS	+= -DBUILT_LOG_LEVEL=CVI_LOG_DEBUG
-#
+TARGET_A	:= $(TARGET_DIR)/libcomp_mbuf.a
+TARGET_SO	:= $(TARGET_DIR)/libcomp_mbuf.so
+
 include $(COMMON_DIR)/common_lib.mk

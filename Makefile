@@ -4,7 +4,6 @@ TARGET_OUT_DIR := $(CURDIR)/out
 TOPTARGETS := all clean install clean_all
 TOPSUBDIRS := ipcamera
 
-
 export SOC_SEGMENT := $(shell echo $(CHIP_SEGMENT) | tr a-z A-Z)
 export SOC_SEGMENT_LOWER := $(shell echo $(SOC_SEGMENT) | tr A-Z a-z)
 

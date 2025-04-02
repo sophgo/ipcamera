@@ -7,6 +7,11 @@
 # *
 #
 include $(COMMON_DIR)/base.mk
+
+TOP_CONFIG_FILE ?=
+#
+include $(TOP_CONFIG_FILE)
+#
 # assumptions
 # - SEXT is defined (c or cpp)
 # - SDIR is defined
@@ -29,6 +34,7 @@ LDFLAGS_SO	:= -shared
 CFLAGS		+= $(INCS)
 CXXFLAGS	+= $(INCS)
 #
+
 .PHONY : all clean clean_all install $(TARGET_DIR)
 
 all : $(TARGET_A) $(TARGET_SO) $(TARGET)
@@ -47,6 +53,7 @@ $(TARGET_DIR) :
 	$(Q)mkdir -p $@
 	$(Q)$(CC) -v 2> $@/Target:"$(TARGET_MACHINE)".txt
 
+
 $(TARGET_A) : $(OBJS) | $(TARGET_DIR)
 	$(Q)$(AR) $(ARFLAGS) $@ $^
 	$(Q)echo $(YELLOW)[LINK]$(END)[$(notdir $(AR))] $(notdir $(TARGET_A))
@@ -56,8 +63,13 @@ $(TARGET_SO) : $(OBJS) | $(TARGET_DIR)
 	$(Q)echo $(GREEN)[LINK]$(END)[$(notdir $(LD))] $(notdir $(TARGET_SO))
 
 $(TARGET) : $(OBJS) | $(TARGET_DIR)
-	$(Q)$(CC) $(ELFFLAGS) -o $@.satic $^ -Wl,-Bstatic $(LIBS) -Wl,-Bdynamic $(DYN_LIBS)
+ifeq ($(CONFIG_STATIC), y)
+	$(Q)$(CC) $(ELFFLAGS) -o $@ $^ -Wl,-Bstatic $(LIBS) -Wl,-Bdynamic $(DYN_LIBS)
+else
 	$(Q)$(CC) $(ELFFLAGS) -o $@ $^ $(LIBS) $(DYN_LIBS)
+endif
+	$(Q)$(STRIP) $@
+
 clean:
 	rm -rf $(TARGET_DIR)
 
@@ -71,4 +83,6 @@ $(INSTALL_PATH)/lib :
 	$(Q)mkdir -p $@
 
 install: $(TARGET_A) $(TARGET_SO) | $(INSTALL_PATH)/lib
-	$(Q)cp $^ $(INSTALL_PATH)/lib
+	$(Q)if [ -n "$(strip $^)" ]; then \
+        cp $^ $(INSTALL_PATH)/lib; \
+    fi

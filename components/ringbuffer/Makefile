@@ -7,7 +7,7 @@
 COMMON_DIR ?= $(CURDIR)/../common
 ##
 SDIR		:= $(CURDIR)/src
-SRCS_C		:= $(SDIR)/cvi_rbuf.c
+SRCS_C		:= $(SDIR)/rbuf.c
 #
 ##
 INCS		+= -I$(COMMON_DIR)/
@@ -15,8 +15,8 @@ INCS		+= -I$(CURDIR)/include
 #
 LIB_DIR		?= lib
 TARGET_DIR	:= $(CURDIR)/$(LIB_DIR)
-TARGET_A	:= $(TARGET_DIR)/libcvi_comp_ringbuffer.a
-TARGET_SO	:= $(TARGET_DIR)/libcvi_comp_ringbuffer.so
+TARGET_A	:= $(TARGET_DIR)/libcomp_ringbuffer.a
+TARGET_SO	:= $(TARGET_DIR)/libcomp_ringbuffer.so
 # log level.
 #CFLAGS		+= -DBUILT_LOG_LEVEL=CVI_LOG_DEBUG
 #CXXFLAGS	+= -DBUILT_LOG_LEVEL=CVI_LOG_DEBUG

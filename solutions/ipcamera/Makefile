@@ -52,12 +52,14 @@ $(TARGET) : $(OBJS)
 
 clean:
 	$(MAKE) -C $(SRCTREE)/modules clean
+	$(MAKE) -C $(SRCTREE)/components clean
 	$(Q)rm -rf $(TARGET)
 	$(Q)rm -rf $(TARGET_OUT_DIR)
 	$(Q)rm -rf $(SRCTREE)/install
 
 clean_all: clean
 	$(MAKE) -C $(SRCTREE)/modules clean_all
+	$(MAKE) -C $(SRCTREE)/components clean_all
 	$(Q)if [ -d "$(SDIR)" ]; then \
 		echo "rm -rf $(ODIR)"; \
 		rm -rf $(ODIR); \

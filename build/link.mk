@@ -152,12 +152,12 @@ LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -lvo -lisp -lraw_dump -
 LIBS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -lnanomsg
 
 # RTSP
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_RTSP_DIR)/lib -lcvi_comp_rtsp
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcvi_comp_ringbuffer
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_OSAL_DIR)/lib -lcvi_comp_osal
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_RTSP_DIR)/lib -lcomp_rtsp
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_OSAL_DIR)/lib -lcomp_osal
 
 #MBUF
-LIBS-$(CONFIG_MODULE_MBUF) += -L$(CVI_MBUF_DIR)/lib -lcvi_comp_mbuf
+LIBS-$(CONFIG_MODULE_MBUF) += -L$(CVI_MBUF_DIR)/lib -lcomp_mbuf
 
 #RECORD
 LIBS-$(CONFIG_MODULE_RECORD) += -L$(FFMPEG_LIB_DIR) -lavformat -lavcodec -lavutil -lswresample
