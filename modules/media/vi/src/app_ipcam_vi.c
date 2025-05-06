@@ -349,15 +349,15 @@ static CVI_S32 app_ipcam_ISP_ProcInfo_Open(CVI_U32 ProcLogLev)
         ISP_CTRL_PARAM_S setParam;
         memset(&setParam, 0, sizeof(ISP_CTRL_PARAM_S));
 
-        setParam.u32ProcLevel = ProcLogLev;	// proc printf level (level =0,disable; =3,log max)
-        setParam.u32ProcParam = 15;		// isp info frequency of collection (unit:frame; rang:(0,0xffffffff])
-        setParam.u32AEStatIntvl = 1;	// AE info update frequency (unit:frame; rang:(0,0xffffffff])
-        setParam.u32AWBStatIntvl = 6;	// AW info update frequency (unit:frame; rang:(0,0xffffffff])
-        setParam.u32AFStatIntvl = 1;	// AF info update frequency (unit:frame; rang:(0,0xffffffff])
-        setParam.u32UpdatePos = 0;		// Now, only support before sensor cfg; default 0
-        setParam.u32IntTimeOut = 0;		// interrupt timeout; unit:ms; not used now
-        setParam.u32PwmNumber = 0;		// PWM Num ID; Not used now
-        setParam.u32PortIntDelay = 0;	// Port interrupt delay time
+        setParam.u32ProcLevel = ProcLogLev;    // proc printf level (level =0,disable; =3,log max)
+        setParam.u32ProcParam = 15;        // isp info frequency of collection (unit:frame; rang:(0,0xffffffff])
+        setParam.u32AEStatIntvl = 1;    // AE info update frequency (unit:frame; rang:(0,0xffffffff])
+        setParam.u32AWBStatIntvl = 6;    // AW info update frequency (unit:frame; rang:(0,0xffffffff])
+        setParam.u32AFStatIntvl = 1;    // AF info update frequency (unit:frame; rang:(0,0xffffffff])
+        setParam.u32UpdatePos = 0;        // Now, only support before sensor cfg; default 0
+        setParam.u32IntTimeOut = 0;        // interrupt timeout; unit:ms; not used now
+        setParam.u32PwmNumber = 0;        // PWM Num ID; Not used now
+        setParam.u32PortIntDelay = 0;    // Port interrupt delay time
 
         s32Ret = CVI_ISP_SetCtrlParam(0, &setParam);
         if (s32Ret != CVI_SUCCESS) {
@@ -512,6 +512,11 @@ return &stSnsOs04e10_Obj;
 return &stSnsOs04e10_Obj;
 #endif
 
+#ifdef SNS0_OV_OS05A20
+    case SENSOR_OV_OS05A20:
+    return &stSnsOs05a20_Obj;
+#endif
+
 #ifdef SNS0_OV_OS08A20
     case SENSOR_OV_OS08A20:
         return &stSnsOs08a20_Obj;
@@ -535,6 +540,14 @@ return &stSnsOs04e10_Obj;
 #ifdef SNS0_PIXELPLUS_PR2100
     case SENSOR_PIXELPLUS_PR2100:
         return &stSnsPR2100_Obj;
+#endif
+#ifdef SNS0_SMS_SC1330
+    case SENSOR_SMS_SC1330:
+        return &stSnsSC1330_Obj;
+#endif
+#ifdef SNS0_SMS_SC1330_SLAVE
+    case SENSOR_SMS_SC1330_SLAVE:
+        return &stSnsSC1330_Obj;
 #endif
 #ifdef SNS0_SMS_SC1346_1L
     case SENSOR_SMS_SC1346_1L:
@@ -608,6 +621,14 @@ return &stSnsOs04e10_Obj;
 #ifdef SNS0_SMS_SC401AI
     case SENSOR_SMS_SC401AI:
         return &stSnsSC401AI_Obj;
+#endif
+#ifdef SNS0_SMS_SC438AI
+    case SENSOR_SMS_SC438AI:
+        return &stSnsSC438AI_Obj;
+#endif
+#ifdef SNS0_SMS_SC438AI_SLAVE
+    case SENSOR_SMS_SC438AI_SLAVE:
+        return &stSnsSC438AI_Obj;
 #endif
 
 #ifdef SNS0_SMS_SC501AI_2L
@@ -763,6 +784,8 @@ CVI_S32 app_ipcam_Vi_DevAttr_Get(SENSOR_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDe
     case SENSOR_GCORE_GC4023:
     case SENSOR_GCORE_GC2093_SLAVE:
     case SENSOR_OV_OV5647:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
         pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
         break;
     case SENSOR_GCORE_GC1084:
@@ -786,6 +809,7 @@ CVI_S32 app_ipcam_Vi_DevAttr_Get(SENSOR_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDe
     case SENSOR_OV_OS08A20_SLAVE:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OS05A20:
     case SENSOR_OV_OV9282:
     case SENSOR_OV_OV9282_SLAVE:
         pstViDevAttr->enBayerFormat = BAYER_FORMAT_BG;
@@ -803,6 +827,8 @@ CVI_S32 app_ipcam_Vi_DevAttr_Get(SENSOR_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDe
         pstViDevAttr->enDataSeq = VI_DATA_SEQ_UYVY;
         pstViDevAttr->enInputDataType = VI_DATA_TYPE_YUV;
         break;
+    case SENSOR_SMS_SC1330:
+    case SENSOR_SMS_SC1330_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -818,7 +844,7 @@ CVI_S32 app_ipcam_Vi_DevAttr_Get(SENSOR_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDe
     case SENSOR_SMS_SC2336P_1L:
     case SENSOR_SMS_SC3335:
     case SENSOR_SMS_SC3335_SLAVE:
-	case SENSOR_SMS_SC3336:
+    case SENSOR_SMS_SC3336:
     case SENSOR_SMS_SC3336_1L:
     case SENSOR_SMS_SC3336_1L_SLAVE:
     case SENSOR_SMS_SC401AI:
@@ -922,6 +948,7 @@ CVI_S32 app_ipcam_Vi_PipeAttr_Get(SENSOR_TYPE_E enSnsType, VI_PIPE_ATTR_S *pstVi
     case SENSOR_OV_OS08A20_SLAVE:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OS05A20:
     case SENSOR_OV_OV9282:
     case SENSOR_OV_OV9282_SLAVE:
         break;
@@ -931,6 +958,8 @@ CVI_S32 app_ipcam_Vi_PipeAttr_Get(SENSOR_TYPE_E enSnsType, VI_PIPE_ATTR_S *pstVi
     case SENSOR_PIXELPLUS_PR2100:
         pstViPipeAttr->bYuvBypassPath = CVI_TRUE;
         break;
+    case SENSOR_SMS_SC1330:
+    case SENSOR_SMS_SC1330_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -946,10 +975,12 @@ CVI_S32 app_ipcam_Vi_PipeAttr_Get(SENSOR_TYPE_E enSnsType, VI_PIPE_ATTR_S *pstVi
     case SENSOR_SMS_SC2336P_1L:
     case SENSOR_SMS_SC3335:
     case SENSOR_SMS_SC3335_SLAVE:
-	case SENSOR_SMS_SC3336:
+    case SENSOR_SMS_SC3336:
     case SENSOR_SMS_SC3336_1L:
     case SENSOR_SMS_SC3336_1L_SLAVE:
     case SENSOR_SMS_SC401AI:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
     case SENSOR_SMS_SC501AI_2L:
     case SENSOR_SMS_SC4210:
     case SENSOR_SMS_SC8238:
@@ -1026,6 +1057,7 @@ CVI_S32 app_ipcam_Vi_ChnAttr_Get(SENSOR_TYPE_E enSnsType, VI_CHN_ATTR_S *pstViCh
     case SENSOR_OV_OS08A20_SLAVE:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OS05A20:
     case SENSOR_OV_OV9282:
     case SENSOR_OV_OV9282_SLAVE:
         break;
@@ -1035,6 +1067,8 @@ CVI_S32 app_ipcam_Vi_ChnAttr_Get(SENSOR_TYPE_E enSnsType, VI_CHN_ATTR_S *pstViCh
     case SENSOR_PIXELPLUS_PR2100:
         pstViChnAttr->enPixelFormat = PIXEL_FORMAT_YUV_PLANAR_422;
         break;
+    case SENSOR_SMS_SC1330:
+    case SENSOR_SMS_SC1330_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -1050,10 +1084,12 @@ CVI_S32 app_ipcam_Vi_ChnAttr_Get(SENSOR_TYPE_E enSnsType, VI_CHN_ATTR_S *pstViCh
     case SENSOR_SMS_SC2336P_1L:
     case SENSOR_SMS_SC3335:
     case SENSOR_SMS_SC3335_SLAVE:
-	case SENSOR_SMS_SC3336:
+    case SENSOR_SMS_SC3336:
     case SENSOR_SMS_SC3336_1L:
     case SENSOR_SMS_SC3336_1L_SLAVE:
     case SENSOR_SMS_SC401AI:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
     case SENSOR_SMS_SC501AI_2L:
     case SENSOR_SMS_SC4210:
     case SENSOR_SMS_SC8238:
@@ -1110,6 +1146,7 @@ CVI_S32 app_ipcam_Isp_InitAttr_Get(SENSOR_TYPE_E enSnsType, WDR_MODE_E enWDRMode
     case SENSOR_GCORE_GC1054:
     case SENSOR_GCORE_GC2053:
     case SENSOR_GCORE_GC2053_1L:
+    case SENSOR_OV_OS05A20:
     case SENSOR_OV_OV5647:
     case SENSOR_OV_OV9282:
     case SENSOR_OV_OV9282_SLAVE:
@@ -1138,6 +1175,8 @@ CVI_S32 app_ipcam_Isp_InitAttr_Get(SENSOR_TYPE_E enSnsType, WDR_MODE_E enWDRMode
     case SENSOR_PICO_640:
     case SENSOR_PIXELPLUS_PR2020:
     case SENSOR_PIXELPLUS_PR2100:
+    case SENSOR_SMS_SC1330:
+    case SENSOR_SMS_SC1330_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -1153,10 +1192,12 @@ CVI_S32 app_ipcam_Isp_InitAttr_Get(SENSOR_TYPE_E enSnsType, WDR_MODE_E enWDRMode
     case SENSOR_SMS_SC2336P_1L:
     case SENSOR_SMS_SC3335:
     case SENSOR_SMS_SC3335_SLAVE:
-	case SENSOR_SMS_SC3336:
+    case SENSOR_SMS_SC3336:
     case SENSOR_SMS_SC3336_1L:
     case SENSOR_SMS_SC3336_1L_SLAVE:
     case SENSOR_SMS_SC401AI:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
     case SENSOR_SMS_SC501AI_2L:
     case SENSOR_SMS_SC4210:
     case SENSOR_SMS_SC8238:
@@ -1212,6 +1253,13 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_SMS_SC1346_1L_60:
         pstIspPubAttr->f32FrameRate = 60;
         break;
+    case SENSOR_SMS_SC1330:
+    case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
+        pstIspPubAttr->f32FrameRate = 30;
+        break;
+    case SENSOR_OV_OS05A20:
     case SENSOR_OV_OV9282:
     case SENSOR_OV_OV9282_SLAVE:
         pstIspPubAttr->f32FrameRate = 15;
@@ -1232,6 +1280,8 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_GCORE_GC2093:
     case SENSOR_GCORE_GC4023:
     case SENSOR_GCORE_GC2093_SLAVE:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
         pstIspPubAttr->enBayer = BAYER_RGGB;
         break;
     case SENSOR_GCORE_GC1084:
@@ -1251,6 +1301,7 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_OV_OV5647:
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OS05A20:
     case SENSOR_OV_OV9282:
     case SENSOR_OV_OV9282_SLAVE:
         pstIspPubAttr->enBayer = BAYER_BGGR;
@@ -1261,6 +1312,8 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_PIXELPLUS_PR2100:
         pstIspPubAttr->enBayer = BAYER_BGGR;
         break;
+    case SENSOR_SMS_SC1330:
+    case SENSOR_SMS_SC1330_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -1276,7 +1329,7 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_SMS_SC2336P_1L:
     case SENSOR_SMS_SC3335:
     case SENSOR_SMS_SC3335_SLAVE:
-	case SENSOR_SMS_SC3336:
+    case SENSOR_SMS_SC3336:
     case SENSOR_SMS_SC3336_1L:
     case SENSOR_SMS_SC3336_1L_SLAVE:
     case SENSOR_SMS_SC401AI:
@@ -1335,27 +1388,34 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     switch (enSnsType) {
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OS05A20:
     case SENSOR_OV_OV9282:
     case SENSOR_OV_OV9282_SLAVE:
-		pstIspPubAttr->u8LaneNum = 2;
-		break;
-	default:
-		pstIspPubAttr->u8LaneNum = 4;
-		break;
-	}
+    case SENSOR_SMS_SC1330:
+    case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
+        pstIspPubAttr->u8LaneNum = 2;
+        break;
+    default:
+        pstIspPubAttr->u8LaneNum = 4;
+        break;
+    }
     switch (enSnsType) {
-	case SENSOR_OV_OS04E10_SLAVE:
+    case SENSOR_OV_OS04E10_SLAVE:
     case SENSOR_OV_OV9282_SLAVE:
-		pstIspPubAttr->u8EnableMaster = 0;
-		break;
-	case SENSOR_OV_OS04E10:
+    case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC438AI_SLAVE:
+        pstIspPubAttr->u8EnableMaster = 0;
+        break;
+    case SENSOR_OV_OS04E10:
     case SENSOR_OV_OV9282:
-		pstIspPubAttr->u8EnableMaster = 1;
-		break;
-	default:
-		pstIspPubAttr->u8EnableMaster = 2;
-		break;
-	}
+        pstIspPubAttr->u8EnableMaster = 1;
+        break;
+    default:
+        pstIspPubAttr->u8EnableMaster = 2;
+        break;
+    }
     return s32Ret;
 }
 
@@ -1516,8 +1576,8 @@ int app_ipcam_Vi_Mipi_Start(void)
         }
         SNS_RST_CONFIG pstSnsrstInfo;
         pstSnsrstInfo.devno = pstSnsCfg->MipiDev;
-		pstSnsrstInfo.gpio_pin = pstSnsCfg->s32RstPin;
-		pstSnsrstInfo.gpio_active = pstSnsCfg->s32RstActive;
+        pstSnsrstInfo.gpio_pin = pstSnsCfg->s32RstPin;
+        pstSnsrstInfo.gpio_active = pstSnsCfg->s32RstActive;
         s32Ret = CVI_MIPI_SetSensorReset(&pstSnsrstInfo, 1);
         s32Ret = CVI_MIPI_SetMipiReset(ViPipe, 1);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_MIPI_SetMipiReset(%d) failed!\n", ViPipe);
@@ -1526,16 +1586,16 @@ int app_ipcam_Vi_Mipi_Start(void)
             CVI_MIPI_SetClkEdge(ViPipe, 0);
         }
         if (combo_dev_attr.input_mode == INPUT_MODE_MIPI) {
-			if (pstSnsCfg->bHsettlen) {
-				combo_dev_attr.mipi_attr.dphy.enable = 1;
-				combo_dev_attr.mipi_attr.dphy.hs_settle = pstSnsCfg->u8Hsettle;
-			}
-		}
-		if (combo_dev_attr.input_mode == INPUT_MODE_MIPI ||
-			combo_dev_attr.input_mode == INPUT_MODE_SUBLVDS ||
-			combo_dev_attr.input_mode == INPUT_MODE_HISPI) {
-				combo_dev_attr.cif_mode = pstSnsCfg->s32ModeId;
-		}
+            if (pstSnsCfg->bHsettlen) {
+                combo_dev_attr.mipi_attr.dphy.enable = 1;
+                combo_dev_attr.mipi_attr.dphy.hs_settle = pstSnsCfg->u8Hsettle;
+            }
+        }
+        if (combo_dev_attr.input_mode == INPUT_MODE_MIPI ||
+            combo_dev_attr.input_mode == INPUT_MODE_SUBLVDS ||
+            combo_dev_attr.input_mode == INPUT_MODE_HISPI) {
+                combo_dev_attr.cif_mode = pstSnsCfg->s32ModeId;
+        }
         s32Ret = CVI_MIPI_SetMipiAttr(ViPipe, (CVI_VOID*)&combo_dev_attr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_MIPI_SetMipiAttr(%d) failed!\n", ViPipe);
         s32Ret = CVI_MIPI_SetSensorClock(ViPipe, 1);
@@ -1575,7 +1635,7 @@ int app_ipcam_Vi_Dev_Start(void)
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetDevAttr(%d) failed!\n", ViDev);
         VI_DEV_BIND_PIPE_S stViDevBindAttr;
         stViDevBindAttr.PipeId[0] = (CVI_S32)pstSnsCfg->MipiDev;
-	    stViDevBindAttr.u32Num = 1;
+        stViDevBindAttr.u32Num = 1;
         s32Ret = CVI_VI_SetDevBindAttr(ViDev, &stViDevBindAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetDevBindAttr(%d) failed!\n", ViDev);
         s32Ret = CVI_VI_EnableDev(ViDev);

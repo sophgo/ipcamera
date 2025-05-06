@@ -72,6 +72,12 @@ endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OV9282_DPU),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_ov9282_ov9282_dpu.ini $(APP_INSTALL_DIR)/param_config.ini
 endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OV9282_4OS05A20),y)
+	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_2ov9282_4os05a20.ini $(APP_INSTALL_DIR)/param_config.ini
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_2SC438AI_3SC1330),y)
+	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_2sc438ai_3sc1330.ini $(APP_INSTALL_DIR)/param_config.ini
+endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV186AH_WEVB_AUTOTEST),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv186ah_wevb_autotest.ini $(APP_INSTALL_DIR)/param_config.ini
 endif

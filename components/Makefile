@@ -17,10 +17,6 @@ else ifeq ($(SDK_VER), musl_riscv64)
 endif
 
 TOPTARGETS := all
-module-$(CONFIG_MODULE_RTSP)		+= osal
-module-$(CONFIG_MODULE_RTSP)		+= rtsp
-module-$(CONFIG_MODULE_RTSP)		+= ringbuffer
-module-$(CONFIG_MODULE_RECORD)		+= ringbuffer
 module-$(CONFIG_MODULE_MBUF)        += mbuf
 
 SUBDIRS += $(module-y)
@@ -31,15 +27,9 @@ $(SUBDIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 clean :
-	$(MAKE) -C osal clean
-	$(MAKE) -C rtsp clean
-	$(MAKE) -C ringbuffer clean
 	$(MAKE) -C mbuf clean
 
 clean_all : clean
-	$(MAKE) -C osal clean_all
-	$(MAKE) -C rtsp clean_all
-	$(MAKE) -C ringbuffer clean_all
 	$(MAKE) -C mbuf clean_all
 
 install :

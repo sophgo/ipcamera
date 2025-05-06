@@ -16,7 +16,7 @@
 
 /* default builtin log*/
 #ifndef BUILT_LOG_LEVEL
-#define BUILT_LOG_LEVEL CVI_LOG_ERROR
+#define BUILT_LOG_LEVEL CVI_LOG_INFO
 #endif
 
 #define CVI_LOG(log_level, fmt, ...)                                                                                 \

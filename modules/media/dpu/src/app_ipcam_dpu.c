@@ -212,14 +212,13 @@ static void app_ipcam_Dpu_Color_Map_DeInit()
     CVI_IVE_DestroyHandle(g_handle);
 }
 
-CVI_VOID app_ipcam_Dpu_Color_Map(VIDEO_FRAME_INFO_S *stDpuFrame)
+CVI_VOID app_ipcam_Dpu_Color_Map(VIDEO_FRAME_INFO_S *stDpuFrame, VPSS_GRP VpssGrp)
 {
     if (stDpuFrame->stVFrame.enPixelFormat != PIXEL_FORMAT_YUV_PLANAR_420) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR,"only PIXEL_FORMAT_YUV_PLANAR_420 can be colored");
         return;
     }
-	CVI_U32 VpssGrp = 2;
-	CVI_U32 VpssChn = 0;
+
 	VIDEO_FRAME_INFO_S stFrame2Ive = {0};
 	IVE_SRC_IMAGE_S iveInput, src[1], src_dpu;
 	IVE_DST_IMAGE_S g_output_1, g_output_2, g_output_3;
@@ -235,11 +234,11 @@ CVI_VOID app_ipcam_Dpu_Color_Map(VIDEO_FRAME_INFO_S *stDpuFrame)
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "[color map]CVI_VPSS_SendFrame fail with %x\n", s32Ret);
     }
 
-    s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stFrameVpssGet, 3000);
+    s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, 0, &stFrameVpssGet, 3000);
     if (s32Ret != CVI_SUCCESS) {
         APP_PROF_LOG_PRINT(
             LEVEL_ERROR, "[color map]CVI_VPSS_GetChnFrame grp%d chn%d failed with %#x\n",
-            VpssGrp, VpssChn, s32Ret);
+            VpssGrp, 0, s32Ret);
     }
 
     //Do VIDEO_FRAME_INFO_S to IVE_SRC_IMAGE_S for vpss img
@@ -280,7 +279,7 @@ CVI_VOID app_ipcam_Dpu_Color_Map(VIDEO_FRAME_INFO_S *stDpuFrame)
 	g_output_3.u32Height = stFrameVpssGet.stVFrame.u32Height;
 	CVI_IVE_Map(g_handle, &src_dpu, &dstTblY, &g_output_3, &stMapCtrl, 1);
 
-	CVI_VPSS_ReleaseChnFrame(VpssGrp,  VpssChn, &stFrameVpssGet);
+	CVI_VPSS_ReleaseChnFrame(VpssGrp,  0, &stFrameVpssGet);
 }
 
 static CVI_S32 DPU_GDC_COMM_PrepareFrame(SIZE_S *stSize, PIXEL_FORMAT_E enPixelFormat, VIDEO_FRAME_INFO_S *pstVideoFrame)
@@ -405,13 +404,46 @@ static CVI_VOID *Thread_DPU_PROC(CVI_VOID *arg)
     VIDEO_FRAME_INFO_S stInVideoFrame_L;
     VIDEO_FRAME_INFO_S stInVideoFrame_R;
     VIDEO_FRAME_INFO_S stOutVideoFrame;
-    CVI_U32 timeout = 1000;
+    CVI_U32 timeout = 3000;
     char file[64] = {0};
     struct timeval tv1;
     VB_BLK blk_r_out;
+    VPSS_GRP vpss_grp = -1;
     APP_PARAM_GDC_CFG_T *stGdcCfg = app_ipcam_Gdc_Param_Get();
-    if (GrpCfg.bColorMap) app_ipcam_Dpu_Color_Map_Init();
+
     if (GrpCfg.bGdcGrid)  CVI_GDC_Init();
+
+    if (GrpCfg.bColorMap) {
+        app_ipcam_Dpu_Color_Map_Init();
+        VPSS_GRP_ATTR_S stVpssGrpAttr = {0};
+		VPSS_CHN_ATTR_S stVpssChnAttr = {0};
+
+		stVpssGrpAttr.stFrameRate.s32SrcFrameRate    = -1;
+		stVpssGrpAttr.stFrameRate.s32DstFrameRate    = -1;
+		stVpssGrpAttr.enPixelFormat		     = PIXEL_FORMAT_YUV_PLANAR_420;
+		stVpssGrpAttr.u32MaxW			     = GrpCfg.stDpuChnAttr.stImgSize.u32Width;
+		stVpssGrpAttr.u32MaxH			     = GrpCfg.stDpuChnAttr.stImgSize.u32Height;
+
+		stVpssChnAttr.u32Width		    = GrpCfg.stDpuChnAttr.stImgSize.u32Width / 2;
+		stVpssChnAttr.u32Height		    = GrpCfg.stDpuChnAttr.stImgSize.u32Height / 2;
+		stVpssChnAttr.enPixelFormat		    = PIXEL_FORMAT_YUV_PLANAR_420;
+		stVpssChnAttr.stFrameRate.s32SrcFrameRate = -1;
+		stVpssChnAttr.stFrameRate.s32DstFrameRate = -1;
+		stVpssChnAttr.u32Depth			= 1;
+		stVpssChnAttr.bMirror			= CVI_FALSE;
+		stVpssChnAttr.bFlip				= CVI_FALSE;
+		stVpssChnAttr.stAspectRatio.enMode		= ASPECT_RATIO_NONE;
+		stVpssChnAttr.stNormalize.bEnable		= CVI_FALSE;
+        vpss_grp = CVI_VPSS_GetAvailableGrp();
+		if (vpss_grp == -1) {
+			printf("can't find vpss grp\n");
+			return NULL;
+		}
+        CVI_VPSS_CreateGrp(vpss_grp, &stVpssGrpAttr);
+		CVI_VPSS_SetChnAttr(vpss_grp, 0, &stVpssChnAttr);
+		CVI_VPSS_EnableChn(vpss_grp, 0);
+		CVI_VPSS_StartGrp(vpss_grp);
+    }
 
     while (Dpu_Flag) {
         count++;
@@ -464,10 +496,10 @@ static CVI_VOID *Thread_DPU_PROC(CVI_VOID *arg)
             }
         }
 
-        CVI_VPSS_ReleaseChnFrame(1, 1, &stInVideoFrame_R);
-        CVI_VPSS_ReleaseChnFrame(0, 1, &stInVideoFrame_L);
+        CVI_VPSS_ReleaseChnFrame(GrpCfg.VpssGrpR, GrpCfg.VpssChnR, &stInVideoFrame_R);
+        CVI_VPSS_ReleaseChnFrame(GrpCfg.VpssGrpL, GrpCfg.VpssGrpL, &stInVideoFrame_L);
 
-        if (GrpCfg.bColorMap) app_ipcam_Dpu_Color_Map(&stOutVideoFrame);
+        if (GrpCfg.bColorMap) app_ipcam_Dpu_Color_Map(&stOutVideoFrame, vpss_grp);
 
         if (GrpCfg.SendTo == APP_DPU_DATA_SEND_TO_FILE && count % 10 == 0) {
             gettimeofday(&tv1, NULL);
@@ -500,7 +532,12 @@ static CVI_VOID *Thread_DPU_PROC(CVI_VOID *arg)
             CVI_DPU_ReleaseFrame(GrpCfg.DpuGrp, 1, &stOutBtVideoFrame);
         }
     }
-    if (GrpCfg.bColorMap) app_ipcam_Dpu_Color_Map_DeInit();
+    if (GrpCfg.bColorMap) {
+		CVI_VPSS_StopGrp(vpss_grp);
+		CVI_VPSS_DisableChn(vpss_grp, 0);
+		CVI_VPSS_DestroyGrp(vpss_grp);
+        app_ipcam_Dpu_Color_Map_DeInit();
+    }
     if (GrpCfg.bGdcGrid) CVI_GDC_DeInit();
     return NULL;;
 }

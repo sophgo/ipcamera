@@ -200,6 +200,16 @@ config RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OV9282_DPU
 	help
 		"support install fbm cv186ah_wevb_ov9282_ov9282_dpu.ini"
 
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OV9282_4OS05A20
+	bool "install cv186ah_wevb_2ov9282_4os05a20"
+	help
+		"support install fbm cv186ah_wevb_2ov9282_4os05a20.ini"
+
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_2SC438AI_3SC1330
+	bool "install cv186ah_wevb_2sc438ai_3sc1330"
+	help
+		"support install fbm cv186ah_wevb_2sc438ai_3sc1330.ini"
+
 config RESOURCE_INSTALL_FBM_CV186AH_WEVB_AUTOTEST
 	bool "install cv186ah_wevb_autotest"
 	help
