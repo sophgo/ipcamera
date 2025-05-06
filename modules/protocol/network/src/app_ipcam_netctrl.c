@@ -174,6 +174,7 @@ static int s_compensationEnable = 0;
 static int s_compensation = 50;
 static int s_suppressionEnabled = 0;
 static int s_suppression = 50;
+static int s_sharpenn = 50;
 static int s_whiteBalance = 0;
 static int s_redGain = 50;
 static int s_blueGain = 50;
@@ -187,7 +188,6 @@ static int s_frequency = 0;
 static int s_antiflash = 0;
 static int s_irCut = 0;
 static int s_keepColor = 0;
-static int s_ds = 0;
 
 APP_VENC_ATTR_CHANGE_S stResetVencFlag[APP_VENC_CHN_NUM];
 /**************************************************************************
@@ -196,7 +196,7 @@ APP_VENC_ATTR_CHANGE_S stResetVencFlag[APP_VENC_CHN_NUM];
 static int IcgiRegister(const char *cmd, const char *val, void *cb)
 {
     printf("enter: %s ", __func__);
-    
+
     int ret = 0;
     CGI_CMD_S stCgiCmd;
 
@@ -276,7 +276,7 @@ static int NetString2Int(const char *val)
 /*
 *   preview page start
 */
-static int app_ipcam_LocalIP_Get(const char* adapterName, char* ipAddr) 
+static int app_ipcam_LocalIP_Get(const char* adapterName, char* ipAddr)
 {
     struct ifreq ifr;
     struct sockaddr addr;
@@ -304,21 +304,21 @@ static int app_ipcam_LocalIP_Get(const char* adapterName, char* ipAddr)
     return 0;
 }
 
-static int GetWsAddrCallBack(void* param, const char* cmd, const char* val) 
+static int GetWsAddrCallBack(void* param, const char* cmd, const char* val)
 {
     printf("enter: %s [%s|%s]\n", __func__, cmd, val);
 
     char ip[64] = "0.0.0.0";
 
     //FIXME: Only one websocket connection is supported.
-    if (g_wsi == NULL) {
+    // if (g_wsi == NULL) {
         if (app_ipcam_LocalIP_Get("eth0", ip) != 0) {
             if (app_ipcam_LocalIP_Get("wlan0", ip) != 0)
                 printf("Error: [%s][%d] getlocalIP [eth0/wlan0] failed!\n",
                     __func__, __LINE__);
         }
         printf("getlocalIP [eth0/wlan0] %s\n", ip);
-    }
+    // }
 
     CVI_NET_AddCgiResponse(param, "ws://%s:8000", ip);
 
@@ -413,7 +413,6 @@ static int ImagePage_Get_Sharpen(void)
 {
     int s32Ret = CVI_SUCCESS;
 
-    int value = 0;
     ISP_SHARPEN_ATTR_S stDRCAttr = {0};
     APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
@@ -425,10 +424,12 @@ static int ImagePage_Get_Sharpen(void)
     }
 
     if (stDRCAttr.Enable && (stDRCAttr.enOpType == OP_TYPE_MANUAL)) {
-        value = stDRCAttr.stManual.GlobalGain;
+#ifndef __CV184X__
+    s_sharpenn = stDRCAttr.stManual.GlobalGain;
+#endif
     }
 
-    return value;
+    return s_sharpenn;
 }
 
 static int ImagePage_Set_Sharpness(int value)
@@ -436,6 +437,7 @@ static int ImagePage_Set_Sharpness(int value)
     printf("enter: %s, %d\n", __func__, value);
     ISP_SHARPEN_ATTR_S stDRCAttr;
     int ret;
+    s_sharpenn = value;
     APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
@@ -447,7 +449,9 @@ static int ImagePage_Set_Sharpness(int value)
 
     stDRCAttr.Enable = CVI_TRUE;
     stDRCAttr.enOpType = OP_TYPE_MANUAL;
-    stDRCAttr.stManual.GlobalGain = (CVI_U8)value;
+#ifndef __CV184X__
+    stDRCAttr.stManual.GlobalGain = (CVI_U8)s_sharpenn;
+#endif
 
     ret = CVI_ISP_SetSharpenAttr(viPipe, &stDRCAttr);
     if (ret != CVI_SUCCESS) {
@@ -465,7 +469,29 @@ static int ImagePage_Get_2DNR(void)
 static int ImagePage_Set_2DNR(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
+#ifndef __CV184X__
+    CVI_S32 ret;
+    ISP_NR_ATTR_S  NrAttr;
     s_noise2d = value;
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+
+    printf("enter: %s, %d\n", __func__, value);
+    ret = CVI_ISP_GetNRAttr(0, &NrAttr);
+    if (ret != CVI_SUCCESS) {
+        printf("CVI_ISP_GetTNRAttr failed\n");
+    }
+    for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "NoiseSuppressStr[%d]=%d\n", i, NrAttr.stAuto.NoiseSuppressStr[i]);
+        NrAttr.stAuto.NoiseSuppressStr[i] = s_noise2d;
+    }
+
+    ret = CVI_ISP_SetNRAttr(viPipe, &NrAttr);
+
+    if (ret != CVI_SUCCESS) {
+        printf("CVI_ISP_SetTNRAttr failed\n");
+    }
+#endif
     return 0;
 }
 
@@ -484,11 +510,12 @@ static int ImagePage_Set_3DNR(int value)
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_GetTNRAttr failed\n");
     }
+#ifndef __CV184X__
     for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "TnrStrength0[%d]=%d\n", i, nioseTnrAttr.stAuto.TnrStrength0[i]);
         nioseTnrAttr.stAuto.TnrStrength0[i] = s_noise3d;
     }
-
+#endif
     ret = CVI_ISP_SetTNRAttr(0, &nioseTnrAttr);
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_SetTNRAttr failed\n");
@@ -534,6 +561,13 @@ static int ImagePage_Set_Suppression_Enable(int value)
 
 static int ImagePage_Get_Suppression(void)
 {
+    ISP_EXPOSURE_ATTR_S stExpAttr;
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+
+    CVI_ISP_GetExposureAttr(viPipe, &stExpAttr);
+
+    s_suppression = stExpAttr.stAuto.u16HistRatioSlope;
     return s_suppression;
 }
 
@@ -541,6 +575,16 @@ static int ImagePage_Set_Suppression(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
     s_suppression = value;
+
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+    ISP_EXPOSURE_ATTR_S stExpAttr = {0};
+
+    stExpAttr.stAuto.u16HistRatioSlope = s_suppression; // [0x0, 0xFFFF]，0x8
+    stExpAttr.stAuto.u8MaxHistOffset = s_suppression; // [0x0, 0xFF]，0x10
+
+    CVI_ISP_SetExposureAttr(viPipe, &stExpAttr);
+
     return 0;
 }
 
@@ -558,25 +602,84 @@ static int ImagePage_Set_WB(int value)
 
 static int ImagePage_Get_RedGain(void)
 {
+#if !defined(__CV180X__) && !defined(__CV181X__)
+    ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+
+    CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#ifndef __CV184X__
+    s_redGain = stRadialShadingGainLutAttr.RLscGainLut[i].RGain
+else
+    s_redGain = stRadialShadingGainLutAttr.GGain[0];
+#endif
+#endif
     return s_redGain;
 }
 
 static int ImagePage_Set_RedGain(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
-    s_blueGain = value;
+    s_redGain = value;
+#if !defined(__CV180X__) && !defined(__CV181X__)
+    ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+
+    CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#ifndef __CV184X__
+    for(int i = 0;i < ISP_RLSC_COLOR_TEMPERATURE_SIZE ;i++){
+        stRadialShadingGainLutAttr.RLscGainLut[i].RGain = s_redGain;
+    }
+else
+    for(int i = 0; i < ISP_RLSC_WINDOW_SIZE; i++){
+        stRadialShadingGainLutAttr.GGain[i] = s_redGain;
+    }
+#endif
+    CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#endif
     return 0;
 }
 
 static int ImagePage_Get_BlueGain(void)
 {
+#if !defined(__CV180X__) && !defined(__CV181X__)
+    ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+
+    CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#ifndef __CV184X__
+    s_blueGain = stRadialShadingGainLutAttr.RLscGainLut[0].BGain
+else
+    s_blueGain = stRadialShadingGainLutAttr.GGain[0];
+#endif
+#endif
     return s_blueGain;
 }
 
 static int ImagePage_Set_BlueGain(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
-    s_redGain = value;
+    s_blueGain = value;
+#if !defined(__CV180X__) && !defined(__CV181X__)
+    ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+
+    CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+
+#ifndef __CV184X__
+    for(int i = 0;i < ISP_RLSC_COLOR_TEMPERATURE_SIZE ;i++){
+        stRadialShadingGainLutAttr.RLscGainLut[i].BGain = s_blueGain;
+    }
+else
+    for(int i = 0; i < ISP_RLSC_WINDOW_SIZE; i++){
+        stRadialShadingGainLutAttr.GGain[i] = s_blueGain;
+    }
+#endif
+    CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#endif
     return 0;
 }
 
@@ -587,6 +690,7 @@ static int ImagePage_Get_Defog_Enable(void)
 
 static int ImagePage_Set_Defog_Enable(int value)
 {
+#ifndef __CV184X__
     CVI_S32 ret;
     VI_PIPE viPipe = 0;
     ISP_DEHAZE_ATTR_S dehazeAttr;
@@ -602,29 +706,40 @@ static int ImagePage_Set_Defog_Enable(int value)
     } else {
         printf("shutter\n");
     }
+#endif
     return 0;
 }
 
 static int ImagePage_Get_Defog(void)
 {
+#ifndef __CV184X__
+    VI_PIPE viPipe = 0;
+    ISP_DEHAZE_ATTR_S dehazeAttr;
+    CVI_ISP_GetDehazeAttr(viPipe, &dehazeAttr);
+    s_defog = dehazeAttr.stAuto.Strength[0];
+#endif
+
     return s_defog;
 }
 
 static int ImagePage_Set_Defog(int value)
 {
-    // VI_PIPE viPipe = 0;
-    // ISP_DEHAZE_ATTR_S dehazeAttr;
+#ifndef __CV184X__
+    VI_PIPE viPipe = 0;
+    ISP_DEHAZE_ATTR_S dehazeAttr;
     printf("enter: %s, %d\n", __func__, value);
     s_defog = value;
-    /*
     if (s_shutterEnabled == CVI_TRUE) {
         CVI_ISP_GetDehazeAttr(viPipe, &dehazeAttr);
-        dehazeAttr.stAuto.Strength = s_defog;           // 0-100
+        for(int i = 0;i< ISP_AUTO_ISO_STRENGTH_NUM ;i++){
+            dehazeAttr.stAuto.Strength[i] = s_defog;           // 0-100
+        }
+
         CVI_ISP_SetDehazeAttr(viPipe, &dehazeAttr);
     } else {
         printf("Defog hasen't enable\n");
     }
-    */
+#endif
     return 0;
 }
 
@@ -669,7 +784,7 @@ static int ImagePage_Set_Shutter(int value)
     s_shutter = value;
     if (s_shutterEnabled == CVI_TRUE) {
         CVI_ISP_GetExposureAttr(viPipe, &aeAttr);
-        aeAttr.bByPass = CVI_FALSE;  
+        aeAttr.bByPass = CVI_FALSE;
         aeAttr.stManual.enExpTimeOpType = OP_TYPE_MANUAL;
         aeAttr.stManual.u32ExpTime = s_shutter;
         ret = CVI_ISP_GetExposureAttr(viPipe, &aeAttr);
@@ -691,7 +806,7 @@ static int ImagePage_Set_Distortion_Enable(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
 
-#if 0
+#ifdef GDC_SUPPORT
     VI_PIPE viPipe = 0;
     VI_CHN viChn = 0;
     VI_LDC_ATTR_S setLDCAttr;
@@ -713,7 +828,8 @@ static int ImagePage_Get_Distortion(void)
 static int ImagePage_Set_Distortion(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
-#if 0
+
+#ifdef GDC_SUPPORT
     VI_PIPE viPipe = 0;
     VI_CHN viChn = 0;
     VI_LDC_ATTR_S setLDCAttr;
@@ -726,6 +842,7 @@ static int ImagePage_Set_Distortion(int value)
     setLDCAttr.stAttr.s32DistortionRatio = ldcRatio[s_distortion - 1];
     CVI_VI_SetChnLDCAttr(viPipe, viChn, &setLDCAttr);
 #endif
+
     return 0;
 }
 
@@ -738,6 +855,27 @@ static int ImagePage_Set_Frequency(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
     s_frequency = value;
+    int ret = 0;
+    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
+    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
+    int map_value = (s_frequency == 0) ? 1 : 0 ;
+
+    ISP_EXPOSURE_ATTR_S stExpAttr;
+	memset(&stExpAttr, 0, sizeof(ISP_EXPOSURE_ATTR_S));
+
+	ret |= CVI_ISP_GetExposureAttr(viPipe, &stExpAttr);
+    if(s_antiflash){
+        stExpAttr.stAuto.stAntiflicker.enFrequency = map_value;
+        ret |= CVI_ISP_SetExposureAttr(viPipe, &stExpAttr);
+
+        ret |= CVI_ISP_GetExposureAttr(viPipe, &stExpAttr);
+        if (ret != 0){
+            printf("ImagePage_Set_Frequency failed\n");
+        }
+        printf("stExpAttr.stAuto.stAntiflicker.enFrequency = %d\n", stExpAttr.stAuto.stAntiflicker.enFrequency);
+    } else{
+        printf("[ ERROR ] please open 强闪开关 first!\n");
+    }
     return 0;
 }
 
@@ -852,7 +990,7 @@ static int ImagePage_Set_WDR(int value)
     }
 
     app_ipcam_Vi_Init();
-    
+
     return 0;
 }
 
@@ -891,15 +1029,20 @@ static int ImagePage_Set_KeepColor(int value)
 
 static int ImagePage_Get_Dis(void)
 {
+#ifndef __CV184X__
     ISP_DIS_ATTR_S stDisAttr;
 
     CVI_ISP_GetDisAttr(0, &stDisAttr);
+    printf("stDisAttr.enable = %d\n", stDisAttr.enable);
 
     return stDisAttr.enable;
+#endif
+    return 0;
 }
 
 static int ImagePage_Set_Dis(int value)
 {
+#ifndef __CV184X__
     printf("enter: %s, %d\n", __func__, value);
     ISP_DIS_ATTR_S stDisAttr;
 
@@ -907,21 +1050,10 @@ static int ImagePage_Set_Dis(int value)
     stDisAttr.enable = value;
 
     return CVI_ISP_SetDisAttr(0, &stDisAttr);
-
+#endif
     return 0;
 }
 
-static int ImagePage_Get_DS(void)
-{
-    return s_ds;
-}
-
-static int ImagePage_Set_DS(int value)
-{
-    printf("enter: %s, %d\n", __func__, value);
-    s_ds = value;
-    return 0;
-}
 
 static int SetImgInfoCallBack(void *param, const char *cmd, const char *val)
 {
@@ -969,10 +1101,10 @@ static int SetImgInfoCallBack(void *param, const char *cmd, const char *val)
         ImagePage_Set_WB(value);
     } else if (strstr(val, "blue_gain") != NULL) {
         value = NetString2Int(val);
-        ImagePage_Set_RedGain(value);
+        ImagePage_Set_BlueGain(value);
     } else if (strstr(val, "red_gain") != NULL) {
         value = NetString2Int(val);
-        ImagePage_Set_BlueGain(value);
+        ImagePage_Set_RedGain(value);
     } else if (strstr(val, "defog_enable") != NULL) {
         value = NetString2Int(val);
         ImagePage_Set_Defog_Enable(value);
@@ -1020,9 +1152,6 @@ static int SetImgInfoCallBack(void *param, const char *cmd, const char *val)
     } else if (strstr(val, "dis") != NULL) {
         value = NetString2Int(val);
         ImagePage_Set_Dis(value);
-    } else if (strstr(val, "ds") != NULL) {
-        value = NetString2Int(val);
-        ImagePage_Set_DS(value);
     } else {
         printf("%s %d: error no support setting, %s %s\n", __func__, __LINE__, cmd, val);
     }
@@ -1062,8 +1191,6 @@ static int app_ipcam_ImagePageInfo_Get(CVI_IMG_INFO_S *info)
     info->irCutEnabled = ImagePage_Get_IRCut();
     info->keepColorEnabled = ImagePage_Get_KeepColor();
     info->disEnabled   = ImagePage_Get_Dis();
-    /* digital signature ; not support yet */
-    info->dsEnabled    = ImagePage_Get_DS();
 
     return CVI_SUCCESS;
 }
@@ -1115,7 +1242,6 @@ static int GetImgInfoCallBack(void *param, const char *cmd, const char *val)
     cJSON_AddNumberToObject(cjsonImgInfo, "irCutEnabledManual", imgInfo.irCutEnabledManual);
     cJSON_AddNumberToObject(cjsonImgInfo, "keepColorEnabled", imgInfo.keepColorEnabled);
     cJSON_AddNumberToObject(cjsonImgInfo, "disEnabled", imgInfo.disEnabled);
-    cJSON_AddNumberToObject(cjsonImgInfo, "dsEnabled", imgInfo.dsEnabled);
     str = cJSON_Print(cjsonImgInfo);
     if (str) {
         CVI_NET_AddCgiResponse(param, "%s", str);
@@ -1229,12 +1355,12 @@ static int app_ipcam_VencAttr_Get(APP_VENC_ATTR_INFO_S stVencAttrInfo[])
             default:
                 break;
         }
-        
+
         APP_VENC_CHN_CFG_S *pstVencChnCfg = &pstVencCfg->astVencChnCfg[VencChn];
         CVI_BOOL bSBMEnable = CVI_FALSE;
         // Check if the current channel is one of the SBM channels
         for (int idx = 0; idx < pstSysCfg->u8SbmCnt; ++idx) {
-            if ((pstVencChnCfg->astChn[0].s32DevId  == pstSysCfg->pstSbmCfg[idx].s32SbmGrp) && 
+            if ((pstVencChnCfg->astChn[0].s32DevId  == pstSysCfg->pstSbmCfg[idx].s32SbmGrp) &&
                 (pstVencChnCfg->astChn[0].s32ChnId == pstSysCfg->pstSbmCfg[idx].s32SbmChn)) {
                 bSBMEnable = CVI_TRUE;
                 stVencAttrInfo[VencChn].fps = app_ipcam_Framerate_Get(pstSysCfg->pstSbmCfg[idx].s32SbmGrp);
@@ -1281,7 +1407,7 @@ static int app_ipcam_VencBitrate_Set(VENC_CHN vencChn, CVI_U32 u32BitRate)
         default:
             break;
     }
-    
+
     if (CVI_VENC_SetChnAttr(vencChn, &stChnAttr)) {
         printf("CVI_VENC_GetChnAttr failed\n");
         return -1;
@@ -1438,7 +1564,7 @@ static int GetRoiCfgCallBack(void *param, const char *cmd, const char *val)
         memset(tmpStr, 0, sizeof(tmpStr));
         snprintf(tmpStr, sizeof(tmpStr), "%s%d", "roi_abs_qp", i);
         cJSON_AddNumberToObject(cJsonRoot, tmpStr, stRoiAttr.bAbsQp);
-        
+
         memset(tmpStr, 0, sizeof(tmpStr));
         snprintf(tmpStr, sizeof(tmpStr), "%s%d", "roi_qp", i);
         cJSON_AddNumberToObject(cJsonRoot, tmpStr, stRoiAttr.u32Qp);
@@ -1487,7 +1613,7 @@ static CVI_BOOL app_ipcam_VencAttrChange_Check(APP_VENC_ATTR_INFO_S NewInfo[])
         APP_PARAM_SAME_CHK(CurInfo[i].rc, NewInfo[i].rc, stResetVencFlag[i].bRCMode);
         APP_PARAM_SAME_CHK(fps, NewInfo[i].fps, stResetVencFlag[i].bFps);
 
-        bNeedResize |= stResetVencFlag[i].bResolution | stResetVencFlag[i].bCodec | stResetVencFlag[i].bProfile 
+        bNeedResize |= stResetVencFlag[i].bResolution | stResetVencFlag[i].bCodec | stResetVencFlag[i].bProfile
             | stResetVencFlag[i].bBitrate | stResetVencFlag[i].bRCMode | stResetVencFlag[i].bFps;
 
         stResetVencFlag[i].bNeedStopVenc |= stResetVencFlag[i].bResolution | stResetVencFlag[i].bCodec
@@ -1749,7 +1875,7 @@ static int SetRoiCfgCallBack(void *param, const char *cmd, const char *val)
             cJsonObj = cJSON_GetObjectItem(cJsonRoot, tmpStr);
             _NULL_POINTER_CHECK_(cJsonObj->valuestring, -1);
             stRoiAttr[i].bAbsQp = atoi(cJsonObj->valuestring);
-            
+
             memset(tmpStr, 0, sizeof(tmpStr));
             snprintf(tmpStr, sizeof(tmpStr), "%s%d", "roi_qp", i);
             cJsonObj = cJSON_GetObjectItem(cJsonRoot, tmpStr);
@@ -1889,7 +2015,7 @@ int CVI_IPC_NetCtrlSetMd(APP_MD_INFO_S psmdinfo)
             app_ipcam_MD_Start();
             return 0;
         }
-        else 
+        else
         {
             app_ipcam_MD_Stop();
             return 0;
@@ -1959,7 +2085,7 @@ int CVI_IPC_NetCtrlSetPd(APP_PD_INFO_S pspdinfo)
         (pstPdInfo->region_stRect_y5 == pspdinfo.region_stRect_y5) &&
         (pstPdInfo->region_stRect_x6 == pspdinfo.region_stRect_x6) &&
         (pstPdInfo->region_stRect_y6 == pspdinfo.region_stRect_y6)) ||
-        (pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)) 
+        (pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled))
     {
         app_ipcam_Ai_PD_Stop();
         if(pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)
@@ -1983,7 +2109,7 @@ int CVI_IPC_NetCtrlSetPd(APP_PD_INFO_S pspdinfo)
         app_ipcam_Ai_PD_Start();
         return 0;
     }
-    
+
     if(pstPdInfo->threshold != pspdinfo.threshold)
     {
         pstPdInfo->threshold = pspdinfo.threshold;
@@ -2009,13 +2135,14 @@ static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
     #ifdef MD_SUPPORT
     APP_PARAM_MD_CFG_S *pstMdInfo = app_ipcam_MD_Param_Get();
     #endif
-    // APP_PARAM_AI_CRY_CFG_S *pstCryInfo = app_ipcam_Ai_Cry_Param_Get();
+    #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
+    APP_PARAM_AI_CRY_CFG_S *pstCryInfo = app_ipcam_Ai_Cry_Param_Get();
+    #endif
     cjsonAiAttr = cJSON_CreateObject();
 
     printf("enter: %s\n", __func__);
     #ifdef MD_SUPPORT
     // md
-    cJSON_AddNumberToObject(cjsonAiAttr, "ai_model", 7);
     cJSON_AddNumberToObject(cjsonAiAttr, "md_enable", app_ipcam_MD_StatusGet());
     cJSON_AddNumberToObject(cjsonAiAttr, "md_threshold", pstMdInfo->threshold);
     #endif
@@ -2041,8 +2168,8 @@ static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
 
     //cry
 #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
-    cJSON_AddNumberToObject(cjsonAiAttr, "ai_model", 21);
     cJSON_AddNumberToObject(cjsonAiAttr, "cry_enable", app_ipcam_Ai_Cry_StatusGet());
+    cJSON_AddNumberToObject(cjsonAiAttr, "cry_scene", pstCryInfo->application_scene);
 #endif
     str = cJSON_Print(cjsonAiAttr);
     if (str) {
@@ -2237,6 +2364,8 @@ static int GetOsdInfoCallBack(void *param, const char *cmd, const char *val)
 {
     cJSON* cjsonOsdAttr = NULL;
     char* str = NULL;
+    int num = 0;
+    int color = 0;
 
     APP_OSDC_OBJS_INFO_S *pstOsdcPrivacy = app_ipcam_OsdcPrivacy_Param_Get();
 
@@ -2257,30 +2386,38 @@ static int GetOsdInfoCallBack(void *param, const char *cmd, const char *val)
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text1_x", pstOsdcCfg->osdcObj[0][OSD_TEXT1_INDEX].x1);
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text1_y", pstOsdcCfg->osdcObj[0][OSD_TEXT1_INDEX].y1);
     cJSON_AddStringToObject(cjsonOsdAttr, "osd_text1_content", pstOsdcCfg->osdcObj[0][OSD_TEXT1_INDEX].str);
-    cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text1_color", pstOsdcCfg->osdcObj[0][OSD_TEXT1_INDEX].color);
+    COLOR_TO_IDX(0, color, pstOsdcCfg->osdcObj[0][OSD_TEXT1_INDEX].color);
+    printf("osd_text1_color = %d\n", color);
+    cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text1_color", color);
     // text2
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text2", pstOsdcCfg->osdcObj[1][OSD_TEXT2_INDEX].bShow);
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text2_x", pstOsdcCfg->osdcObj[1][OSD_TEXT2_INDEX].x1);
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text2_y", pstOsdcCfg->osdcObj[1][OSD_TEXT2_INDEX].y1);
     cJSON_AddStringToObject(cjsonOsdAttr, "osd_text2_content", pstOsdcCfg->osdcObj[1][OSD_TEXT2_INDEX].str);
-    cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text2_color", pstOsdcCfg->osdcObj[1][OSD_TEXT2_INDEX].color);
+    COLOR_TO_IDX(0, color, pstOsdcCfg->osdcObj[0][OSD_TEXT2_INDEX].color);
+    printf("osd_text2color = %d\n", color);
+    cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text2_color", color);
     // text3
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text3", pstOsdcCfg->osdcObj[0][OSD_TEXT3_INDEX].bShow);
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text3_x", pstOsdcCfg->osdcObj[0][OSD_TEXT3_INDEX].x1);
     cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text3_y", pstOsdcCfg->osdcObj[0][OSD_TEXT3_INDEX].y1);
     cJSON_AddStringToObject(cjsonOsdAttr, "osd_text3_content1", pstOsdcCfg->osdcObj[0][OSD_TEXT3_INDEX].str);
-    cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text3_color", pstOsdcCfg->osdcObj[0][OSD_TEXT3_INDEX].color);
+    COLOR_TO_IDX(0, color, pstOsdcCfg->osdcObj[0][OSD_TEXT3_INDEX].color);
+    printf("osd_text3_color = %d\n", color);
+    cJSON_AddNumberToObject(cjsonOsdAttr, "osd_text3_color", color);
     // privacy area
     CVI_U32 i = 0;
     for (i = 0; i < pstOsdcCfg->osdcObjNum[0]; i++) {
         if ((pstOsdcCfg->osdcObj[0][i].filled == CVI_TRUE) &&
             (pstOsdcCfg->osdcObj[0][i].type == RGN_CMPR_RECT)) {
+                num ++;
                 cJSON_AddNumberToObject(cjsonOsdAttr, "osd_privacy", pstOsdcCfg->osdcObj[0][i].bShow);
                 cJSON_AddNumberToObject(cjsonOsdAttr, "osd_privacy_x", pstOsdcCfg->osdcObj[0][i].x1);
                 cJSON_AddNumberToObject(cjsonOsdAttr, "osd_privacy_y", pstOsdcCfg->osdcObj[0][i].y1);
                 cJSON_AddNumberToObject(cjsonOsdAttr, "osd_privacy_width", pstOsdcCfg->osdcObj[0][i].width);
                 cJSON_AddNumberToObject(cjsonOsdAttr, "osd_privacy_hight", pstOsdcCfg->osdcObj[0][i].height);
                 cJSON_AddNumberToObject(cjsonOsdAttr, "osd_privacy_color", pstOsdcPrivacy->color);
+                cJSON_AddNumberToObject(cjsonOsdAttr, "osd_privacy_num", num);
                 break;
         }
     }
@@ -2381,11 +2518,11 @@ static int SetOsdInfoCallBack(void *param, const char *cmd, const char *val)
         cjsonObj = cJSON_GetObjectItem(cjsonParser, "text3_switch");
         _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
         stOsdcCfg.osdcObj[0][OSD_TEXT3_INDEX].bShow = atoi(cjsonObj->valuestring);
-                                        
+
         cjsonObj = cJSON_GetObjectItem(cjsonParser, "text3_x");
         _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
         stOsdcCfg.osdcObj[0][OSD_TEXT3_INDEX].x1 = atoi(cjsonObj->valuestring);
-                                        
+
         cjsonObj = cJSON_GetObjectItem(cjsonParser, "text3_y");
         _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
         stOsdcCfg.osdcObj[0][OSD_TEXT3_INDEX].y1 = atoi(cjsonObj->valuestring);
@@ -2400,7 +2537,7 @@ static int SetOsdInfoCallBack(void *param, const char *cmd, const char *val)
         {
             memcpy(stOsdcCfg.osdcObj[0][OSD_TEXT3_INDEX].str, " ", 2);
         }
-        
+
     }
     // privacy area
     CVI_U32 i = 0;
@@ -2723,8 +2860,16 @@ static int app_ipcam_IcgiRegister_OTA()
 int app_ipcam_NetCtrl_Init()
 {
     printf("app_ipcam_NetCtrl_Init\n");
-    char path[] = "/mnt/sd/www";
+    // char path[] = "/mnt/sd/www";
+    CVI_CHAR OriginalCwd[128];
+    if (getcwd(OriginalCwd, sizeof(OriginalCwd)) == NULL) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "getcwd() error \n");
+    }
+    CVI_SIZE_T Size = strlen(OriginalCwd) + strlen("/www") + 1;
+    CVI_CHAR *path = malloc(Size);
+    snprintf(path, Size, "%s/www", OriginalCwd);
     CVI_NET_SetVideoPath(path);
+    free(path);
 
     app_ipcam_IcgiRegister_Preview();
     app_ipcam_IcgiRegister_Image();

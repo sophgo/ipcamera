@@ -10,8 +10,16 @@ extern "C"
 #include "stdbool.h"
 #include "stddef.h"
 #include <pthread.h>
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_common.h"
+#else
+#include "cvi_common.h"
+#endif
 #include "app_ipcam_comm.h"
 #include "cvi_rtsp.h"
 #include "cvi_osal.h"

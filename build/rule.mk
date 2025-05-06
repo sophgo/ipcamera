@@ -16,7 +16,7 @@ OBJCOPY         = $(CROSS_COMPILE)objcopy
 OBJDUMP         = $(CROSS_COMPILE)objdump
 ARFLAGS         = rcs
 LDFLAGS_SO      = -shared -fPIC
-# riscv64-unknown-linux-musl, riscv64-unknown-linux-gnu, aarch64-linux-gnu, arm-linux-gnueabihf
+# riscv64-unknown-linux-musl, riscv64-unknown-linux-gnu, aarch64-linux-gnu, arm-linux-gnueabihf, arm-none-linux-musleabihf
 export TARGET_MACHINE	:= $(shell ${CC} -dumpmachine)
 #
 APP_PREBUILT_DIR := $(SRCTREE)/prebuilt
@@ -39,38 +39,61 @@ MW_PATH := $(TOP_DIR)/cvi_mpi
 ISP_INC := $(MW_PATH)/modules/isp/include/$(SOC_NICK_NAME_LOWER)
 
 # SensorSupportList path
+ifeq ($(SOC_SEGMENT), CV184X)
+SENSOR_LIST_INC := $(MW_PATH)/../build/media/SensorSupportList/sensor_cfg
+else
 SENSOR_LIST_INC := $(MW_PATH)/component/isp/common
+endif
 
 # kernel path
 KERNEL_PATH ?= $(TOP_DIR)/linux_5.10
 
 # FFMPEG 6.0
-FFMPEG_6_0_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg6.0/lib
+ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
+  FFMPEG_6_0_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg6.0/musl_riscv64_lib
+else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
+  FFMPEG_6_0_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg6.0/glibc_riscv64_lib
+else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+  FFMPEG_6_0_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg6.0/glibc_arm64_lib
+else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
+  FFMPEG_6_0_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg6.0/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+  FFMPEG_6_0_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg6.0/musl_arm32_lib
+else
+  $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
+endif
 
 #NET
 ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
-  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/libmusl_riscv64
-  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/libmusl_riscv64
+  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/musl_riscv64_lib
+  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/musl_riscv64_lib
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
-  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/libglibc_riscv64
-  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/libglibc_riscv64
+  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/glibc_riscv64_lib
+  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/glibc_riscv64_lib
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
-  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/lib32bit
-  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/lib32bit
+  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/glibc_arm32_lib
+  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/musl_arm32_lib
+  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/musl_arm32_lib
 else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
-  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/lib64bit
-  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/lib64bit
+  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/glibc_arm64_lib
+  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/glibc_arm64_lib
 else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
 
 # FFMPEG
 ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
-	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/lib32bit
+	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/musl_arm32_lib
 else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
-	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/lib64bit
+	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/glibc_arm64_lib
+else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
+	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/musl_riscv64_lib
 else
-	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/musl_riscv
+  $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
 
 #OSAL
@@ -84,20 +107,46 @@ CVI_RTSP_DIR = $(APP_COMPONENTS_DIR)/cvi_rtsp
 
 #OPENSSL
 ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
-  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/lib32bit
+  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/musl_arm32_lib
+else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/glibc_arm64_lib
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
-  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/libglibc_riscv64
+  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/glibc_riscv64_lib
+else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
+  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/musl_riscv64_lib
 else
-  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/lib64bit
+  $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
 
 #LVGL
 LVGL_LIB_DIR = $(APP_PREBUILT_DIR)/lvgl/lib
 
+# CLOUD
+ifeq ($(CONFIG_MODULE_CLOUD), y)
+  ifeq ($(CONFIG_MODULE_AKYCLOUD), y)
+      ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
+        CLOUD_LIB_DIR = $(APP_PREBUILT_DIR)/cloud/akysmart/libmusl_riscv64
+      else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
+        CLOUD_LIB_DIR = $(APP_PREBUILT_DIR)/cloud/akysmart/lib32bit
+      else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+        CLOUD_LIB_DIR = $(APP_PREBUILT_DIR)/cloud/akysmart/lib64bit
+      else
+        $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
+      endif
+  endif
+endif
+
+
+
+
 ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
 SDK_VER := 64bit
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
 SDK_VER := 32bit
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+SDK_VER := musl
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
 SDK_VER := glibc_riscv64
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)

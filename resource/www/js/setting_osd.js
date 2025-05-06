@@ -46,15 +46,15 @@ $(function () {
     console.log('click resolution.main_h=%d', resolution_size.main_h);
     console.log('click resolution.sub_w=%d', resolution_size.sub_w);
     console.log('click resolution.sub_h=%d', resolution_size.sub_h);
-  
+
     // global
     osd_settings['global_switch'] = document.getElementById("switch_osd_global").value;
     // timestamp
     osd_settings['ts_switch'] = document.getElementById("switch_osd_time").value;
     osd_settings['ts_x'] = document.getElementById("osd_ts_x").value;
     osd_settings['ts_y'] = document.getElementById("osd_ts_y").value;
-    osd_settings['ts_type'] = document.getElementById("osd_ts_type").value;
-    osd_settings['ts_font_size'] = document.getElementById("osd_ts_font_size").value;
+    // osd_settings['ts_type'] = document.getElementById("osd_ts_type").value;
+    // osd_settings['ts_font_size'] = document.getElementById("osd_ts_font_size").value;
     // text1
     osd_settings['text1_switch'] = document.getElementById("switch_osd_text1").value;
     osd_settings['text1_x'] = document.getElementById("osd_text1_x").value;
@@ -99,7 +99,7 @@ $(function () {
         func_get_osd_cfg();
         return;
     }
-    
+
     // osd_settings['text3_content4'] = document.getElementById("osd_text3_content4").value;
     // osd_settings['text3_content5'] = document.getElementById("osd_text3_content5").value;
     // privacy area
@@ -133,7 +133,7 @@ function func_osd_pos_check(status) {
         var obj_video = JSON.parse(data, function (key, value) {
           return value;
         });
-    
+
         size.main_w = obj_video.main_widthMax;
         size.main_h = obj_video.main_heightMax;
 
@@ -198,11 +198,13 @@ function func_get_osd_cfg() {
     $("#osd_text1_x").val(obj.osd_text1_x);
     $("#osd_text1_y").val(obj.osd_text1_y);
     $("#osd_text1_content").val(obj.osd_text1_content);
+    $("#osd_text1_color").val(obj.osd_text1_color);
     // text2
     $("#switch_osd_text2").val(obj.osd_text2);
     $("#osd_text2_x").val(obj.osd_text2_x);
     $("#osd_text2_y").val(obj.osd_text2_y);
     $("#osd_text2_content").val(obj.osd_text2_content);
+    $("#osd_text2_color").val(obj.osd_text2_color);
     // text3
     $("#switch_osd_text3").val(obj.osd_text3);
     $("#osd_text3_x").val(obj.osd_text3_x);
@@ -210,6 +212,7 @@ function func_get_osd_cfg() {
     $("#osd_text3_content1").val(obj.osd_text3_content1);
     $("#osd_text3_content2").val(obj.osd_text3_content2);
     $("#osd_text3_content3").val(obj.osd_text3_content3);
+    $("#osd_text3_color").val(obj.osd_text3_color);
     // $("#osd_text3_content4").val(obj.osd_text3_content4);
     // $("#osd_text3_content5").val(obj.osd_text3_content5);
     // privacy area

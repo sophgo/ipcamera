@@ -21,6 +21,18 @@ const char *aspect_ratio[ASPECT_RATIO_MAX] = {
     [ASPECT_RATIO_MANUAL] = "ASPECT_RATIO_MANUAL"
 };
 
+#ifdef __CV184X__
+const char *vpss_mode[VPSS_MODE_BUTT] = {
+    [VPSS_MODE_SINGLE] = "VPSS_MODE_SINGLE",
+    [VPSS_MODE_DUAL] = "VPSS_MODE_DUAL"
+};
+
+const char *vpss_input[VPSS_INPUT_BUTT] = {
+    [VPSS_INPUT_MEM] = "VPSS_INPUT_MEM",
+    [VPSS_INPUT_ISP] = "VPSS_INPUT_ISP"
+};
+#endif
+
 
 int Load_Param_Vpss(const char *file)
 {
@@ -42,6 +54,35 @@ int Load_Param_Vpss(const char *file)
     snprintf(tmp_section, sizeof(tmp_section), "vpss_config");
 
     Vpss->u32GrpCnt = ini_getl(tmp_section, "vpss_grp", 0, file);
+
+#ifdef __CV184X__
+    memset(tmp_section, 0, sizeof(tmp_section));
+    snprintf(tmp_section, sizeof(tmp_section), "vpss_mode");
+
+    ini_gets(tmp_section, "enMode", " ", str_name, PARAM_STRING_NAME_LEN, file);
+    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vpss_mode, VPSS_MODE_BUTT, &enum_num);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
+    } else {
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
+        Vpss->stVPSSMode.enMode = enum_num;
+    }
+
+    CVI_U32 dev_cnt = ini_getl("vpss_dev", "dev_cnt", 0, file);
+    for (CVI_U32 i = 0; i < dev_cnt; i++) {
+        memset(tmp_section, 0, sizeof(tmp_section));
+        snprintf(tmp_section, sizeof(tmp_section), "vpss_dev%d", i);
+
+        ini_gets(tmp_section, "aenInput", " ", str_name, PARAM_STRING_NAME_LEN, file);
+        ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vpss_input, VPSS_INPUT_BUTT, &enum_num);
+        if (ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
+        } else {
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
+            Vpss->stVPSSMode.aenInput[i] = enum_num;
+        }
+    }
+#endif
 
     for (grp_idx = 0; grp_idx < Vpss->u32GrpCnt; grp_idx++) {
         memset(tmp_section, 0, sizeof(tmp_section));

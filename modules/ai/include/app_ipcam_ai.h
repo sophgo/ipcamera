@@ -1,10 +1,18 @@
 #ifndef __APP_IPCAM_AI_H__
 #define __APP_IPCAM_AI_H__
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "cvi_tdl.h"
 #include "cvi_tdl_app.h"
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
+#else
+#include "cvi_comm_video.h"
+#endif
 #include "cvi_vpss.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_vi.h"

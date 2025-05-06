@@ -2,7 +2,11 @@
 ifeq ($(SRCS), )
 SRCS ?= $(shell find $(SDIR) -type f -name "*.$(SEXT)")
 endif
+ifeq ($(SEXT),cpp)
+OBJS := $(SRCS:$(SDIR)/%.cpp=$(ODIR)/%.$(TARGET_MACHINE).$(SOC_NICK_NAME_LOWER).o)
+else
 OBJS := $(SRCS:$(SDIR)/%.c=$(ODIR)/%.$(TARGET_MACHINE).$(SOC_NICK_NAME_LOWER).o)
+endif
 DEPS := $(OBJS:%.o=%.d)
 
 CFLAGS += $(INCS)

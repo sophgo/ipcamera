@@ -7,6 +7,7 @@
 
 #include "app_ipcam_paramparse.h"
 #include "app_ipcam_ircut.h"
+
 #ifdef SDCARD_SUPPORT
 #include "app_ipcam_sdcard.h"
 #endif
@@ -27,6 +28,10 @@
 
 #ifdef LOG_SUPPORT
 #include "cvi_log.h"
+#endif
+
+#ifdef CLOUD_SUPPORT
+#include "plt_common_hal.h"
 #endif
 
 /**************************************************************************
@@ -61,7 +66,7 @@ static CVI_VOID app_ipcam_ExitSig_handle(CVI_S32 signo)
     CVI_S32 s32Ret = CVI_SUCCESS;
     signal(SIGINT, SIG_IGN);
     signal(SIGTERM, SIG_IGN);
-    
+
     if ((SIGINT == signo) || (SIGTERM == signo)) {
         s32Ret = app_ipcam_Exit();
         APP_PROF_LOG_PRINT(LEVEL_INFO, "ipcam receive a signal(%d) from terminate\n", signo);
@@ -71,7 +76,7 @@ static CVI_VOID app_ipcam_ExitSig_handle(CVI_S32 signo)
 }
 
 static CVI_VOID app_ipcam_Usr1Sig_handle(CVI_S32 signo)
-{    
+{
     if (SIGUSR1 == signo) {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "ipcam receive a signal(%d) from terminate and start trigger a picture\n", signo);
         app_ipcam_JpgCapFlag_Set(CVI_TRUE);
@@ -102,10 +107,10 @@ static int app_ipcam_Peripheral_UnInit(void)
     return CVI_SUCCESS;
 }
 
-/* 
+/*
 * this thread handle a series of small tasks include
 * a. send AI framerate to Web-client
-* b. 
+* b.
 */
 static void *ThreadMisc(void *arg)
 {
@@ -167,6 +172,10 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_rtsp_Server_Destroy(), "RTSP Server Destroy");
     #endif
 
+    #if CLOUD_SUPPORT
+    APP_CHK_RET(app_hal_platform_deinit(), "Cloud DeInit");
+    #endif
+
     #ifdef CVI_UVC_SUPPORT
     app_uvc_exit();
     #endif
@@ -226,7 +235,7 @@ static int app_ipcam_Exit(void)
     #ifdef FRMBUF_DISP
     APP_CHK_RET(app_ipcam_FrmBuf_Disp_Stop(), "DISP FRMBUF Stop");
     #endif
-    
+
     #ifdef VDEC_SOFT
     APP_CHK_RET(app_ipcam_Vdec_Soft_Stop(APP_VDEC_SOFT_ALL), "VDEC SOFT Stop");
     APP_CHK_RET(app_ipcam_Vdec_Soft_DeInit(), "VDEC SOFT DeInit");
@@ -243,6 +252,8 @@ static int app_ipcam_Exit(void)
     #ifdef STITCH_SUPPORT
     APP_CHK_RET(app_ipcam_Stitch_UnInit(), "Stitch UnInit");
     #endif
+
+
 
     APP_CHK_RET(app_ipcam_Vpss_DeInit(), "VPSS DeInit");
     APP_CHK_RET(app_ipcam_Venc_Stop(APP_VENC_ALL), "VENC Stop");
@@ -313,6 +324,10 @@ static int app_ipcam_Init(void)
 
     #ifdef BLACKLIGHT_SUPPORT
     APP_CHK_RET(app_ipcam_BlackLight_Init(), "Init black light.");
+    #endif
+
+    #ifdef CLOUD_SUPPORT
+    APP_CHK_RET(app_hal_platform_init(), "Init Cloud");
     #endif
 
     APP_CHK_RET(app_ipcam_MiscThread_Init(), "Init Misc");

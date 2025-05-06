@@ -144,12 +144,8 @@ $(function () {
     document.getElementById("switch_IRcut")[obj.irCutEnabled].selected = true;
     // init ir cut manual
     document.getElementById("switch_IRcutManual")[obj.irCutEnabledManual].selected = true;
-    // init keep color
-    document.getElementById("switch_keepColor")[obj.keepColorEnabled].selected = true;
     // init dis
     document.getElementById("switch_dis")[obj.disEnabled].selected = true;
-    // init ds
-    document.getElementById("switch_ds")[obj.dsEnabled].selected = true;
   })
 
   $("#switch_videoFormat").change(function () {
@@ -300,7 +296,7 @@ $(function () {
 
 function func_switch_whiteBalance(value) {
   if (value == 0) {
-    $("#red_gain_slider").slider("disable"); 
+    $("#red_gain_slider").slider("disable");
     $("#blue_gain_slider").slider("disable");
   } else {
     $("#red_gain_slider").slider("enable");
@@ -359,7 +355,7 @@ $("#switch_shutter").click(function () {
   } else {
     $("#shutter_slider").slider("disable");
   }
-  func_cgi_req('/cgi/set_img_info.cgi?shutter_enable=' + value);
+  func_cgi_req('/cgi/set_img_info.cgi?shutterEnabled=' + value);
 });
 
 $("#shutter_slider").slider();
@@ -451,21 +447,10 @@ function func_switch_ircutManualStatus(value) {
   func_cgi_req('/cgi/set_img_info.cgi?stateIR=' + value);
 }
 
-function func_switch_keepcolor(value) {
-  console.log("switch_keepColor index " + value);
-  func_cgi_req('/cgi/set_img_info.cgi?keepcolor=' + value);
-}
-
 function func_switch_dis(value) {
   console.log("switch_dis index " + value);
   func_cgi_req('/cgi/set_img_info.cgi?dis=' + value);
 }
-
-function func_switch_ds(value) {
-  console.log("switch_ds index " + value);
-  func_cgi_req('/cgi/set_img_info.cgi?ds=' + value);
-}
-
 
 var can = document.getElementById("canvas");
 var ctx = can.getContext('2d');

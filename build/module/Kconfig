@@ -96,14 +96,14 @@ config MODULE_CVIUAC
 	bool "enale module uac"
 	default n
 	select MODULE_PROTOCOL
-	help 
-		enable uac in applicant		
+	help
+		enable uac in applicant
 
 config MODULE_CVIUVC
 	bool "enale module uvc"
 	default n
 	select MODULE_PROTOCOL
-	help 
+	help
 		enable uvc in applicant
 
 config MODULE_MEDIA_STITCH
@@ -124,13 +124,13 @@ config MODULE_NETWORK
 	bool "enable module network"
 	default n
 	select MODULE_PROTOCOL
-	help 
+	help
 		enable network in appllicant, support web
 
 config MODULE_RTSP
 	bool "enable module rtsp"
 	default n
-	depends on MODULE_MEDIA && MODULE_MBUF 
+	depends on MODULE_MEDIA && MODULE_MBUF
 	select MODULE_PROTOCOL
 	help
 		enable rtsp in applicant
@@ -140,6 +140,20 @@ config MODULE_DISPLAY
 	default n
 	help
 		enable display in applicant
+
+config MODULE_CLOUD
+	bool "enable module cloud"
+	default n
+	depends on MODULE_MEDIA && MODULE_MBUF
+	help
+		enable cloud in applicant
+
+config MODULE_AKYCLOUD
+	bool "enable module aky cloud"
+	default n
+	depends on MODULE_CLOUD
+	help
+		enable aky cloud sdk in applicant
 
 config MODULE_AI
 	bool "enable module ai"
@@ -174,7 +188,7 @@ config MODULE_AI_FD_FACE
 	depends on MODULE_AI
 	help
 		enable ai face detect in applicant
-	
+
 config MODULE_AI_IRFAECE
 	bool "enable module ai ir face detect"
 	default n
@@ -215,7 +229,7 @@ menuconfig MODULE_ENABLE_FRAMEBUFFER
 	default n
 	select MODULE_FRMBUF
 	help
-		open framebuffer in applicant 
+		open framebuffer in applicant
 
 if MODULE_ENABLE_FRAMEBUFFER
 

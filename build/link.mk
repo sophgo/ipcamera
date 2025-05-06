@@ -56,6 +56,9 @@ LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_panel
 
+LIBS-$(CONFIG_MODULE_CLOUD)                       += -lapp_hal_plat
+LIBS-$(CONFIG_MODULE_AKYCLOUD)                    += -lapp_akysmart
+
 LIBS-$(CONFIG_MODULE_MEDIA_SYS)                   += -lapp_media_sys
 LIBS-$(CONFIG_MODULE_MEDIA_VI)                    += -lapp_media_vi
 LIBS-$(CONFIG_MODULE_MEDIA_VPSS)                  += -lapp_media_vpss
@@ -81,6 +84,7 @@ LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_frmbuf
 LIBS-$(CONFIG_MODULE_FRMBUF_DISP)                 += -lapp_frmbuf_disp
 LIBS-$(CONFIG_MODULE_FRMBUF_LVGL)                 += -lapp_frmbuf_lvgl
 
+
 ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
   LIBS += -Wl,-Bstatic
 else
@@ -91,15 +95,23 @@ endif
 LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR)
 LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -lisp -lraw_dump -lcvi_json-c
 LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -L$(FFMPEG_6_0_LIB_DIR) -lavcodec -lavutil -lswresample -lswscale
+ifeq ($(SOC_SEGMENT), CV184X)
+LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvenc -lvdec -lisp -lawb -lae -laf -lisp_algo -lsensor -lmipi -lsensor_cfg -lini -lsns_full
+else
 LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lcvi_bin_isp -lvenc -lvdec -lsns_full -lisp -lawb -lae -laf -lisp_algo
-LIBS-y += -L$(MW_PATH)/lib -lvi -lvo -lvpss -lrgn -lgdc -lsys
+endif
+LIBS-y += -L$(MW_PATH)/lib -lvi -lvo -lvpss -lrgn -lgdc -lsys -lrt
 LIBS-$(CONFIG_SUPPORT_ATOMIC) += -latomic
 LIBS-y += -L$(MW_PATH)/lib/3rd
 
 ifneq ($(SOC_SEGMENT), CV180X)
   LIBS-$(CONFIG_MODULE_DISPLAY) += -L$(MW_PATH)/lib -lmipi_tx
 endif
+ifeq ($(SOC_SEGMENT), CV184X)
+LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine
+else
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine -lsbc
+endif
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO) += -lcvi_dnvqe -lcvi_ssp2
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -laacdec2 -laacenc2 -laacsbrdec2 -laacsbrenc2 -laaccomm2
 LIBS-$(CONFIG_MODULE_AUDIO_MP3)  += -lcvi_mp3 -lmad
@@ -127,13 +139,15 @@ else # MD libs dynamic link
 endif # MD libs static link end
 
 ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_lib
+  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_riscv64_lib
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_lib
+  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_riscv64_lib
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/lib32bit
+  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_arm32_lib
 else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/lib64bit
+  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm64_lib
 else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
@@ -178,11 +192,8 @@ LIBS-$(CONFIG_MODULE_RECORD) += -L$(RINGBUFFER_DIR)/lib -lcvi_comp_ringbuffer
 
 #NETWORK
 LIBS-$(CONFIG_MODULE_NETWORK) += -L$(THTTPD_LIB_DIR) -lthttpd
-ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
-  LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR) -L$(OPENSSL_LIB_DIR) -lwebsockets -lssl -lcrypto
-else
-  LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR) -lwebsockets
-endif
+LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR) -L$(OPENSSL_LIB_DIR) -lwebsockets -lssl -lcrypto
+
 
 LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT) += -L$(MW_PATH)/lib -lcvi_ive
 LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/ex_lib -lcvi_ive_tpu_ex
@@ -190,6 +201,21 @@ LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_
 
 # FRMBUF_LVGL
 LIBS-$(CONFIG_MODULE_FRMBUF_LVGL) += -L$(LVGL_LIB_DIR) -llvgl -llvgl_demos -llvgl_examples -llvgl_thorvg
+
+# CLOUD
+ifeq ($(CONFIG_MODULE_CLOUD), y)
+  ifeq ($(CONFIG_MODULE_AKYCLOUD), y)
+    LIBS-$(CONFIG_MODULE_AKYCLOUD)  += -L$(CLOUD_LIB_DIR)   \
+    -Wl,--start-group                                       \
+    -lCloudServ -lUdsCoreSrv -lmcjson -lhv -lrtspserver     \
+    -lmbedtls -lmbedcrypto -lmbedx509 -ltransclient -lztapi \
+    -Wl,--end-group
+  else
+    $(info "Must select cloud paltform if open CONFIG_MODULE_CLOUD")
+  endif
+endif
+
+
 
 LIBS += $(LIBS-y)
 

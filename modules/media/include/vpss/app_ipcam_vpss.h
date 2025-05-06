@@ -1,9 +1,21 @@
 #ifndef __APP_IPCAM_VPSS_H__
 #define __APP_IPCAM_VPSS_H__
 #include "cvi_vpss.h"
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
+#else
+#include "cvi_comm_video.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_sys.h"
+#else
+#include "cvi_comm_sys.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_vpss.h"
+#else
+#include "cvi_comm_vpss.h"
+#endif
 #ifdef __cplusplus
 extern "C"
 {
@@ -29,6 +41,9 @@ typedef struct APP_VPSS_GRP_CFG_S {
 } APP_VPSS_GRP_CFG_T;
 
 typedef struct APP_PARAM_VPSS_CFG_S {
+#ifdef __CV184X__
+    VPSS_MODE_S stVPSSMode;
+#endif
     CVI_U32 u32GrpCnt;
     APP_VPSS_GRP_CFG_T astVpssGrpCfg[CVI_MAX_VPSS_GRP];
 } APP_PARAM_VPSS_CFG_T;

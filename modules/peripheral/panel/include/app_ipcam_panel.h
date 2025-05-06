@@ -15,8 +15,13 @@ extern "C" {
 #endif /* End of #ifdef __cplusplus */
 
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
 #include "linux/cvi_comm_vo.h"
+#else
+#include "cvi_type.h"
+#include "cvi_comm_vo.h"
+#endif
 #include "app_ipcam_vo.h"
 
 

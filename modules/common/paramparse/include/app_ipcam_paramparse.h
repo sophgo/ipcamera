@@ -1,8 +1,15 @@
 #ifndef __APP_IPCAM_PARAM_PARSE_H__
 #define __APP_IPCAM_PARAM_PARSE_H__
-
+#ifndef __CV184X__
 #include "linux/cvi_common.h"
+#else
+#include "cvi_common.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
+#else
+#include "cvi_comm_video.h"
+#endif
 #include "app_ipcam_comm.h"
 #include "app_ipcam_sys.h"
 #include "app_ipcam_vi.h"
@@ -13,7 +20,7 @@
 #ifdef RTSP_SUPPORT
 #include "app_ipcam_rtsp.h"
 #endif
-#ifdef VDEC 
+#ifdef VDEC
 #include "app_ipcam_vdec.h"
 #endif
 
@@ -21,7 +28,7 @@
 #include "app_ipcam_frmbuf.h"
 #endif
 
-#ifdef VDEC_SOFT 
+#ifdef VDEC_SOFT
 #include "app_ipcam_vdec_soft.h"
 #endif
 

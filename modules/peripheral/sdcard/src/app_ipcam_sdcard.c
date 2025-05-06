@@ -114,7 +114,8 @@ static void* app_ipcam_SdCard_Proc(void *args)
                 if(s_stSdCardStatus)
                 {
                     //record init
-                }
+                
+}
             }
             else
             {

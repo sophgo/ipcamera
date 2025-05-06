@@ -2,10 +2,20 @@
 #include <errno.h>
 #include <stdbool.h>
 
+#ifndef __CV184X__
 #include "linux/cvi_defines.h"
 #include "linux/cvi_math.h"
 #include "linux/cvi_comm_mipi_tx.h"
+#else
+#include "cvi_defines.h"
+#include "cvi_math.h"
+#include "cvi_comm_mipi_tx.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
+#else
+#include "cvi_comm_video.h"
+#endif
 #include "cvi_sys.h"
 #include "cvi_vpss.h"
 #include "cvi_vo.h"
@@ -16,7 +26,8 @@
 
 #define VO_SOURCE_FLAG "/tmp/vdec"
 
-static pthread_t g_pthVo;
+static pthread_t g_pthVo[VO_MAX_DEV_NUM];
+static bool b_VoRunning[VO_MAX_DEV_NUM] = {CVI_FALSE};
 
 CVI_S32 app_ipcam_Vo_Start_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
 CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
@@ -96,7 +107,8 @@ CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     }
 
     if (pstVoCfg->bBindMode != 1){
-        if (pthread_create(&g_pthVo, CVI_NULL, pfunThreadVo, (CVI_VOID*)pstVoCfg) == 0) {
+        b_VoRunning[pstVoCfg->s32VoDev] = CVI_TRUE;
+        if (pthread_create(&g_pthVo[pstVoCfg->s32VoDev], CVI_NULL, pfunThreadVo, (CVI_VOID*)pstVoCfg) == 0) {
             APP_PROF_LOG_PRINT(LEVEL_INFO, "Thread VO is created successfully.\n");
         } else {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Thread VO is created failed.\n");
@@ -109,7 +121,11 @@ CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 CVI_S32 app_ipcam_Vo_Stop_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
-
+    b_VoRunning[pstVoCfg->s32VoDev] = CVI_FALSE;
+    if (g_pthVo[pstVoCfg->s32VoDev] != 0) {
+        pthread_join(g_pthVo[pstVoCfg->s32VoDev], NULL);
+        g_pthVo[pstVoCfg->s32VoDev] = 0;
+    }
     return CVI_SUCCESS;
 }
 
@@ -494,7 +510,7 @@ static CVI_VOID *pfunThreadVo(CVI_VOID *pvArg)
     const APP_PARAM_VO_CFG_T* const pstVoCfg = (APP_PARAM_VO_CFG_T*)pvArg;
     VIDEO_FRAME_INFO_S stVoFrame = {0};
 
-    while (CVI_TRUE) {
+    while (b_VoRunning[pstVoCfg->s32VoDev]) {
         usleep(1000);
 
         if (access(VO_SOURCE_FLAG, F_OK) == 0) {

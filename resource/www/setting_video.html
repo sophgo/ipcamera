@@ -158,8 +158,8 @@
                 </tr>
                 <tr>
                   <td>比特率</td>
-                  <td><input id="main_stream_bitrate" type="text"> (100-3000)</td>
-                  <!-- <td><label class="text" editable="false"> (100-3000)</label> </td> -->
+                  <td><input id="main_stream_bitrate" type="number" min="1000" max="3000"
+                           placeholder="1000-3000"></td>
                 </tr>
               </td>
             </table>
@@ -189,7 +189,6 @@
                   <td><select id="sub_stream_resolution" title="请选择">
                       <option value="0">576P</option>
                       <option value="1">360P</option>
-                      <!-- <option value="2">576P</option> -->
                     </select></td>
                 </tr>
                 <tr>
@@ -222,7 +221,8 @@
                 </tr>
                 <tr>
                   <td>比特率</td>
-                  <td><input id="sub_stream_bitrate" type="text"> (100-3000)</td>
+                  <td><input id="sub_stream_bitrate" type="number" min="1000" max="3000"
+                    placeholder="1000-3000"></td>
                 </tr>
               </td>
             </table>
@@ -609,7 +609,7 @@
       </div>
       </tr>
     </div>
-    <HR style="FILTER: alpha(opacity=100,finishopacity=0,style=2)" width="100%" color=#987cb9 SIZE=10>
+    <!-- <HR style="FILTER: alpha(opacity=100,finishopacity=0,style=2)" width="100%" color=#987cb9 SIZE=10>
     <div style="margin-left: 10px">
       <label>视频录制</label>
       <div style="margin-top: 20px">
@@ -633,7 +633,7 @@
 		    <td><textarea id="record_segment" style="width: 400px; height: 50px"></textarea></td>
 		  </tr>
 		</table>
-      </div>
+      </div> -->
     </section>
     <!--main content end-->
 

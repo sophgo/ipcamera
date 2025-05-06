@@ -1,0 +1,7 @@
+
+github address: https://github.com/libjpeg-turbo/libjpeg-turbo.git
+
+tag: 2.1.2
+
+git commit: ecf021bc0d6f435daacff7c35ccaeef0145df1b9
+

@@ -10,6 +10,9 @@
 #include "app_ipcam_audio.h"
 #endif
 
+#ifdef __CV184X__
+#include <string.h>
+#endif
 /**************************************************************************
  *                              M A C R O S                               *
  **************************************************************************/
@@ -240,7 +243,7 @@ static void rtsp_service_start_media_by_name(char *name)
                     video.name = v_name;
                     video.entry = rtsp_service_media_task;
                     video.param = (void *)c;
-                    video.priority = CVI_OSAL_PRI_RT_MID;
+                    video.priority = CVI_OSAL_PRI_NORMAL;
                     video.detached = false;
                     video.stack_size = 128 * 1024;
                     cvi_osal_task_create(&video, &c->media_task);

@@ -15,18 +15,43 @@
 #ifdef AI_SUPPORT
 #include "app_ipcam_ai.h"
 #endif
-#define MAX_PAYLOAD_SIZE (1024 * 1024)
-#define MAX_BUFFER_SIZE (256*1024)
 
+#define MAX_PAYLOAD_SIZE (1024 * 1024)
+#define RX_BUFFER_SIZE      128
+#define MAIN_STREAM_FLAG "main_stream"
+#define SUB_STREAM_FLAG  "sub_stream"
+
+typedef enum RX_STATUS_S{
+    RX_STATUS_WAIT = 0,
+    RX_STATUS_OPEN,
+} WS_RX_STATUS_E;
+
+typedef enum STREAM_NUM_S  {
+    MAIN_STREAM = 0,
+    SUB_STREAM = 1,
+    STREAM_MAX
+} WS_STREAM_TYPE_E;
+
+typedef enum MSG_TYPE_S {
+    MSG_TYPE_VIDEO = 0,
+    MSG_TYPE_AIFPS = 1,
+    MSG_TYPE_MAX = 2,
+} WS_MSG_TYPE_E;
+
+typedef struct {
+    int stream_id;
+    CVI_MBUF_HANDLE *reader;
+    CVI_MEDIA_FRAME_INFO_T frame_info;
+} stream_context;
+
+static stream_context g_streams[STREAM_MAX];
 struct lws *g_wsi = NULL;
-static unsigned char *s_aiData = NULL;
-static int s_aiSize = 0;
-static int g_CurVencChn = 1;    /* default set to sub-streaming */
-static volatile int s_terminal = 0;
+static volatile int g_terminal = 0;
+static int g_current_stream = MAIN_STREAM; // main default
+static unsigned char *g_aifps_data = NULL;
+static int g_aifps_size = 0;
 pthread_mutex_t g_aiMutexLock = PTHREAD_MUTEX_INITIALIZER;
-pthread_t g_websocketThread;
-CVI_MBUF_HANDLE* g_WebReaderid = NULL;
-CVI_MEDIA_FRAME_INFO_T g_WebReadFrameInfo;
+pthread_t g_ws_thread;
 
 struct sessionData_s
 {
@@ -39,116 +64,193 @@ struct sessionData_s
 
 int app_ipcam_WebSocketChn_Get()
 {
-    return g_CurVencChn;
+    return g_current_stream;
 }
 
-int app_ipcam_WebSocketChn_Set(int chn)
+int app_ipcam_WebSocketChn_Set(int venc_chn)
 {
-    g_CurVencChn = chn;
+    g_current_stream = venc_chn;
 
     return 0;
 }
 
-static void CVI_IPC_WebsocketRequestIDR(void)
+static void CVI_IPC_WebsocketRequestIDR(int venc_chn)
 {
-    CVI_VENC_RequestIDR(g_CurVencChn, 1);
+    CVI_VENC_RequestIDR(venc_chn, 1);
 }
 
-static int ProtocolMyCallback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+static void init_frame_streams()
 {
-    struct sessionData_s *data = (struct sessionData_s *)user;
+    for (int i = 0; i < STREAM_MAX; i++) {
+        g_streams[i].stream_id = i;
+        g_streams[i].reader = NULL;
+        memset(&g_streams[i].frame_info.frameParam, 0, sizeof(g_streams[i].frame_info.frameParam));
+        g_streams[i].frame_info.frameBuf = malloc(CVI_MBUF_STREAM_MAX_SIZE);
+        if (NULL == g_streams[i].frame_info.frameBuf) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, " %d stream frameBuf malloc fail\n", i);
+            return;
+        }
+    }
+}
+
+static void deinit_frame_streams()
+{
+    for (int i = 0; i < STREAM_MAX; i++) {
+
+        if(g_streams[i].reader){
+            app_ipcam_Mbuf_DestoryReader(g_streams[i].reader);
+        }
+
+        if(g_streams[i].frame_info.frameBuf){
+            free(g_streams[i].frame_info.frameBuf);
+        }
+
+    }
+}
+
+static void destroy_buf_reader(stream_context *stream)
+{
+    if (stream->reader) {
+        app_ipcam_Mbuf_DestoryReader(stream->reader);
+        stream->reader = NULL;
+    }
+}
+
+static void switch_to_stream(int stream_id)
+{
+    for (int i = 0; i < STREAM_MAX; i++) {
+
+        stream_context *stream = &g_streams[i];
+
+        if (stream->stream_id == stream_id) {
+            for (int j = 0; j < STREAM_MAX; j++) {
+                if (j != i) {
+                    destroy_buf_reader(&g_streams[j]);
+                }
+            }
+
+            if (NULL == stream->reader) {
+                stream->reader = app_ipcam_Mbuf_CreateReader(stream_id, 1);
+                CVI_IPC_WebsocketRequestIDR(stream_id);
+            }
+            break;
+        }
+    }
+}
+
+static void handle_stream_writeable(struct lws *wsi, int stream_id)
+{
+    for (int i = 0; i < STREAM_MAX; i++) {
+
+        stream_context *stream = &g_streams[i];
+        // note：send other type msg shoudle before video data
+        if(MAIN_STREAM == stream_id) {
+            pthread_mutex_lock(&g_aiMutexLock);
+            if (g_aifps_size != 0 && g_aifps_data != NULL) {
+                lws_write(wsi, g_aifps_data + LWS_PRE, g_aifps_size, LWS_WRITE_BINARY);
+            }
+            if (g_aifps_data) {
+                free(g_aifps_data);
+                g_aifps_data = NULL;
+            }
+            g_aifps_size = 0;
+            pthread_mutex_unlock(&g_aiMutexLock);
+        }
+
+        if (stream->stream_id == stream_id && stream->reader) {
+
+            lws_callback_on_writable(wsi);
+            memset(stream->frame_info.frameBuf, 0, CVI_MBUF_STREAM_MAX_SIZE);
+            stream->frame_info.frameBufLen = CVI_MBUF_STREAM_MAX_SIZE;
+            if (0 < app_ipcam_Mbuf_ReadFrame(stream->reader, 0, &stream->frame_info, 100)) {
+                lws_write(wsi, stream->frame_info.frameBuf, stream->frame_info.frameParam.frameLen + 1, LWS_WRITE_BINARY);
+            }
+            break;
+        }
+    }
+}
+
+static void cleanup_resources()
+{
+    for (int i = 0; i < STREAM_MAX; i++) {
+        destroy_buf_reader(&g_streams[i]);
+    }
+
+    pthread_mutex_lock(&g_aiMutexLock);
+    if (g_aifps_data) {
+        free(g_aifps_data);
+        g_aifps_data = NULL;
+    }
+    g_aifps_size = 0;
+    pthread_mutex_unlock(&g_aiMutexLock);
+}
+
+static int stream_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+{
     switch (reason)
     {
-    case LWS_CALLBACK_ESTABLISHED:
-        printf("Client LWS_CALLBACK_ESTABLISHED!\n");
-        g_wsi = wsi;
-        CVI_IPC_WebsocketRequestIDR();
-        if (NULL == g_WebReaderid)
-        {
-            g_WebReaderid = app_ipcam_Mbuf_CreateReader(g_CurVencChn, 1);
-        }
+        case LWS_CALLBACK_ESTABLISHED:
+            printf("Stream LWS_CALLBACK_ESTABLISHED!\n");
 
-        break;
-    case LWS_CALLBACK_RECEIVE:
-        lws_rx_flow_control(wsi, 0);
-        char *tmp_data = (char *)malloc(len + 1);
-        memset(tmp_data, 0, len + 1);
-        memcpy(tmp_data, in, len);
-        data->len = len;
-        free(tmp_data);
-        // lws_callback_on_writable(wsi);
-        break;
-    case LWS_CALLBACK_SERVER_WRITEABLE:
-        if (g_WebReaderid && g_WebReadFrameInfo.frameBuf)
-        {
-            lws_callback_on_writable(g_wsi);
-            memset(g_WebReadFrameInfo.frameBuf, 0, CVI_MBUF_STREAM_MAX_SIZE);
-            g_WebReadFrameInfo.frameBufLen = CVI_MBUF_STREAM_MAX_SIZE;
-            if (0 < app_ipcam_Mbuf_ReadFrame(g_WebReaderid, 0, &g_WebReadFrameInfo, 100))
-            {
-                lws_write(wsi, g_WebReadFrameInfo.frameBuf, g_WebReadFrameInfo.frameParam.frameLen + 1, LWS_WRITE_BINARY); // LWS_WRITE_BINARY LWS_WRITE_TEXT
+            g_wsi = wsi; // for other msg send
+            switch_to_stream(g_current_stream); // main default
+            break;
+
+        case LWS_CALLBACK_RECEIVE:
+            lws_rx_flow_control(wsi, RX_STATUS_WAIT);
+            if (len > 0) {
+                char *msg = (char *)in;
+                if (strncmp(msg, MAIN_STREAM_FLAG, len) == 0) {
+                    printf("======SWITCH TO MAIN STREAM======\n");
+                    g_current_stream = MAIN_STREAM;
+                    switch_to_stream(MAIN_STREAM);
+                } else if (strncmp(msg, SUB_STREAM_FLAG, len) == 0) {
+                    printf("======SWITCH TO SUB  STREAM======\n");
+                    g_current_stream = SUB_STREAM;
+                    switch_to_stream(SUB_STREAM);
+                }
             }
-        }
+            break;
 
-        pthread_mutex_lock(&g_aiMutexLock);
+        case LWS_CALLBACK_SERVER_WRITEABLE:
+            handle_stream_writeable(wsi, g_current_stream);
+            lws_rx_flow_control(wsi, RX_STATUS_OPEN);
+            break;
 
-        if (s_aiSize != 0 && NULL != s_aiData) {
-            lws_write(wsi, s_aiData + LWS_PRE, s_aiSize, LWS_WRITE_BINARY); // LWS_WRITE_BINARY LWS_WRITE_TEXT
-        } else {
-            //printf("----- websocket filesize is 0\n");
-        }
-        if (s_aiData != NULL) {
-            free(s_aiData);
-            s_aiData = NULL;
-        }
-        pthread_mutex_unlock(&g_aiMutexLock);
+        case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
+            printf("Stream LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
+            break;
 
-        lws_rx_flow_control(wsi, 1);
-        break;
-    case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-        printf("client LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
-        break;
-    case LWS_CALLBACK_WSI_DESTROY:
-    case LWS_CALLBACK_CLOSED:
-        printf("client close WebSocket\n");
-        if (g_WebReaderid)
-        {
-            app_ipcam_Mbuf_DestoryReader(g_WebReaderid);
-            g_WebReaderid = NULL;
-        }
-        g_wsi = NULL;
-        // CVI_IPC_CleanHumanTraffic();
+        case LWS_CALLBACK_WSI_DESTROY:
+            printf("Stream LWS_CALLBACK_WSI_DESTROY\n");
+            break;
 
-		pthread_mutex_lock(&g_aiMutexLock);
-		if (s_aiData) {
-			free(s_aiData);
-			s_aiData = NULL;
-		}
-        s_aiSize = 0;
-		pthread_mutex_unlock(&g_aiMutexLock);
-        break;
-    default:
-        break;
+        case LWS_CALLBACK_CLOSED:
+            printf("Stream LWS_CALLBACK_CLOSED\n");
+            cleanup_resources();
+            g_wsi = NULL;
+            break;
+
+        default:
+            break;
     }
+
     return 0;
 }
 
-struct lws_protocols protocols[] = {
-    {"ws",                          /*协议名*/
-     ProtocolMyCallback,            /*回调函数*/
-     sizeof(struct sessionData_s),  /*定义新连接分配的内存,连接断开后释放*/
-     MAX_PAYLOAD_SIZE,              /*定义rx 缓冲区大小*/
-     0,
-     NULL,
-     0},
-    {NULL, NULL, 0, 0, 0, 0, 0} /*结束标志*/
+const struct lws_protocols protocols[] = {
+    {"stream",
+      stream_callback,
+      sizeof(struct sessionData_s),
+      RX_BUFFER_SIZE, 0, NULL, 0},
+    { NULL, NULL, 0, 0 ,0, 0, 0 }       // Must end with an empty protocol
 };
 
 static void *ThreadWebsocket(void *arg)
 {
     struct lws_context_creation_info ctx_info = {0};
     ctx_info.port = 8000;
-    ctx_info.iface = NULL;  // 在所有网络接口上监听
+    ctx_info.iface = NULL;  // Listen on all network interfaces
     ctx_info.protocols = protocols;
     ctx_info.gid = -1;
     ctx_info.uid = -1;
@@ -161,7 +263,7 @@ static void *ThreadWebsocket(void *arg)
     // ctx_info.options |= LWS_SERVER_OPTION_REQUIRE_VALID_OPENSSL_CLIENT_CERT;
 
     struct lws_context *context = lws_create_context(&ctx_info);
-    while (!s_terminal) {
+    while (!g_terminal) {
         lws_service(context, 1000);
     }
     lws_context_destroy(context);
@@ -173,37 +275,22 @@ int app_ipcam_WebSocket_Init()
 {
     int s32Ret = 0;
 
-    memset(&g_WebReadFrameInfo.frameParam, 0, sizeof(g_WebReadFrameInfo.frameParam));
-    g_WebReadFrameInfo.frameBuf = malloc(CVI_MBUF_STREAM_MAX_SIZE);
-    if (NULL == g_WebReadFrameInfo.frameBuf)
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "frameBuf malloc fail\n");
-        return -1;
-    }
+    init_frame_streams();
 
-    s32Ret = pthread_create(&g_websocketThread, NULL, ThreadWebsocket, NULL);
+    s32Ret = pthread_create(&g_ws_thread, NULL, ThreadWebsocket, NULL);
     return s32Ret;
 }
 
 int app_ipcam_WebSocket_DeInit()
 {
-    s_terminal = 1;
-    if (g_websocketThread) {
-        pthread_join(g_websocketThread, NULL);
-        g_websocketThread = 0;
+    g_terminal = 1;
+
+    if (g_ws_thread) {
+        pthread_join(g_ws_thread, NULL);
+        g_ws_thread = 0;
     }
 
-    if (g_WebReadFrameInfo.frameBuf)
-    {
-        free(g_WebReadFrameInfo.frameBuf);
-        g_WebReadFrameInfo.frameBuf = NULL;
-    }
-
-    return 0;
-}
-
-int app_ipcam_WebSocket_Stream_Send(void *pData, void *pArgs)
-{
+    deinit_frame_streams();
 
     return 0;
 }
@@ -222,60 +309,34 @@ int app_ipcam_WebSocket_AiFps_Send(void)
     int len = strlen(AiFps);
 
     pthread_mutex_lock(&g_aiMutexLock);
-    if (s_aiData != NULL) {
-        free(s_aiData);
-        s_aiData = NULL;
+    if (g_aifps_data != NULL) {
+        free(g_aifps_data);
+        g_aifps_data = NULL;
     }
 
-    s_aiData = malloc(LWS_PRE + 1 + len); // one for type, one for reserve
-    if (s_aiData == NULL) {
+    g_aifps_data = malloc(LWS_PRE + 1 + len); // one for type, one for reserve
+    if (g_aifps_data == NULL) {
         printf("error, malloc img buff failed\n");
         pthread_mutex_unlock(&g_aiMutexLock);
         return -1;
     }
-    memset(s_aiData, 0, LWS_PRE + 1 + len);
+    memset(g_aifps_data, 0, LWS_PRE + 1 + len);
 
-    s_aiData[LWS_PRE] = 3 & 0xff;
+    g_aifps_data[LWS_PRE] = MSG_TYPE_AIFPS & 0xff;
 
-    memcpy(s_aiData + LWS_PRE + 1, AiFps, len);
+    memcpy(g_aifps_data + LWS_PRE + 1, AiFps, len);
 
-    s_aiSize = len + 1;
+    // printf("g_aifps_data ====== %s  %s \n", g_aifps_data + LWS_PRE + 1 , AiFps);
+
+    g_aifps_size = len + 1;
 
     if (g_wsi != NULL) {
         lws_callback_on_writable(g_wsi);
     } else {
-        free(s_aiData);
-        s_aiData = NULL;
+        free(g_aifps_data);
+        g_aifps_data = NULL;
     }
     pthread_mutex_unlock(&g_aiMutexLock);
-   
+
     return CVI_SUCCESS;
 }
-// static void FrameUnmmap(VIDEO_FRAME_INFO_S *frame)
-// {
-//     size_t length = 0;
-//     for (int i = 0; i < 3; ++i)
-//     {
-//         length += frame->stVFrame.u32Length[i];
-//     }
-//     CVI_SYS_Munmap((void *)frame->stVFrame.pu8VirAddr[0], length);
-// }
-
-// static int FrameMmap(VIDEO_FRAME_INFO_S *frame)
-// {
-//     size_t length = 0;
-//     for (int i = 0; i < 3; ++i)
-//     {
-//         length += frame->stVFrame.u32Length[i];
-//     }
-//     frame->stVFrame.pu8VirAddr[0] = (CVI_U8 *)CVI_SYS_MmapCache(frame->stVFrame.u64PhyAddr[0],
-//                                                                 length);
-//     if (!frame->stVFrame.pu8VirAddr[0])
-//     {
-//         printf("mmap frame virtual addr failed\n");
-//         return -1;
-//     }
-//     frame->stVFrame.pu8VirAddr[1] = frame->stVFrame.pu8VirAddr[0] + frame->stVFrame.u32Length[0];
-//     frame->stVFrame.pu8VirAddr[2] = frame->stVFrame.pu8VirAddr[1] + frame->stVFrame.u32Length[1];
-//     return 0;
-// }

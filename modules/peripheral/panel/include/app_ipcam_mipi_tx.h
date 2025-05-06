@@ -15,8 +15,13 @@ extern "C" {
 #endif /* End of #ifdef __cplusplus */
 
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
 #include "linux/cvi_comm_mipi_tx.h"
+#else
+#include "cvi_type.h"
+#include "cvi_comm_mipi_tx.h"
+#endif
 #include "cvi_mipi_tx.h"
 
 CVI_S32 app_ipcam_MipiTx_Enable(

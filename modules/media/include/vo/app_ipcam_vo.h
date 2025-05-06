@@ -15,9 +15,15 @@ extern "C" {
 #endif
 
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
 #include <linux/cvi_common.h>
 #include "linux/cvi_comm_vo.h"
+#else
+#include "cvi_type.h"
+#include "cvi_common.h"
+#include "cvi_comm_vo.h"
+#endif
 
 
 typedef enum _VO_MODE_E {

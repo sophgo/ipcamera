@@ -10,6 +10,7 @@ module-$(CONFIG_MODULE_COMMON)					+= common
 module-$(CONFIG_MODULE_DISPLAY)					+= display
 module-$(CONFIG_MODULE_ENABLE_FRAMEBUFFER)		+= framebuffer
 module-$(CONFIG_MODULE_PROTOCOL)				+= protocol
+module-$(CONFIG_MODULE_CLOUD)					+= cloud
 
 SUBDIRS += $(module-y)
 

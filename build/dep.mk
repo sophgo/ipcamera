@@ -1,10 +1,19 @@
 # VDEC_SOFT
 DEFS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -DVDEC_SOFT
 INCS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -I$(APP_PREBUILT_DIR)/ffmpeg6.0/include
+ifeq ($(SOC_SEGMENT), CV184X)
+INCS-y += -I$(MW_PATH)/include -I$(ISP_INC) -I$(MW_PATH)/include/isp
+else
 INCS-y += -I$(MW_PATH)/include -I$(MW_PATH)/include/linux -I$(ISP_INC) -I$(MW_PATH)/include/isp/$(SOC_NICK_NAME_LOWER)
+endif
 # DISPLAY
 ifneq ($(SOC_SEGMENT), CV180X)
   INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel/$(SOC_NICK_NAME_LOWER)
+  DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
+endif
+
+ifeq ($(SOC_SEGMENT), CV184X)
+  INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel
   DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
 endif
 
@@ -101,9 +110,16 @@ INCS-$(CONFIG_MODULE_NETWORK) += -I$(APP_PREBUILT_DIR)/libwebsockets/include/lib
 DEFS-$(CONFIG_MODULE_NETWORK) += -DWEB_SOCKET
 INCS-$(CONFIG_MODULE_NETWORK) += -I$(APP_PREBUILT_DIR)/openssl/include/
 
+# cloud
+INCS-$(CONFIG_MODULE_AKYCLOUD)    += -I$(APP_PREBUILT_DIR)/cloud/akysmart/include
+DEFS-$(CONFIG_MODULE_CLOUD)       += -DCLOUD_SUPPORT
+DEFS-$(CONFIG_MODULE_AKYCLOUD)    += -DAKYCLOUD_SUPPORT
+
 # SENSOR
 INCS-y += -I$(SENSOR_LIST_INC)
+ifneq ($(SOC_SEGMENT), CV184X)
 include $(SENSOR_LIST_INC)/Kbuild
+endif
 DEFS-y += $(KBUILD_DEFINES)
 
 GDB_DEBUG = 0
@@ -112,7 +128,7 @@ ifeq ($(GDB_DEBUG), 1)
 endif
 
 #module include
-INCS-$(CONFIG_MODULE_COMMON)			+= -I$(SRCTREE)/modules/common/include
+INCS-$(CONFIG_MODULE_COMMON)			  += -I$(SRCTREE)/modules/common/include
 INCS-$(CONFIG_MODULE_MEDIA_SYS)			+= -I$(SRCTREE)/modules/media/include/sys
 INCS-$(CONFIG_MODULE_MEDIA_VI)			+= -I$(SRCTREE)/modules/media/include/vi
 INCS-$(CONFIG_MODULE_MEDIA_VPSS)		+= -I$(SRCTREE)/modules/media/include/vpss
@@ -121,12 +137,12 @@ INCS-$(CONFIG_MODULE_MEDIA_OSD)			+= -I$(SRCTREE)/modules/media/include/osd
 INCS-$(CONFIG_MODULE_MEDIA_VO)			+= -I$(SRCTREE)/modules/media/include/vo
 INCS-$(CONFIG_MODULE_MEDIA_AUDIO)		+= -I$(SRCTREE)/modules/media/include/audio
 INCS-$(CONFIG_MODULE_MEDIA_DEC)			+= -I$(SRCTREE)/modules/media/include/vdec
-INCS-$(CONFIG_MODULE_MEDIA_DECSOFT)		+= -I$(SRCTREE)/modules/media/include/vdecsoft
-INCS-$(CONFIG_MODULE_MEDIA_STITCH)		+= -I$(SRCTREE)/modules/media/include/stitch
+INCS-$(CONFIG_MODULE_MEDIA_DECSOFT)	+= -I$(SRCTREE)/modules/media/include/vdecsoft
+INCS-$(CONFIG_MODULE_MEDIA_STITCH)	+= -I$(SRCTREE)/modules/media/include/stitch
 INCS-$(CONFIG_MODULE_MEDIA_GDC)		 	+= -I$(SRCTREE)/modules/media/include/gdc
 INCS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT)		+= -I$(SRCTREE)/modules/media/include/blacklight
-INCS-$(CONFIG_MODULE_PARAMPARSE)		+= -I$(SRCTREE)/modules/common/paramparse/include
-INCS-$(CONFIG_MODULE_AI)				+= -I$(SRCTREE)/modules/ai/include
+INCS-$(CONFIG_MODULE_PARAMPARSE)	+= -I$(SRCTREE)/modules/common/paramparse/include
+INCS-$(CONFIG_MODULE_AI)				  += -I$(SRCTREE)/modules/ai/include
 INCS-$(CONFIG_MODULE_CVIUAC)			+= -I$(SRCTREE)/modules/protocol/cvi_uac/include
 INCS-$(CONFIG_MODULE_CVIUVC)			+= -I$(SRCTREE)/modules/protocol/cvi_uvc/include
 INCS-$(CONFIG_MODULE_NETWORK)			+= -I$(SRCTREE)/modules/protocol/network/include
@@ -140,9 +156,11 @@ INCS-$(CONFIG_MODULE_RECORD)			+= -I$(SRCTREE)/modules/record/include/file_recov
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/display/include
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/peripheral/panel/include
 INCS-$(CONFIG_MODULE_FRMBUF)			+= -I$(SRCTREE)/modules/framebuffer/include/frmbuf
-INCS-$(CONFIG_MODULE_FRMBUF_DISP)		+= -I$(SRCTREE)/modules/framebuffer/include/frmbuf_disp
+INCS-$(CONFIG_MODULE_FRMBUF_DISP)	+= -I$(SRCTREE)/modules/framebuffer/include/frmbuf_disp
 INCS-$(CONFIG_MODULE_FRMBUF_LVGL) += -I$(SRCTREE)/modules/framebuffer/include/frmbuf_lvgl
 INCS-$(CONFIG_MODULE_AI_MD)				+= -I$(SRCTREE)/modules/ai/md/include
+INCS-$(CONFIG_MODULE_CLOUD)       += -I$(SRCTREE)/modules/cloud/hal_plt/include
+
 
 INCS += $(INCS-y)
 TARGETFLAGS += $(INCS)
@@ -155,6 +173,7 @@ else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
   CFLAGS		  += -MMD -Os -mcpu=c906fdv -march=rv64imafdcv0p7xthead -mcmodel=medany -mabi=lp64d
   TARGETFLAGS += -mcpu=c906fdv -march=rv64imafdcv0p7xthead -mcmodel=medany -mabi=lp64d
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
 else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
 else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
@@ -167,8 +186,12 @@ ifeq ("$(SOC_SEGMENT)", "CV180X")
   CFLAGS += -D__CV180X__
 endif
 
+ifeq ("$(SOC_SEGMENT)", "CV184X")
+  CFLAGS += -D__CV184X__
+endif
+
 CFLAGS += -std=gnu11 -g -Wall -Wextra -Werror -fPIC -ffunction-sections -fdata-sections -Wl,--gc-sections
-ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu),)
+ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu arm-none-linux-musleabihf),)
   CFLAGS += -mno-ldd
 endif
 CFLAGS += $(DEFS-y)

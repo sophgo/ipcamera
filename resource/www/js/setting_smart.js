@@ -49,6 +49,7 @@ $(function () {
 
     ai_cfg_json['md_enable'] = document.getElementById("md_enabled").value;
     ai_cfg_json['pd_enable'] = document.getElementById("pd_enabled").value;
+    ai_cfg_json['cry_enable'] = document.getElementById("cry_enabled").value;
     ai_cfg_json['pd_intrusion_enable'] = document.getElementById("pd_intrusion_enabled").value;
     ai_cfg_json['md_threshold'] =  document.getElementById("md_threshold").value;
     ai_cfg_json['pd_threshold'] =  document.getElementById("pd_threshold").value;
@@ -65,7 +66,7 @@ $(function () {
     ai_cfg_json['region_y5'] =  document.getElementById("pd_privacy_y5").value;
     ai_cfg_json['region_x6'] =  document.getElementById("pd_privacy_x6").value;
     ai_cfg_json['region_y6'] =  document.getElementById("pd_privacy_y6").value;
-    
+
     var ainfo_json = JSON.stringify(ai_cfg_json);
     $.get('/cgi/set_ai_info.cgi?' + ainfo_json, function (data, status) {
       alert("result: " + status);
@@ -95,9 +96,8 @@ $(function () {
       var obj = JSON.parse(data, function (key, value) {
         return value;
       });
-  
+
       console.log(obj);
-      $("#smart_model").val(obj.ai_model);
       $("#md_enabled").val(obj.md_enable);
       $("#pd_enabled").val(obj.pd_enable);
       $("#pd_intrusion_enabled").val(obj.pd_intrusion_enable);
@@ -116,5 +116,6 @@ $(function () {
       $("#pd_privacy_y5").val(obj.region_y5);
       $("#pd_privacy_x6").val(obj.region_x6);
       $("#pd_privacy_y6").val(obj.region_y6);
+      $("#cry_scene").val(obj.cry_scene);
     })
   }

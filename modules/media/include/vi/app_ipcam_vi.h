@@ -9,7 +9,11 @@
 #include "cvi_isp.h"
 #include "cvi_vi.h"
 #include "cvi_sys.h"
+#ifndef __CV184X__
 #include "sensor_list.h"
+#else
+#include "sensor_cfg.h"
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -49,12 +53,20 @@ typedef enum {
 typedef struct APP_PARAM_SNS_CFG_S {
     CVI_S32 s32SnsId;
     CVI_S32 s32ModeId;
+#ifndef __CV184X__
     SAMPLE_SNS_TYPE_E enSnsType;
+#else
+    CVI_SNS_TYPE_E enSnsType;
+#endif
     WDR_MODE_E enWDRMode;
     CVI_S32 s32Framerate;
     CVI_S32 s32BusId;
     CVI_S32 s32I2cAddr;
+#ifndef __CV184X__
     combo_dev_t MipiDev;
+#else
+    CVI_U32 MipiDev;
+#endif
     CVI_S16 as16LaneId[MIPI_RX_MAX_LANE_NUM];
     CVI_S8  as8PNSwap[MIPI_RX_MAX_LANE_NUM];
     CVI_BOOL bMclkEn;
@@ -64,7 +76,9 @@ typedef struct APP_PARAM_SNS_CFG_S {
     CVI_U8 u8UseDualSns;
 	CVI_U8 u8Hsettle; // 0: 0-16
 	CVI_BOOL bHsettlen;
+    CVI_S32 s32Rstport;
     CVI_S32 s32RstPin;
+    CVI_S32 s32Rstpol;
     CVI_S32 s32RstActive;
 }APP_PARAM_SNS_CFG_T;
 
@@ -110,7 +124,11 @@ typedef struct APP_PARAM_ISP_CFG_T {
 
 typedef struct APP_PARAM_VI_CFG_T {
     CVI_U32 u32WorkSnsCnt;
+#ifndef __CV184X__
     APP_PARAM_SNS_CFG_T astSensorCfg[VI_MAX_DEV_NUM];
+#else
+    SENSOR_CFG_S stSensorCfg;
+#endif
     APP_PARAM_DEV_CFG_T astDevInfo[VI_MAX_DEV_NUM];
     APP_PARAM_PIPE_CFG_T astPipeInfo[VI_MAX_DEV_NUM];
     APP_PARAM_CHN_CFG_T astChnInfo[VI_MAX_DEV_NUM];

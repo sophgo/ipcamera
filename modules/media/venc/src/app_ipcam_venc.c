@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include "cvi_vpss.h"
 #include "errno.h"
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "cvi_ae.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_sys.h"
@@ -167,7 +171,7 @@ CVI_S32 app_ipcam_Venc_SvcParam_Set(VENC_CHN VencChn, VENC_RC_MODE_E enRcMode, A
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "GetSvcParam failed!\n");
 		return s32Ret;
 	}
-    
+
     pstSvcParam->fg_protect_en = pSvcCfg->bfg_protect_en;
 	pstSvcParam->fg_dealt_qp = pSvcCfg->s32fg_dealt_qp;
 	if (pSvcCfg->bcomplex_scene_detect_en) {
@@ -461,7 +465,7 @@ int app_ipcam_Venc_Chn_Attr_Set(VENC_ATTR_S *pstVencAttr, APP_VENC_CHN_CFG_S *ps
         pstVencAttr->bEsBufQueueEn = CVI_FALSE;
         pstVencAttr->bIsoSendFrmEn = CVI_FALSE;
     }
-    
+
     /* Venc encode type validity check */
     if ((pstVencAttr->enType != PT_H265) && (pstVencAttr->enType != PT_H264)
         && (pstVencAttr->enType != PT_JPEG) && (pstVencAttr->enType != PT_MJPEG)) {
@@ -807,7 +811,7 @@ int app_ipcam_Venc_Rc_Param_Set(
         s32AvbrFrmGap, s32AvbrPureStillThr, u32ThrdLv, s32FirstFrameStartQp, s32InitialDelay);
     APP_PROF_LOG_PRINT(LEVEL_TRACE, "BgDeltaQp=%d RowQpDelta=%d BgEnhanceEn=%d\n",
         s32BgDeltaQp, u32RowQpDelta, bBgEnhanceEn);
-               
+
     pstRcParam->u32ThrdLv = u32ThrdLv;
     pstRcParam->s32FirstFrameStartQp = s32FirstFrameStartQp;
     pstRcParam->s32InitialDelay = s32InitialDelay;
@@ -1206,7 +1210,7 @@ static void *Thread_StreamTask_Proc(void *pArgs)
             FILE *pFile= fopen("/tmp/rec", "r");
             fread(buf, 1, sizeof(buf), pFile);
             fclose(pFile);
-            
+
             VencChn = atoi(buf);
             pstVencChnCfg = &g_pstVencCtx->astVencChnCfg[VencChn];
             if (pstVencChnCfg->pFile == NULL) {
@@ -1691,7 +1695,7 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
         CVI_BOOL bSbmMode = CVI_FALSE;
         // Check if the current channel is one of the SBM channels
         for (int idx = 0; idx < pstSysCfg->u8SbmCnt; ++idx) {
-            if ((pstVencChnCfg->astChn[0].s32DevId  == pstSysCfg->pstSbmCfg[idx].s32SbmGrp) && 
+            if ((pstVencChnCfg->astChn[0].s32DevId  == pstSysCfg->pstSbmCfg[idx].s32SbmGrp) &&
                 (pstVencChnCfg->astChn[0].s32ChnId == pstSysCfg->pstSbmCfg[idx].s32SbmChn)) {
                 bSbmMode = CVI_TRUE;
                 break; // No need to check further if a match is found
@@ -1825,7 +1829,7 @@ int app_ipcam_Venc_Start(APP_VENC_CHN_E VencIdx)
         CVI_BOOL bSbmMode = CVI_FALSE;
         // Check if the current channel is one of the SBM channels
         for (int idx = 0; idx < pstSysCfg->u8SbmCnt; ++idx) {
-            if ((pstVencChnCfg->astChn[0].s32DevId == pstSysCfg->pstSbmCfg[idx].s32SbmGrp) && 
+            if ((pstVencChnCfg->astChn[0].s32DevId == pstSysCfg->pstSbmCfg[idx].s32SbmGrp) &&
                 (pstVencChnCfg->astChn[0].s32ChnId == pstSysCfg->pstSbmCfg[idx].s32SbmChn)) {
                 bSbmMode = CVI_TRUE;
                 break; // No need to check further if a match is found

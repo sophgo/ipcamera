@@ -1,7 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "dsi_3aml069lp01g.h"
 #include "dsi_gm8775c.h"
 #include "dsi_hx8394_evb.h"
@@ -10,16 +14,20 @@
 #include "dsi_ili9881c.h"
 #include "dsi_ili9881d.h"
 #include "dsi_jd9366ab.h"
+#ifndef __CV184X__
 #include "dsi_jd9852.h"
+#endif
 #include "dsi_lt9611.h"
 #include "dsi_nt35521.h"
 #include "dsi_ota7290b.h"
 #include "dsi_ota7290b_1920.h"
 #include "dsi_st7701.h"
+#ifndef __CV184X__
 #include "dsi_st7796s.h"
 #include "bt656_tp2803.h"
 #include "i80_st7789v.h"
 #include "dsi_st7785m.h"
+#endif
 
 #include "app_ipcam_comm.h"
 #include "app_ipcam_mipi_tx.h"
@@ -34,24 +42,34 @@ CVI_S32 app_ipcam_Panel_FillIntfAttr(APP_PARAM_VO_CFG_T* const pstVoCfg)
     switch (pstVoCfg->stVoPubAttr.enIntfType) {
 
         case VO_INTF_I80:
+#ifndef __CV184X__
             pstVoCfg->stVoPubAttr.sti80Cfg = stI80Cfg;
+#endif
             break;
+#ifndef __CV184X__
         case VO_INTF_CVBS:
         case VO_INTF_YPBPR:
         case VO_INTF_VGA:
+#endif
         case VO_INTF_BT656:
+#ifndef __CV184X__
             pstVoCfg->stVoPubAttr.stBtAttr = stTP2803Cfg;
+#endif
             break;
         case VO_INTF_BT1120:
+#ifndef __CV184X__
         case VO_INTF_LCD:
         case VO_INTF_LCD_18BIT:
         case VO_INTF_LCD_24BIT:
         case VO_INTF_LCD_30BIT:
         case VO_INTF_HDMI:
+#endif
             break;
 
         case VO_INTF_MIPI:
+#ifndef __CV184X__
         case VO_INTF_MIPI_SLAVE:
+#endif
             //no need, MIPI-DSI is setup by mipi-tx
             break;
 
@@ -124,6 +142,7 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PA
             pstPanelDesc->s32DsiInitCmdsSize = ARRAY_SIZE(dsi_init_cmds_jd9366ab_800x1280);
             break;
 
+#ifndef __CV184X__
         case PANEL_DSI_JD9852:
             pstPanelDesc->pchPanelName = "JD9852-240x320";
             pstPanelDesc->pstDevCfg = &dev_cfg_JD9852_240x320;
@@ -131,6 +150,7 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PA
             pstPanelDesc->pstDsiInitCmds = dsi_init_cmds_JD9852_320x480;
             pstPanelDesc->s32DsiInitCmdsSize = ARRAY_SIZE(dsi_init_cmds_JD9852_320x480);
             break;
+#endif
 
         case PANEL_DSI_LT9611_1024x768_60:
             pstPanelDesc->pchPanelName = "LT9611-1024x768_60";
@@ -212,6 +232,7 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PA
             pstPanelDesc->s32DsiInitCmdsSize = ARRAY_SIZE(dsi_init_cmds_st7701_480x800);
             break;
 
+#ifndef __CV184X__
         case PANEL_DSI_ST7785M:
             pstPanelDesc->pchPanelName = "ST7785M-240x320";
             pstPanelDesc->pstDevCfg = &dev_cfg_st7785m_240x320;
@@ -227,6 +248,7 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PA
             pstPanelDesc->pstDsiInitCmds = dsi_init_cmds_ST7796S_320x480;
             pstPanelDesc->s32DsiInitCmdsSize = ARRAY_SIZE(dsi_init_cmds_ST7796S_320x480);
             break;
+#endif
 
         case PANEL_DSI_HX8394_EVB:
         case PANEL_BT656_TP2803:

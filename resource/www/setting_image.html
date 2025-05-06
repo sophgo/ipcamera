@@ -239,7 +239,7 @@
               </tr>
               <tr class="camera_img_slider">
                 <td><span class="camera_img_label">透雾等级: </span></td>
-                <td><input id="defog_slider" type="text" data-slider-min="0" data-slider-max="255" data-slider-step="1"
+                <td><input id="defog_slider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"
                     data-slider-value="100" /></td>
                 <td><span id="defog_slider_label">100</span></td>
               </tr>
@@ -277,20 +277,21 @@
           <td id="td_camera_img_switch">
             <table class="camera_img_settings" style="border-collapse: separate; border-spacing: 20px 5px;">
 
+
+              <tr class="camera_img_switch">
+                <td><span class="camera_img_label">抗闪开关: </span></td>
+                <td><select id="switch_antiFlash" class="select" title="请选择"
+                    onchange="func_switch_antiflash(this.value)">
+                    <option value="0">禁用</option>
+                    <option value="1">启用</option>
+                  </select></td>
+              </tr>
+
               <tr class="camera_img_switch">
                 <td><span class="camera_img_label">防闪频率: </span></td>
                 <td><select id="switch_videoFormat" class="select" title="请选择">
                     <option value="0">50Hz</option>
                     <option value="1">60Hz</option>
-                  </select></td>
-              </tr>
-
-              <tr class="camera_img_switch">
-                <td><span class="camera_img_label">强制抗闪: </span></td>
-                <td><select id="switch_antiFlash" class="select" title="请选择"
-                    onchange="func_switch_antiflash(this.value)">
-                    <option value="0">禁用</option>
-                    <option value="1">启用</option>
                   </select></td>
               </tr>
 
@@ -343,25 +344,8 @@
               </tr>
 
               <tr class="camera_img_switch">
-                <td><span class="camera_img_label">保持彩色: </span></td>
-                <td><select id="switch_keepColor" class="select" title="请选择"
-                    onchange="func_switch_keepcolor(this.value)">
-                    <option value="0">禁用</option>
-                    <option value="1">启用</option>
-                  </select></td>
-              </tr>
-
-              <tr class="camera_img_switch">
                 <td> <span class="camera_img_label">数字防抖: </span></td>
                 <td><select id="switch_dis" class="select" title="请选择" onchange="func_switch_dis(this.value)">
-                    <option value="0">关闭</option>
-                    <option value="1">开启</option>
-                  </select></td>
-              </tr>
-
-              <tr class="camera_img_switch">
-                <td> <span class="camera_img_label">数字签名: </span></td>
-                <td><select id="switch_ds" class="select" title="请选择" onchange="func_switch_ds(this.value)">
                     <option value="0">关闭</option>
                     <option value="1">开启</option>
                   </select></td>

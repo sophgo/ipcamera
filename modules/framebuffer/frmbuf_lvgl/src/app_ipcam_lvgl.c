@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <sys/prctl.h>
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "app_ipcam_comm.h"
 #include "app_ipcam_pwm.h"
 
