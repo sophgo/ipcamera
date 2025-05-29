@@ -104,7 +104,14 @@ endif
 #FISHEYE
 ifeq ($(CONFIG_RESOURCE_INSTALL_FISHEYE_GRIDINFO_L),y)
 	@cp -rf $(APP_RESOURCE_DIR)/fisheye/L_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat $(APP_INSTALL_DIR)
+	@cp -rf $(APP_RESOURCE_DIR)/fisheye/Lgrid_info_bev_128_64_4078_128_64_dst_4096x2048_src_2240x2240.dat $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_FISHEYE_GRIDINFO_R),y)
 	@cp -rf $(APP_RESOURCE_DIR)/fisheye/R_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat $(APP_INSTALL_DIR)
+	@cp -rf $(APP_RESOURCE_DIR)/fisheye/Rgrid_info_bev_128_64_4726_128_64_dst_4096x2048_src_2240x2240.dat $(APP_INSTALL_DIR)
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_FISHEYE_STITCH_BIN),y)
+	@cp -rf $(APP_RESOURCE_DIR)/fisheye/alpha_4096_2048.bin $(APP_INSTALL_DIR)
+	@cp -rf $(APP_RESOURCE_DIR)/fisheye/beta_4096_2048.bin $(APP_INSTALL_DIR)
+	@cp -rf $(APP_RESOURCE_DIR)/fisheye/grid_info_bev_32_24_768_32_24_dst_1024x768_src_4096x2048.dat $(APP_INSTALL_DIR)
 endif

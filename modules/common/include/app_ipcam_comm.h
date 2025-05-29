@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <pthread.h>
+#include <cvi_comm_video.h>
 
 /* Make this header file easier to include in C++ code */
 #ifdef __cplusplus
@@ -131,6 +132,7 @@ typedef struct _RUN_THREAD_PARAM
 } RUN_THREAD_PARAM;
 
 unsigned int GetCurTimeInMsec(void);
+CVI_CHAR *GetFmtName(PIXEL_FORMAT_E enPixFmt);
 int h264Parse(void *pData, int *ps32ReadLen);
 int h265Parse(void *pData, int *ps32ReadLen);
 int mjpegParse(void *pData, int *ps32ReadLen, unsigned int *pu32Start);

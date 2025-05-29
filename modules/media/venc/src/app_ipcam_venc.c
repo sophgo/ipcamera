@@ -1,4 +1,3 @@
-
 #include <pthread.h>
 #include <sys/prctl.h>
 #include <sys/time.h>
@@ -45,6 +44,10 @@
 #include "app_ipcam_stitch.h"
 #endif
 
+#ifdef GDC_SUPPORT
+#include "app_ipcam_gdc.h"
+#endif
+
 #ifdef AUDIO_SUPPORT
 #include "app_ipcam_audio.h"
 #endif
@@ -70,7 +73,7 @@
 APP_PARAM_VENC_CTX_S g_stVencCtx, *g_pstVencCtx = &g_stVencCtx;
 
 static pthread_t g_Venc_pthread[VENC_CHN_MAX];
-static RUN_THREAD_PARAM mStreamTaskThd;
+static RUN_THREAD_PARAM mStreamTaskThd[VENC_CHN_MAX];
 
 static CVI_BOOL g_bJpgCapFlag[VENC_CHN_MAX] = {[0 ... (VENC_CHN_MAX - 1)] = CVI_FALSE};
 pthread_cond_t JpgCapCond = PTHREAD_COND_INITIALIZER;
@@ -96,6 +99,11 @@ static CVI_S32 app_ipcam_Venc_Get_Frame(APP_VENC_CHN_CFG_S *pstVencChnCfg)
     VIDEO_FRAME_INFO_S stVencFrame = {0};
 #ifdef STITCH_SUPPORT
     APP_PARAM_STITCH_CFG_S *pstStitchCfg= (APP_PARAM_STITCH_CFG_S *)app_ipcam_Stitch_Param_Get();
+#endif
+
+#ifdef GDC_SUPPORT
+    CVI_U32 GdcId = pstVencChnCfg->stVencGdcCfg.u32GdcConfigId;
+    APP_PARAM_GDC_CFG_T *pastGdcCfg= (APP_PARAM_GDC_CFG_T *)app_ipcam_Gdc_Param_Get();
 #endif
 
     /*Frame source from CVI_ID_VPSS*/
@@ -125,10 +133,93 @@ static CVI_S32 app_ipcam_Venc_Get_Frame(APP_VENC_CHN_CFG_S *pstVencChnCfg)
                 return s32Ret;
             }
 
+            if (pstStitchCfg->bSaveFileEn) {
+                snprintf(pstStitchCfg->filename_out, 64, "Stitch_Grp%d_%dx%dx%s.yuv",
+                        pstStitchCfg->grpId,
+                        stVencFrame.stVFrame.u32Width,
+                        stVencFrame.stVFrame.u32Height,
+                        GetFmtName(stVencFrame.stVFrame.enPixelFormat));
+                s32Ret = app_ipcam_Stitch_SaveFileFromFrame(&stVencFrame, pstStitchCfg->filename_out);
+                if (s32Ret != CVI_SUCCESS) {
+                    CVI_STITCH_ReleaseChnFrame(pstStitchCfg->grpId, &stVencFrame);
+                    pstStitchCfg->bSaveFileEn = CVI_FALSE;
+                    return s32Ret;
+                }
+                pstStitchCfg->bSaveFileEn = CVI_FALSE;
+            }
+
             /*Increase semv to wake up CVI_STITCH_SendFrame*/
             for (int i = 0; i < (int)pstStitchCfg->srcNum; i++) {
                 sem_post(pstStitchCfg->srcParam[i].semv);
             }
+        }
+    }
+#endif
+
+#ifdef GDC_SUPPORT
+    if (pstVencChnCfg->stVencGdcCfg.bEnableGdc) {
+        /* stVencFrame is sourced from previous module
+           then make an copy to stGdcFrameIn
+           to keep stVencFrame as output frame send to venc
+        */
+        VIDEO_FRAME_INFO_S stGdcFrameIn = stVencFrame;
+
+        s32Ret = app_ipcam_Gdc_SendFrame(&pastGdcCfg->astGdcCfg[GdcId], &stGdcFrameIn, &stVencFrame);
+        if (s32Ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Gdc_SendFrame failed!\n");
+            return s32Ret;
+        }
+
+        if (pastGdcCfg->astGdcCfg[GdcId].LdcAttr.bUpdateMesh) {
+            int num_mesh = (int)pastGdcCfg->astGdcCfg[GdcId].LdcAttr.s32MeshNum;
+            int src_x_mesh[num_mesh * 4][4], src_y_mesh[num_mesh * 4][4];
+            s32Ret = app_ipcam_Gdc_UpdateMeshCoordinate(
+                        &pastGdcCfg->astGdcCfg[GdcId],
+                        src_x_mesh,
+                        src_y_mesh,
+                        NULL,
+                        NULL,
+                        num_mesh);
+            if (s32Ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Gdc_UpdateMeshCoordinate failed!\n");
+                return CVI_FAILURE;
+            }
+        }
+
+        s32Ret = app_ipcam_Gdc_EndJob(&pastGdcCfg->astGdcCfg[GdcId]);
+        if (s32Ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Gdc_EndJob failed!\n");
+            return s32Ret;
+        }
+
+        if (!pastGdcCfg->astGdcCfg[GdcId].identity.syncIo) {
+            s32Ret = app_ipcam_Gdc_GetFrame(&pastGdcCfg->astGdcCfg[GdcId], &stVencFrame);
+            if (s32Ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Gdc_GetFrame failed!\n");
+                app_ipcam_Gdc_ReleaseFrame(&pastGdcCfg->astGdcCfg[GdcId]);
+                return s32Ret;
+            }
+        }
+
+        /* Save gdc frame to file*/
+        if (pastGdcCfg->astGdcCfg[GdcId].bSaveFileEn) {
+            if (strcmp(pastGdcCfg->astGdcCfg[GdcId].filename_out, "") == 0
+                 || strcmp(pastGdcCfg->astGdcCfg[GdcId].filename_out, " ") == 0) {
+                // Generate filename using snprintf if not provided in INI
+                snprintf(pastGdcCfg->astGdcCfg[GdcId].filename_out, 64, "Gdc_Config%d_%dx%dx%s.yuv",
+                        GdcId,
+                        stVencFrame.stVFrame.u32Width,
+                        stVencFrame.stVFrame.u32Height,
+                        GetFmtName(stVencFrame.stVFrame.enPixelFormat));
+            }
+            s32Ret = app_ipcam_Gdc_SaveFileFromFrame(pastGdcCfg->astGdcCfg[GdcId].filename_out, &stVencFrame);
+            if (s32Ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Gdc_SaveFileFromFrame failed!\n");
+                app_ipcam_Gdc_ReleaseFrame(&pastGdcCfg->astGdcCfg[GdcId]);
+                pastGdcCfg->astGdcCfg[GdcId].bSaveFileEn = CVI_FALSE;
+                return s32Ret;
+            }
+            pastGdcCfg->astGdcCfg[GdcId].bSaveFileEn = CVI_FALSE;
         }
     }
 #endif
@@ -150,6 +241,16 @@ static CVI_S32 app_ipcam_Venc_Get_Frame(APP_VENC_CHN_CFG_S *pstVencChnCfg)
     if (src_mod_id == CVI_ID_STITCH) {
         if (pstStitchCfg->Enable) {
             CVI_STITCH_ReleaseChnFrame(pstStitchCfg->grpId, &stVencFrame);
+        }
+    }
+#endif
+
+#ifdef GDC_SUPPORT
+    if (pstVencChnCfg->stVencGdcCfg.bEnableGdc) {
+        s32Ret = app_ipcam_Gdc_ReleaseFrame(&pastGdcCfg->astGdcCfg[GdcId]);
+        if (s32Ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Gdc_ReleaseFrame failed!\n");
+            return s32Ret;
         }
     }
 #endif
@@ -1118,40 +1219,35 @@ int app_ipcam_Venc_StreamStatus_Get(int enType, VENC_PACK_S *ppack, bool *is_I_f
 
 static void *Thread_StreamTask_Proc(void *pArgs)
 {
-    int VencChn = 0;
-    APP_VENC_CHN_CFG_S *pstVencChnCfg = NULL;
+    APP_VENC_CHN_CFG_S *pastVencChnCfg = (APP_VENC_CHN_CFG_S *)pArgs;
+    VENC_CHN VencChn = pastVencChnCfg->VencChn;
     CVI_MBUF_HANDLE* readerid = NULL;
 
     CVI_MEDIA_FRAME_INFO_T stReadFrameInfo;
     memset(&stReadFrameInfo.frameParam, 0, sizeof(stReadFrameInfo.frameParam));
 
-    prctl(PR_SET_NAME, "Thread_StreamTask_Proc", 0, 0, 0);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "Thread_StreamTask_Proct running\n");
+    CVI_CHAR TaskName[64] = {'\0'};
+    sprintf(TaskName, "Thread_StreamTask_Venc%d_Proc", VencChn);
+    prctl(PR_SET_NAME, TaskName, 0, 0, 0);
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "Thread_StreamTask_Venc%d_Proc start running\n", VencChn);
 
-    while (mStreamTaskThd.bRun_flag)
+    while (mStreamTaskThd[VencChn].bRun_flag)
     {
         if (access("/tmp/rec", F_OK) == 0)
         {
-            char buf[8] = {0};
-            FILE *pFile= fopen("/tmp/rec", "r");
-            fread(buf, 1, sizeof(buf), pFile);
-            fclose(pFile);
-
-            VencChn = atoi(buf);
-            pstVencChnCfg = &g_pstVencCtx->astVencChnCfg[VencChn];
-            if (pstVencChnCfg->pFile == NULL) {
+            if (pastVencChnCfg->pFile == NULL) {
                 char szPostfix[8] = {0};
                 char szFilePath[64] = {0};
-                app_ipcam_Postfix_Get(pstVencChnCfg->enType, szPostfix);
-                snprintf(szFilePath, 64, "%s/Venc%d_idx_%d%s", pstVencChnCfg->SavePath, pstVencChnCfg->VencChn, pstVencChnCfg->frameNum++, szPostfix);
-                APP_PROF_LOG_PRINT(LEVEL_INFO, "update new file name: %s\n", szFilePath);
-                pstVencChnCfg->pFile = fopen(szFilePath, "wb");
-                if (pstVencChnCfg->pFile == NULL) {
+                app_ipcam_Postfix_Get(pastVencChnCfg->enType, szPostfix);
+                snprintf(szFilePath, 64, "%s/Venc%d_idx_%d%s", pastVencChnCfg->SavePath, pastVencChnCfg->VencChn, pastVencChnCfg->frameNum++, szPostfix);
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "Update new file name: %s\n", szFilePath);
+                pastVencChnCfg->pFile = fopen(szFilePath, "wb");
+                if (pastVencChnCfg->pFile == NULL) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "open file err, %s\n", szFilePath);
                     return NULL;
                 }
-                if (pstVencChnCfg->frameNum >= 1000) {
-                    pstVencChnCfg->frameNum = 0;
+                if (pastVencChnCfg->frameNum >= 1000) {
+                    pastVencChnCfg->frameNum = 0;
                 }
 
                 readerid = CVI_MBUF_CreateReader(VencChn, 1);
@@ -1163,24 +1259,24 @@ static void *Thread_StreamTask_Proc(void *pArgs)
                 }
             }
 
-            if (pstVencChnCfg->pFile) {
+            if (pastVencChnCfg->pFile) {
                 memset(stReadFrameInfo.frameBuf, 0, CVI_MBUF_STREAM_MAX_SIZE);
-                stReadFrameInfo.frameParam.frameLen = CVI_MBUF_STREAM_MAX_SIZE;
+                stReadFrameInfo.frameBufLen = CVI_MBUF_STREAM_MAX_SIZE;
                 if (0 < CVI_MBUF_ReadFrame(readerid, 0, &stReadFrameInfo, 100))
                 {
                     if (stReadFrameInfo.frameParam.frameType != CVI_MEDIA_AFRAME_A)
                     {
-                        fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameParam.frameLen, 1, pstVencChnCfg->pFile);
+                        fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameBufLen, 1, pastVencChnCfg->pFile);
                     }
                 }
             }
 
-            if (pstVencChnCfg->pFile)
+            if (pastVencChnCfg->pFile)
             {
-                if (++pstVencChnCfg->fileNum > pstVencChnCfg->u32Duration) {
-                    pstVencChnCfg->fileNum = 0;
-                    fclose(pstVencChnCfg->pFile);
-                    pstVencChnCfg->pFile = NULL;
+                if (++pastVencChnCfg->fileNum > pastVencChnCfg->u32Duration) {
+                    pastVencChnCfg->fileNum = 0;
+                    fclose(pastVencChnCfg->pFile);
+                    pastVencChnCfg->pFile = NULL;
                     CVI_MBUF_DestoryReader(readerid);
                     free(stReadFrameInfo.frameBuf);
                     APP_PROF_LOG_PRINT(LEVEL_INFO, "End save! \n");
@@ -1203,7 +1299,7 @@ static void *Thread_Streaming_Proc(void *pArgs)
     APP_VENC_CHN_CFG_S *pastVencChnCfg = (APP_VENC_CHN_CFG_S *)pArgs;
     VENC_CHN VencChn = pastVencChnCfg->VencChn;
     VENC_STREAM_S stStream = {0};
-	VENC_CHN_STATUS_S stStat = {0};
+    VENC_CHN_STATUS_S stStat = {0};
     CVI_S32 iTime = GetCurTimeInMsec();
 
     CVI_CHAR TaskName[64] = {'\0'};
@@ -1387,7 +1483,7 @@ static void *Thread_Jpeg_Codec_Proc(void *pArgs)
     CVI_S32 vpssChn = pstVencChnCfg->VpssChn;
     VIDEO_FRAME_INFO_S stVencFrame = {0};
     VENC_STREAM_S stStream = {0};
-	VENC_CHN_STATUS_S stStat = {0};
+    VENC_CHN_STATUS_S stStat = {0};
 
     pstVencChnCfg->bStart = CVI_TRUE;
 
@@ -1708,10 +1804,10 @@ int app_ipcam_Venc_Stop(APP_VENC_CHN_E VencIdx)
             return s32Ret;
         }
 
-        if (mStreamTaskThd.bRun_flag)
+        if (mStreamTaskThd[VencChn].bRun_flag)
         {
-            mStreamTaskThd.bRun_flag = 0;
-            pthread_join(mStreamTaskThd.mRun_PID, CVI_NULL);
+            mStreamTaskThd[VencChn].bRun_flag = 0;
+            pthread_join(mStreamTaskThd[VencChn].mRun_PID, CVI_NULL);
         }
     }
 
@@ -1769,19 +1865,25 @@ int app_ipcam_Venc_Start(APP_VENC_CHN_E VencIdx)
                         &pthread_attr,
                         fun_entry,
                         (CVI_VOID *)pstVencChnCfg);
-        if (s32Ret != 0) {
+        if (s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "[Chn %d]pthread_create failed:0x%x\n", VencChn, s32Ret);
+            return CVI_FAILURE;
+        }
+
+        /* Thread for venc post-processing*/
+        mStreamTaskThd[VencChn].bRun_flag = 1;
+        s32Ret = pthread_create(
+                        &mStreamTaskThd[VencChn].mRun_PID,
+                        NULL,
+                        Thread_StreamTask_Proc,
+                        (CVI_VOID *)pstVencChnCfg);
+        if (s32Ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "[Chn %d]pthread_create Thread_StreamTask_Proc failed:0x%x\n", VencChn, s32Ret);
+            mStreamTaskThd[VencChn].bRun_flag = 0;
             return CVI_FAILURE;
         }
     }
 
-    mStreamTaskThd.bRun_flag = 1;
-    s32Ret = pthread_create(&mStreamTaskThd.mRun_PID, NULL, Thread_StreamTask_Proc, NULL);
-    if (s32Ret) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "pthread_create failed:0x%x\n", s32Ret);
-        mStreamTaskThd.bRun_flag = 0;
-        return CVI_FAILURE;
-    }
     return CVI_SUCCESS;
 }
 

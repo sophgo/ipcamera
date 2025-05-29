@@ -13,6 +13,62 @@ unsigned int GetCurTimeInMsec(void)
     return tv.tv_sec * 1000 + tv.tv_usec/1000;
 }
 
+CVI_CHAR *GetFmtName(PIXEL_FORMAT_E enPixFmt)
+{
+    switch (enPixFmt)
+    {
+    case PIXEL_FORMAT_RGB_888:
+        return "rgb";
+    case PIXEL_FORMAT_BGR_888:
+        return "bgr";
+    case PIXEL_FORMAT_RGB_888_PLANAR:
+        return "rgbm";
+    case PIXEL_FORMAT_BGR_888_PLANAR:
+        return "bgrm";
+    case PIXEL_FORMAT_YUV_PLANAR_422:
+        return "422";
+    case PIXEL_FORMAT_YUV_PLANAR_420:
+        return "420";
+    case PIXEL_FORMAT_YUV_PLANAR_444:
+        return "444";
+    case PIXEL_FORMAT_YUV_400:
+        return "y";
+    case PIXEL_FORMAT_HSV_888:
+        return "hsv";
+    case PIXEL_FORMAT_HSV_888_PLANAR:
+        return "hsvm";
+    case PIXEL_FORMAT_NV12:
+        return "nv12";
+    case PIXEL_FORMAT_NV21:
+        return "nv21";
+    case PIXEL_FORMAT_NV16:
+        return "nv16";
+    case PIXEL_FORMAT_NV61:
+        return "nv61";
+    case PIXEL_FORMAT_YUYV:
+        return "yuyv";
+    case PIXEL_FORMAT_UYVY:
+        return "uyvy";
+    case PIXEL_FORMAT_YVYU:
+        return "yvyu";
+    case PIXEL_FORMAT_VYUY:
+        return "vyuy";
+    case PIXEL_FORMAT_FP32_C3_PLANAR:
+        return "fp32";
+    case PIXEL_FORMAT_FP16_C3_PLANAR:
+        return "fp16";
+    case PIXEL_FORMAT_BF16_C3_PLANAR:
+        return "bf16";
+    case PIXEL_FORMAT_INT8_C3_PLANAR:
+        return "int8";
+    case PIXEL_FORMAT_UINT8_C3_PLANAR:
+        return "uint8";
+
+    default:
+        return "unknown";
+    }
+}
+
 int h264Parse(void *pData, int *ps32ReadLen)
 {
     unsigned char *pu8Buf = (unsigned char *)pData;

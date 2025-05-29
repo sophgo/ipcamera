@@ -33,7 +33,6 @@ typedef enum
 {
     CVI_MEDIA_VFRAME_P = 0,
     CVI_MEDIA_VFRAME_I = 1,
-
     CVI_MEDIA_AFRAME_A = 10,
 } CVI_MEDIA_FRAME_TYPE_E;
 

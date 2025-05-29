@@ -143,16 +143,23 @@ endmenu
 menu "fisheye files"
 
 config RESOURCE_INSTALL_FISHEYE_GRIDINFO_L
-	bool "install L_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat"
+	bool "install L_grid_info dat"
 	default n
 	help
-		"support install L_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat"
+		"support install L_grid_info dat"
 
 config RESOURCE_INSTALL_FISHEYE_GRIDINFO_R
-	bool "install R_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat"
+	bool "install R_grid_info dat"
 	default n
 	help
-		"support install R_grid_info_68_68_4624_70_70_dst_2240x2240_src_2240x2240.dat"
+		"support install R_grid_info dat"
+
+config RESOURCE_INSTALL_FISHEYE_STITCH_BIN
+	bool "install alpha beta bin"
+	default n
+	help
+		"support install alpha beta bin"
+
 endmenu
 
 menu "param resource"

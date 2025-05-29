@@ -604,7 +604,7 @@ static CVI_VOID *Thread_AudioAi_Proc(CVI_VOID *pArgs)
         }
 
         //chn0 bind aenc chn1 get raw frame
-        s32Ret = CVI_AI_GetFrame(pastAudioCfg->u32AiDevId, (pastAudioCfg->u32ChnCnt - 1), &stFrame, &stAecFrm, -1);
+        s32Ret = CVI_AI_GetFrame(pastAudioCfg->u32AiDevId, (pastAudioCfg->u32ChnCnt - 1), &stFrame, &stAecFrm, 1000);
         if (s32Ret != CVI_SUCCESS)
         {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_AI_GetFrame None!!\n");

@@ -154,8 +154,7 @@ int app_ipcam_Vpss_Create(VPSS_GRP VpssGrp)
 
             if (pstVpssGrpCfg->aGdcEn[VpssChn] &&
                 pastGdcCfg->astGdcCfg[GdcId].bEnable &&
-                pastGdcCfg->astGdcCfg[GdcId].enRotation > 0 &&
-                pastGdcCfg->bUserEnable == 0) {
+                pastGdcCfg->astGdcCfg[GdcId].enRotation > 0) {
                 APP_PROF_LOG_PRINT(LEVEL_INFO, "vpss grp:[%d] chn:[%d] start Rotation\n", VpssGrp, VpssChn);
                 s32Ret = CVI_VPSS_SetChnRotation(VpssGrp, VpssChn, pastGdcCfg->astGdcCfg[GdcId].enRotation);
                 if (s32Ret != CVI_SUCCESS) {
@@ -166,8 +165,7 @@ int app_ipcam_Vpss_Create(VPSS_GRP VpssGrp)
             }
 
             if (pstVpssGrpCfg->aGdcEn[VpssChn] &&
-                pastGdcCfg->astGdcCfg[GdcId].LdcAttr.bEnable &&
-                pastGdcCfg->bUserEnable == 0) {
+                pastGdcCfg->astGdcCfg[GdcId].LdcAttr.bEnable) {
                 APP_PROF_LOG_PRINT(LEVEL_INFO, "vpss grp:[%d] chn:[%d] start gen mesh\n", VpssGrp, VpssChn);
                 s32Ret = CVI_VPSS_SetChnLDCAttr(VpssGrp, VpssChn, (VPSS_LDC_ATTR_S*)&pastGdcCfg->astGdcCfg[GdcId].LdcAttr);
                 if (s32Ret != CVI_SUCCESS) {
@@ -178,8 +176,7 @@ int app_ipcam_Vpss_Create(VPSS_GRP VpssGrp)
             }
 
             if (pstVpssGrpCfg->aGdcEn[VpssChn] &&
-                pastGdcCfg->astGdcCfg[GdcId].FisheyeAttr.bEnable &&
-                pastGdcCfg->bUserEnable == 0) {
+                pastGdcCfg->astGdcCfg[GdcId].FisheyeAttr.bEnable) {
                 APP_PROF_LOG_PRINT(LEVEL_INFO, "vpss grp:[%d] chn:[%d] start fisheye\n", VpssGrp, VpssChn);
                 s32Ret = CVI_VPSS_SetChnFisheye(VpssGrp, VpssChn, &pastGdcCfg->astGdcCfg[GdcId].FisheyeAttr);
                 if (s32Ret != CVI_SUCCESS) {

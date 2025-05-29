@@ -42,6 +42,8 @@ typedef enum _GDC__OP {
 typedef struct APP_LDC_ATTR_S {
     CVI_BOOL bEnable;
     LDC_ATTR_S stAttr;
+    CVI_BOOL bUpdateMesh;
+    CVI_S32 s32MeshNum;
 } APP_LDC_ATTR_T;
 
 typedef struct APP_AFFINE_ATTR_S {
@@ -62,13 +64,13 @@ typedef struct APP_GDC_CFG_S {
     APP_LDC_ATTR_T LdcAttr;
     FISHEYE_ATTR_S FisheyeAttr;
     APP_AFFINE_ATTR_T AffineAttr;
+    CVI_BOOL bSaveFileEn;
     CVI_CHAR filename_in[64];
     CVI_CHAR filename_out[64];
 } APP_GDC_CFG_T;
 
 typedef struct APP_PARAM_GDC_CFG_S {
     CVI_U32 u32CfgCnt;
-    CVI_BOOL bUserEnable;
     APP_GDC_CFG_T astGdcCfg[GDC_MAX_CFG_NUM];
 } APP_PARAM_GDC_CFG_T;
 
@@ -81,10 +83,22 @@ APP_PARAM_GDC_CFG_T *app_ipcam_Gdc_Param_Get(void);
 int app_ipcam_Ldc_Init(void);
 int app_ipcam_Gdc_Init(void);
 int app_ipcam_Gdc_DeInit(void);
-int app_ipcam_Gdc_SendFrame(APP_GDC_CFG_T *pstGdcCfg, VIDEO_FRAME_INFO_S *pstVideoFrame);
-int app_ipcam_Gdc_GetFrame(APP_GDC_CFG_T *pstGdcCfg, VIDEO_FRAME_INFO_S *pstVideoFrame);
-int app_ipcam_Gdc_SendFile(APP_GDC_CFG_T *pstGdcCfg);
-
+CVI_S32 app_ipcam_Gdc_EndJob(APP_GDC_CFG_T *pstGdcCfg);
+CVI_S32 app_ipcam_Gdc_UpdateMeshCoordinate(
+            APP_GDC_CFG_T *pstGdcCfg,
+            int src_x_mesh[][4],
+            int src_y_mesh[][4],
+            int dst_x_mesh[][4],
+            int dst_y_mesh[][4],
+            int nbr_mesh);
+CVI_S32 app_ipcam_Gdc_SendFrame(
+        APP_GDC_CFG_T *pstGdcCfg,
+        VIDEO_FRAME_INFO_S *pstVideoFrameIn,
+        VIDEO_FRAME_INFO_S *pstVideoFrameOut);
+CVI_S32 app_ipcam_Gdc_ReleaseFrame(APP_GDC_CFG_T *pstGdcCfg);
+CVI_S32 app_ipcam_Gdc_GetFrame(APP_GDC_CFG_T *pstGdcCfg, VIDEO_FRAME_INFO_S *pstVideoFrame);
+CVI_S32 app_ipcam_Gdc_SendFile(APP_GDC_CFG_T *pstGdcCfg);
+CVI_S32 app_ipcam_Gdc_SaveFileFromFrame(const CVI_CHAR *filename, VIDEO_FRAME_INFO_S *pstVideoFrame);
 
 #ifdef __cplusplus
 }

@@ -69,6 +69,52 @@ APP_PARAM_STITCH_CFG_S *app_ipcam_Stitch_Param_Get(void)
     return g_pstStitchCfg;
 }
 
+
+CVI_S32 app_ipcam_Stitch_SaveFileFromFrame(VIDEO_FRAME_INFO_S *stVideoFrame, CVI_CHAR *filename)
+{
+    CVI_S32 s32Ret = CVI_SUCCESS;
+    FILE *fp;
+    CVI_U32 u32len, u32DataLen;
+    fp = fopen(filename, "w");
+    if (fp == CVI_NULL) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "open data file error\n");
+        return CVI_FAILURE;
+    }
+    for (int i = 0; i < 3; ++i) {
+        if (stVideoFrame->stVFrame.u32Length[i] == 0)
+            continue;
+        u32DataLen = stVideoFrame->stVFrame.u32Stride[i] * stVideoFrame->stVFrame.u32Height;
+        if (u32DataLen == 0)
+            continue;
+        if (i > 0 && ((stVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_YUV_PLANAR_420) ||
+                      (stVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_NV12) ||
+                      (stVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_NV21)))
+            u32DataLen >>= 1;
+
+        stVideoFrame->stVFrame.pu8VirAddr[i] =
+            CVI_SYS_Mmap(stVideoFrame->stVFrame.u64PhyAddr[i], stVideoFrame->stVFrame.u32Length[i]);
+        CVI_SYS_IonInvalidateCache(stVideoFrame->stVFrame.u64PhyAddr[i], stVideoFrame->stVFrame.pu8VirAddr[i],
+                                   stVideoFrame->stVFrame.u32Length[i]);
+        APP_PROF_LOG_PRINT(LEVEL_DEBUG, "plane(%d): paddr(%#" PRIx64 ") vaddr(%p) stride(%d) save to (%s)\n", i,
+                           stVideoFrame->stVFrame.u64PhyAddr[i], stVideoFrame->stVFrame.pu8VirAddr[i],
+                           stVideoFrame->stVFrame.u32Stride[i], filename);
+        APP_PROF_LOG_PRINT(LEVEL_DEBUG, " data_len(%d) plane_len(%d)\n", u32DataLen,
+                           stVideoFrame->stVFrame.u32Length[i]);
+        u32len = fwrite(stVideoFrame->stVFrame.pu8VirAddr[i], u32DataLen, 1, fp);
+
+        if (u32len <= 0) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "fwrite data(%d) error\n", i);
+            s32Ret = CVI_FAILURE;
+            break;
+        }
+        CVI_SYS_Munmap(stVideoFrame->stVFrame.pu8VirAddr[i], stVideoFrame->stVFrame.u32Length[i]);
+    }
+
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "fwrite data(%s) success!\n", filename);
+    fclose(fp);
+    return s32Ret;
+}
+
 static CVI_S32 app_stitch_Cfg_Wgt_Image(SIZE_S size, enum stitch_wgt_mode wgtmode, char *name,
                       CVI_U64 *u64PhyAddr, CVI_VOID **pVirAddr, CVI_S32 value)
 {
@@ -243,9 +289,7 @@ static CVI_S32 app_ipcam_stitch_proc()
 
         for (int i = 0; i < (int)g_pstStitchCfg->srcNum; i++){
             /*Send frame to Stitch if ready*/
-            if (!g_pstStitchCfg->enBindMode) {
-                sem_wait(g_pstStitchCfg->srcParam[i].semv);
-            }
+            sem_wait(g_pstStitchCfg->srcParam[i].semv);
 
             pthread_mutex_lock(&mutexs[i]);
             if (SIMPLEQ_FIRST(qHead[i]) == NULL) {

@@ -202,14 +202,17 @@ typedef struct APP_VENC_FRAME_SRC_CFG_T {
     CVI_S32     s32ChnId;
 } APP_VENC_FRAME_SRC_CFG_S;
 
+typedef struct APP_VENC_GDC_CFG_T {
+    CVI_BOOL    bEnableGdc;
+    CVI_U32     u32GdcConfigId;
+} APP_VENC_GDC_CFG_S;
+
 typedef struct APP_VENC_CHN_CFG_T {
     CVI_BOOL bEnable;   /* set by param_config.ini , DO NOT update by coding */
     CVI_BOOL bStart;
     VENC_CHN VencChn;
     PAYLOAD_TYPE_E enType;
-    CVI_U32 StreamTo;
     CVI_U32 u32Duration;
-    CVI_BOOL bRtspEn;
     CVI_U32 u32Width;
     CVI_U32 u32Height;
     CVI_U32 u32SrcFrameRate;
@@ -242,6 +245,7 @@ typedef struct APP_VENC_CHN_CFG_T {
     CVI_U32 u32CmdQueueDepth;
     APP_VENC_STITCHING_CFG_S stVencStitchingCfg;
     APP_VENC_FRAME_SRC_CFG_S stVencFrameSourceCfg;
+    APP_VENC_GDC_CFG_S stVencGdcCfg;
 	PIXEL_FORMAT_E enPixelFormat;
 	ROTATION_E enRotation;
 	MIRROR_TYPE_E enMirrorDirextion;

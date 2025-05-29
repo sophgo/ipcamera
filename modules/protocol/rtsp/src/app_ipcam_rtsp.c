@@ -87,7 +87,7 @@ static CVI_S32 app_ipcam_RtspAttr_Init(VENC_CHN vencChn, CVI_S32 session_id
 #else
     pstAttr->audio_en          = CVI_FALSE;
     pstAttr->audio_codec       = RTSP_AUDIO_PCM;
-    pstAttr->audio_sample_rate = 8000;
+    pstAttr->audio_sample_rate = pstVencChnCfg->u32DstFrameRate * 320;
     pstAttr->audio_channels    = 1;
     pstAttr->audio_pernum      = 320;
 #endif

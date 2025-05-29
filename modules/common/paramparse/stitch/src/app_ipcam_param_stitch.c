@@ -8,11 +8,6 @@
 #include "cvi_math.h"
 #include "app_ipcam_paramparse.h"
 
-const char *stitch_bind_mode[STITCH_BIND_SEP] = {
-    [STITCH_BIND_DISABLE] = "STITCH_BIND_DISABLE",
-    [STITCH_BIND_VENC] = "STITCH_BIND_VENC",
-};
-
 int Load_Param_Stitch(const char *file)
 {
     CVI_S32 ret = 0;
@@ -152,26 +147,7 @@ int Load_Param_Stitch(const char *file)
     }
     Stitch->bAttachEn = ini_getl(tmp_section, "attach_en", 0, file);
     Stitch->u32AttachVbPool = ini_getl(tmp_section, "attach_pool", 0, file);
-
-    ini_gets(tmp_section, "bind_mode", " ", str_name, PARAM_STRING_NAME_LEN, file);
-    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, stitch_bind_mode, STITCH_BIND_SEP, &enum_num);
-    if (ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][bind_mode] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
-    } else {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][bind_mode] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
-        Stitch->enBindMode = enum_num;
-    }
-    ini_gets(tmp_section, "dst_mod_id", " ", str_name, PARAM_STRING_NAME_LEN, file);
-    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, mode_id, CVI_ID_BUTT, &enum_num);
-    if (ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][dst_mod_id] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
-    } else {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][dst_mod_id] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
-        Stitch->astChn[0].enModId = enum_num;
-    }
-
-    Stitch->astChn[0].s32DevId = ini_getl(tmp_section, "dst_dev_id", 0, file);
-    Stitch->astChn[0].s32ChnId = ini_getl(tmp_section, "dst_chn_id", 0, file);
+    Stitch->bSaveFileEn = ini_getl(tmp_section, "savefile_en", 0, file);
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:enable: %d\n", Stitch->Enable);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:srcNum: %d\n", Stitch->srcNum);
@@ -208,10 +184,7 @@ int Load_Param_Stitch(const char *file)
     APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:chnAttr.fmt_out: %d\n", Stitch->chnAttr.fmt_out);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:bAttachEn: %d\n", Stitch->bAttachEn);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:u32AttachVbPool: %d\n", Stitch->u32AttachVbPool);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:enBindMode: %d\n",  Stitch->enBindMode);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:dst_mod_id: %d\n", Stitch->astChn[0].enModId);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:dst_dev_id: %d\n", Stitch->astChn[0].s32DevId);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:dst_chn_id: %d\n", Stitch->astChn[0].s32ChnId);
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:bSaveFileEn: %d\n", Stitch->bSaveFileEn);
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:opAttr.size.wgt_mode: %d\n", Stitch->opAttr.wgt_mode);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "StitchAttr:opAttr.data_src: %d\n", Stitch->opAttr.data_src);

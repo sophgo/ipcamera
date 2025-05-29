@@ -96,7 +96,6 @@ int Load_Param_Venc(const char *file)
             Venc->astVencChnCfg[i].enType = enum_num;
         }
 
-        Venc->astVencChnCfg[i].StreamTo  = ini_getl(tmp_section, "send_to", 0, file);
         Venc->astVencChnCfg[i].VpssGrp   = ini_getl(tmp_section, "vpss_grp", 0, file);
         Venc->astVencChnCfg[i].VpssChn   = ini_getl(tmp_section, "vpss_chn", 0, file);
         Venc->astVencChnCfg[i].u32Width  = ini_getl(tmp_section, "width", 0, file);
@@ -109,11 +108,9 @@ int Load_Param_Venc(const char *file)
         Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingGrpSrc2 = ini_getl(tmp_section, "vpss_stitching_grp_src_2", 0, file);
         Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingChnSrc2 = ini_getl(tmp_section, "vpss_stitching_chn_src_2", 0, file);
 
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "bEnableVpssStitching: %d\n", Venc->astVencChnCfg[i].stVencStitchingCfg.bEnableVpssStitching);
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "VpssStitchingGrpSrc1: %d\n", Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingGrpSrc1);
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "VpssStitchingChnSrc1: %d\n", Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingChnSrc1);
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "VpssStitchingGrpSrc2: %d\n", Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingGrpSrc2);
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "VpssStitchingChnSrc2: %d\n", Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingChnSrc2);
+        Venc->astVencChnCfg[i].stVencGdcCfg.bEnableGdc = ini_getl(tmp_section, "gdc_en", 0, file);
+        Venc->astVencChnCfg[i].stVencGdcCfg.u32GdcConfigId = ini_getl(tmp_section, "gdc_config_id", 0, file);
+
         ini_gets(tmp_section, "bind_mode", " ", str_name, PARAM_STRING_NAME_LEN, file);
         ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, venc_bind_mode, VENC_BIND_MAX, &enum_num);
         if (ret != CVI_SUCCESS) {
@@ -174,9 +171,18 @@ int Load_Param_Venc(const char *file)
         ini_gets(tmp_section, "save_path", " ", tmp_buff, PARAM_STRING_LEN, file);
         strncpy(Venc->astVencChnCfg[i].SavePath, tmp_buff, PARAM_STRING_LEN);
 
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] enType=%d StreamTo=%d VpssGrp=%d VpssChn=%d u32Width=%d u32Height=%d\n cmd_queue_depth=%d save path =%s\n",
-            i, Venc->astVencChnCfg[i].enType, Venc->astVencChnCfg[i].StreamTo, Venc->astVencChnCfg[i].VpssGrp, Venc->astVencChnCfg[i].VpssChn,
-            Venc->astVencChnCfg[i].u32Width, Venc->astVencChnCfg[i].u32Height, Venc->astVencChnCfg[i].u32CmdQueueDepth, Venc->astVencChnCfg[i].SavePath);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] enType=%d VpssGrp=%d VpssChn=%d u32Width=%d u32Height=%d\n",
+            i, Venc->astVencChnCfg[i].enType, Venc->astVencChnCfg[i].VpssGrp, Venc->astVencChnCfg[i].VpssChn,
+            Venc->astVencChnCfg[i].u32Width, Venc->astVencChnCfg[i].u32Height);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] bEnableVpssStitching: %d, VpssStitchingGrpSrc1: %d, VpssStitchingChnSrc1: %d, VpssStitchingGrpSrc2: %d, VpssStitchingChnSrc2: %d\n",
+            i, Venc->astVencChnCfg[i].stVencStitchingCfg.bEnableVpssStitching,
+            Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingGrpSrc1,
+            Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingChnSrc1,
+            Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingGrpSrc2,
+            Venc->astVencChnCfg[i].stVencStitchingCfg.VpssStitchingChnSrc2);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] gdc_en=%d gdc_config_id=%d cmd_queue_depth=%d save path =%s\n",
+            i, Venc->astVencChnCfg[i].stVencGdcCfg.bEnableGdc, Venc->astVencChnCfg[i].stVencGdcCfg.u32GdcConfigId,
+            Venc->astVencChnCfg[i].u32CmdQueueDepth, Venc->astVencChnCfg[i].SavePath);
 
         ini_gets(tmp_section, "rc_mode", " ", str_name, PARAM_STRING_NAME_LEN, file);
         ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, venc_rc_mode, VENC_RC_MODE_BUTT, &enum_num);
@@ -277,10 +283,10 @@ int Load_Param_Venc(const char *file)
             APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] enRcMode=%d u32BitRate=%d u32MaxBitRate=%d enBindMode=%d bSingleCore=%d\n",
                 i, Venc->astVencChnCfg[i].enRcMode, Venc->astVencChnCfg[i].u32BitRate, Venc->astVencChnCfg[i].u32MaxBitRate,
                 Venc->astVencChnCfg[i].enBindMode, Venc->astVencChnCfg[i].bSingleCore);
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "u32Gop=%d statTime=%d u32ThrdLv=%d\n",
-                Venc->astVencChnCfg[i].u32Gop, Venc->astVencChnCfg[i].statTime, Venc->astVencChnCfg[i].stRcParam.u32ThrdLv);
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "u32MaxQp=%d u32MinQp=%d u32MaxIQp=%d u32MinIQp=%d s32ChangePos=%d s32InitialDelay=%d\n",
-                Venc->astVencChnCfg[i].stRcParam.u32MaxQp, Venc->astVencChnCfg[i].stRcParam.u32MinQp, Venc->astVencChnCfg[i].stRcParam.u32MaxIQp,
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] u32Gop=%d statTime=%d u32ThrdLv=%d\n",
+                i, Venc->astVencChnCfg[i].u32Gop, Venc->astVencChnCfg[i].statTime, Venc->astVencChnCfg[i].stRcParam.u32ThrdLv);
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] u32MaxQp=%d u32MinQp=%d u32MaxIQp=%d u32MinIQp=%d s32ChangePos=%d s32InitialDelay=%d\n",
+                i, Venc->astVencChnCfg[i].stRcParam.u32MaxQp, Venc->astVencChnCfg[i].stRcParam.u32MinQp, Venc->astVencChnCfg[i].stRcParam.u32MaxIQp,
                 Venc->astVencChnCfg[i].stRcParam.u32MinIQp, Venc->astVencChnCfg[i].stRcParam.s32ChangePos, Venc->astVencChnCfg[i].stRcParam.s32InitialDelay);
         } else if (Venc->astVencChnCfg[i].enType == PT_JPEG) {
             Venc->astVencChnCfg[i].u32quality   = ini_getl(tmp_section, "quality", 0, file);

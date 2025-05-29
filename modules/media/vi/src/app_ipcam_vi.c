@@ -549,6 +549,14 @@ return &stSnsOs04e10_Obj;
     case SENSOR_SMS_SC1330_SLAVE:
         return &stSnsSC1330_Obj;
 #endif
+#ifdef SNS0_SMS_SC1330_1L
+    case SENSOR_SMS_SC1330_1L:
+        return &stSnsSC1330_Obj;
+#endif
+#ifdef SNS0_SMS_SC1330_1L_SLAVE
+    case SENSOR_SMS_SC1330_1L_SLAVE:
+        return &stSnsSC1330_Obj;
+#endif
 #ifdef SNS0_SMS_SC1346_1L
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
@@ -829,6 +837,8 @@ CVI_S32 app_ipcam_Vi_DevAttr_Get(SENSOR_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDe
         break;
     case SENSOR_SMS_SC1330:
     case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC1330_1L:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -960,6 +970,8 @@ CVI_S32 app_ipcam_Vi_PipeAttr_Get(SENSOR_TYPE_E enSnsType, VI_PIPE_ATTR_S *pstVi
         break;
     case SENSOR_SMS_SC1330:
     case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC1330_1L:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -1069,6 +1081,8 @@ CVI_S32 app_ipcam_Vi_ChnAttr_Get(SENSOR_TYPE_E enSnsType, VI_CHN_ATTR_S *pstViCh
         break;
     case SENSOR_SMS_SC1330:
     case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC1330_1L:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -1177,6 +1191,8 @@ CVI_S32 app_ipcam_Isp_InitAttr_Get(SENSOR_TYPE_E enSnsType, WDR_MODE_E enWDRMode
     case SENSOR_PIXELPLUS_PR2100:
     case SENSOR_SMS_SC1330:
     case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC1330_1L:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -1255,6 +1271,8 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
         break;
     case SENSOR_SMS_SC1330:
     case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC1330_1L:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
     case SENSOR_SMS_SC438AI:
     case SENSOR_SMS_SC438AI_SLAVE:
         pstIspPubAttr->f32FrameRate = 30;
@@ -1280,8 +1298,6 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_GCORE_GC2093:
     case SENSOR_GCORE_GC4023:
     case SENSOR_GCORE_GC2093_SLAVE:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
         pstIspPubAttr->enBayer = BAYER_RGGB;
         break;
     case SENSOR_GCORE_GC1084:
@@ -1314,6 +1330,8 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
         break;
     case SENSOR_SMS_SC1330:
     case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC1330_1L:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
     case SENSOR_SMS_SC1346_1L:
     case SENSOR_SMS_SC1346_1L_60:
     case SENSOR_SMS_SC200AI:
@@ -1341,6 +1359,8 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_SMS_SC4336:
     case SENSOR_SMS_SC4336P:
     case SENSOR_SMS_SC4336P_SLAVE:
+    case SENSOR_SMS_SC438AI:
+    case SENSOR_SMS_SC438AI_SLAVE:
         pstIspPubAttr->enBayer = BAYER_BGGR;
         break;
     case SENSOR_SOI_F23:
@@ -1386,6 +1406,10 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
         break;
     }
     switch (enSnsType) {
+    case SENSOR_SMS_SC1330_1L:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
+        pstIspPubAttr->u8LaneNum = 1;
+        break;
     case SENSOR_OV_OS04E10:
     case SENSOR_OV_OS04E10_SLAVE:
     case SENSOR_OV_OS05A20:
@@ -1405,6 +1429,7 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIs
     case SENSOR_OV_OS04E10_SLAVE:
     case SENSOR_OV_OV9282_SLAVE:
     case SENSOR_SMS_SC1330_SLAVE:
+    case SENSOR_SMS_SC1330_1L_SLAVE:
     case SENSOR_SMS_SC438AI_SLAVE:
         pstIspPubAttr->u8EnableMaster = 0;
         break;
@@ -2177,16 +2202,14 @@ int app_ipcam_Vi_Chn_Start(void)
 
         if (pstChnCfg->bGdcEn &&
             pastGdcCfg->astGdcCfg[GdcId].bEnable &&
-            pastGdcCfg->astGdcCfg[GdcId].enRotation > 0 &&
-            pastGdcCfg->bUserEnable == 0) {
+            pastGdcCfg->astGdcCfg[GdcId].enRotation > 0) {
             APP_PROF_LOG_PRINT(LEVEL_INFO, "vi pipe:[%d] chn:[%d] start Rotation\n", ViPipe, ViChn);
             s32Ret = CVI_VI_SetChnRotation(ViPipe, ViChn, pastGdcCfg->astGdcCfg[GdcId].enRotation);
             APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetChnRotation(%d) failed!\n", GdcId);
         }
 
         if (pstChnCfg->bGdcEn &&
-            pastGdcCfg->astGdcCfg[GdcId].LdcAttr.bEnable &&
-            pastGdcCfg->bUserEnable == 0) {
+            pastGdcCfg->astGdcCfg[GdcId].LdcAttr.bEnable) {
             APP_PROF_LOG_PRINT(LEVEL_INFO, "vi pipe:[%d] chn:[%d] start gen mesh\n", ViPipe, ViChn);
             s32Ret = CVI_VI_SetChnLDCAttr(ViPipe, ViChn, (VI_LDC_ATTR_S*)&pastGdcCfg->astGdcCfg[GdcId].LdcAttr);
             APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetChnLDCAttr(%d) failed!\n", GdcId);
