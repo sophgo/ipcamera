@@ -504,7 +504,7 @@ static CVI_VOID *Thread_DPU_PROC(CVI_VOID *arg)
         if (GrpCfg.SendTo == APP_DPU_DATA_SEND_TO_FILE && count % 10 == 0) {
             gettimeofday(&tv1, NULL);
             memset(file, 0, sizeof(file));
-            snprintf(file, sizeof(file), "/mnt/sd/vpss_dpu%d.bin", count);
+            snprintf(file, sizeof(file), "vpss_dpu%d.bin", count);
             app_ipcam_Dpu_GetFrameTofile(&stOutVideoFrame, file);
         }  else if (GrpCfg.SendTo == APP_DPU_DATA_SEND_TO_VENC) {
             CVI_VENC_SendFrame(GrpCfg.VencId, &stOutVideoFrame, timeout);
@@ -524,7 +524,7 @@ static CVI_VOID *Thread_DPU_PROC(CVI_VOID *arg)
             if (GrpCfg.SendTo == APP_DPU_DATA_SEND_TO_FILE) {
                 gettimeofday(&tv1, NULL);
                 memset(file, 0, sizeof(file));
-                snprintf(file, sizeof(file), "/mnt/sd/dpu_image_bt_grp_%d_w_%d_h_%d_tv_%ld_%ld.bin", GrpCfg.DpuGrp,
+                snprintf(file, sizeof(file), "dpu_image_bt_grp_%d_w_%d_h_%d_tv_%ld_%ld.bin", GrpCfg.DpuGrp,
                         stOutBtVideoFrame.stVFrame.u32Width, stOutBtVideoFrame.stVFrame.u32Height, tv1.tv_sec, tv1.tv_usec);
                 app_ipcam_Dpu_GetFrameTofile(&stOutBtVideoFrame, file);
             }

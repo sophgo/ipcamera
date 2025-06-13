@@ -198,10 +198,12 @@ int Load_Param_Vpss(const char *file)
                 Vpss->astVpssGrpCfg[grp_idx].stVpssChnYRatio[chn_idx] = ini_getf(tmp_section, "y_ratio", 1.0, file);
             }
 
+            Vpss->astVpssGrpCfg[grp_idx].abSaveFileEn[chn_idx] = ini_getl(tmp_section, "save_file_en", 0, file);
+
             APP_PROF_LOG_PRINT(LEVEL_INFO,
             "Chn_ID_%d config: sft=%2d dfr=%2d W=%4d H=%4d Depth=%d "
             "Mirror=%d Flip=%d V_fmt=%2d P_fmt=%2d y_ratio= %f"
-            "GDC Enable=%d GDC Config=%d\n"
+            "GDC Enable=%d GDC Config=%d Save File=%d\n"
                 , chn_idx
                 , pastVpssChnAttr->stFrameRate.s32SrcFrameRate
                 , pastVpssChnAttr->stFrameRate.s32DstFrameRate
@@ -214,7 +216,8 @@ int Load_Param_Vpss(const char *file)
                 , pastVpssChnAttr->enPixelFormat
                 , Vpss->astVpssGrpCfg[grp_idx].stVpssChnYRatio[chn_idx]
                 , Vpss->astVpssGrpCfg[grp_idx].aGdcEn[chn_idx]
-                , Vpss->astVpssGrpCfg[grp_idx].aGdcConfigId[chn_idx]);
+                , Vpss->astVpssGrpCfg[grp_idx].aGdcConfigId[chn_idx]
+                , Vpss->astVpssGrpCfg[grp_idx].abSaveFileEn[chn_idx]);
         }
     }
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading vpss config ------------------> done \n\n");

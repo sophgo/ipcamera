@@ -7,7 +7,6 @@
 #include "minIni.h"
 #include "app_ipcam_paramparse.h"
 
-
 //private attirebute
 #define VENC_BIND_MAX 5
 

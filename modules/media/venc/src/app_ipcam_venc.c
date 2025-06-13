@@ -122,35 +122,41 @@ static CVI_S32 app_ipcam_Venc_Get_Frame(APP_VENC_CHN_CFG_S *pstVencChnCfg)
 #ifdef STITCH_SUPPORT
     if (src_mod_id == CVI_ID_STITCH) {
         if (pstStitchCfg->Enable) {
-            s32Ret = CVI_STITCH_GetChnFrame(pstStitchCfg->grpId, &stVencFrame, 3000);
+            s32Ret = CVI_STITCH_GetChnFrame(src_dev_id, &stVencFrame, 30000);
             if (s32Ret != CVI_SUCCESS) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_STITCH_GetChnFrame failed with %#x\n", s32Ret);
 
                 /*Increase semv to wake up CVI_STITCH_SendFrame*/
-                for (int i = 0; i < (int)pstStitchCfg->srcNum; i++) {
-                    sem_post(pstStitchCfg->srcParam[i].semv);
+                for (int i = 0; i < pstStitchCfg->astStitchGrpCfg[src_dev_id].srcNum; i++) {
+                    if (pstStitchCfg->astStitchGrpCfg[src_dev_id].srcParam[i].bBindEn == 0) {
+                        sem_post(pstStitchCfg->astStitchGrpCfg[src_dev_id].srcParam[i].semv);
+                    }
                 }
                 return s32Ret;
             }
 
-            if (pstStitchCfg->bSaveFileEn) {
-                snprintf(pstStitchCfg->filename_out, 64, "Stitch_Grp%d_%dx%dx%s.yuv",
-                        pstStitchCfg->grpId,
+            if (pstStitchCfg->astStitchGrpCfg[src_dev_id].bSaveFileEn) {
+                snprintf(pstStitchCfg->astStitchGrpCfg[src_dev_id].filename_out, 64, "Stitch_Grp%d_%dx%dx%s.yuv",
+                        src_dev_id,
                         stVencFrame.stVFrame.u32Width,
                         stVencFrame.stVFrame.u32Height,
                         GetFmtName(stVencFrame.stVFrame.enPixelFormat));
-                s32Ret = app_ipcam_Stitch_SaveFileFromFrame(&stVencFrame, pstStitchCfg->filename_out);
+
+                s32Ret = app_ipcam_Comm_SaveFrameToFile(pstStitchCfg->astStitchGrpCfg[src_dev_id].filename_out, &stVencFrame);
                 if (s32Ret != CVI_SUCCESS) {
-                    CVI_STITCH_ReleaseChnFrame(pstStitchCfg->grpId, &stVencFrame);
-                    pstStitchCfg->bSaveFileEn = CVI_FALSE;
+                    CVI_STITCH_ReleaseChnFrame(src_dev_id, &stVencFrame);
+                    pstStitchCfg->astStitchGrpCfg[src_dev_id].bSaveFileEn = CVI_FALSE;
                     return s32Ret;
                 }
-                pstStitchCfg->bSaveFileEn = CVI_FALSE;
+
+                pstStitchCfg->astStitchGrpCfg[src_dev_id].bSaveFileEn = CVI_FALSE;
             }
 
             /*Increase semv to wake up CVI_STITCH_SendFrame*/
-            for (int i = 0; i < (int)pstStitchCfg->srcNum; i++) {
-                sem_post(pstStitchCfg->srcParam[i].semv);
+            for (int i = 0; i < pstStitchCfg->astStitchGrpCfg[src_dev_id].srcNum; i++) {
+                if (pstStitchCfg->astStitchGrpCfg[src_dev_id].srcParam[i].bBindEn == 0) {
+                    sem_post(pstStitchCfg->astStitchGrpCfg[src_dev_id].srcParam[i].semv);
+                }
             }
         }
     }
@@ -212,13 +218,15 @@ static CVI_S32 app_ipcam_Venc_Get_Frame(APP_VENC_CHN_CFG_S *pstVencChnCfg)
                         stVencFrame.stVFrame.u32Height,
                         GetFmtName(stVencFrame.stVFrame.enPixelFormat));
             }
-            s32Ret = app_ipcam_Gdc_SaveFileFromFrame(pastGdcCfg->astGdcCfg[GdcId].filename_out, &stVencFrame);
+
+            s32Ret = app_ipcam_Comm_SaveFrameToFile(pastGdcCfg->astGdcCfg[GdcId].filename_out, &stVencFrame);
             if (s32Ret != CVI_SUCCESS) {
-                APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Gdc_SaveFileFromFrame failed!\n");
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Comm_SaveFrameToFile failed!\n");
                 app_ipcam_Gdc_ReleaseFrame(&pastGdcCfg->astGdcCfg[GdcId]);
                 pastGdcCfg->astGdcCfg[GdcId].bSaveFileEn = CVI_FALSE;
                 return s32Ret;
             }
+
             pastGdcCfg->astGdcCfg[GdcId].bSaveFileEn = CVI_FALSE;
         }
     }
@@ -240,7 +248,7 @@ static CVI_S32 app_ipcam_Venc_Get_Frame(APP_VENC_CHN_CFG_S *pstVencChnCfg)
 #ifdef STITCH_SUPPORT
     if (src_mod_id == CVI_ID_STITCH) {
         if (pstStitchCfg->Enable) {
-            CVI_STITCH_ReleaseChnFrame(pstStitchCfg->grpId, &stVencFrame);
+            CVI_STITCH_ReleaseChnFrame(src_dev_id, &stVencFrame);
         }
     }
 #endif
@@ -1255,41 +1263,125 @@ static void *Thread_StreamTask_Proc(void *pArgs)
                 if (NULL == stReadFrameInfo.frameBuf)
                 {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "frameBuf malloc fail\n");
+                    // Close file if opened before malloc failure
+                    if (pastVencChnCfg->pFile) {
+                         fclose(pastVencChnCfg->pFile);
+                         pastVencChnCfg->pFile = NULL;
+                    }
+                    return NULL;
+                }
+
+                // Wait for the first I-frame to start writing
+                CVI_BOOL bFoundFirstIFrame = CVI_FALSE;
+                while (mStreamTaskThd[VencChn].bRun_flag && !bFoundFirstIFrame) {
+                    memset(stReadFrameInfo.frameBuf, 0, CVI_MBUF_STREAM_MAX_SIZE);
+                    stReadFrameInfo.frameBufLen = CVI_MBUF_STREAM_MAX_SIZE;
+                    if (0 < CVI_MBUF_ReadFrame(readerid, 0, &stReadFrameInfo, 100)) {
+                        // Only consider video frames (not audio)
+                        if (stReadFrameInfo.frameParam.frameType != CVI_MEDIA_AFRAME_A) {
+                            if (stReadFrameInfo.frameParam.frameType == CVI_MEDIA_VFRAME_I) {
+                                APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Found first I-frame (length: %d), starting write.\n", pastVencChnCfg->VencChn, stReadFrameInfo.frameParam.frameLen);
+                                fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameBufLen, 1, pastVencChnCfg->pFile);
+                                // Increment fileNum for the first written frame (which is the first I-frame)
+                                pastVencChnCfg->fileNum++;
+                                bFoundFirstIFrame = CVI_TRUE;
+                            } else {
+                                // Discard non-I video frames before the first I-frame
+                                APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Discarding non-I video frame type: %d, length: %d\n", pastVencChnCfg->VencChn, stReadFrameInfo.frameParam.frameType, stReadFrameInfo.frameParam.frameLen);
+                            }
+                        }
+                    } else {
+                        // Wait a bit if no frame is available to avoid busy loop
+                        usleep(10000);
+                    }
+                }
+
+                // If the loop exited because the thread should stop, clean up and return
+                if (!mStreamTaskThd[VencChn].bRun_flag && !bFoundFirstIFrame) {
+                    APP_PROF_LOG_PRINT(LEVEL_WARN, "[venc%d] Thread stopped while waiting for first I-frame.\n", pastVencChnCfg->VencChn);
+                    CVI_MBUF_DestoryReader(readerid);
+                    readerid = NULL; // Set to NULL after destroying
+                    free(stReadFrameInfo.frameBuf);
+                    stReadFrameInfo.frameBuf = NULL; // Set to NULL after freeing
+                    // Close file if opened before loop
+                    if (pastVencChnCfg->pFile) {
+                         fclose(pastVencChnCfg->pFile);
+                         pastVencChnCfg->pFile = NULL;
+                    }
                     return NULL;
                 }
             }
 
+            // Now that the first I-frame is written (or the thread stopped), continue reading and writing subsequent frames
+            // This part of the code is reached only if pFile is not NULL (meaning a file was opened and first I-frame was found,
+            // or a file was already open from a previous iteration) and mStreamTaskThd[VencChn].bRun_flag is true.
             if (pastVencChnCfg->pFile) {
                 memset(stReadFrameInfo.frameBuf, 0, CVI_MBUF_STREAM_MAX_SIZE);
                 stReadFrameInfo.frameBufLen = CVI_MBUF_STREAM_MAX_SIZE;
-                if (0 < CVI_MBUF_ReadFrame(readerid, 0, &stReadFrameInfo, 100))
-                {
-                    if (stReadFrameInfo.frameParam.frameType != CVI_MEDIA_AFRAME_A)
-                    {
+
+                // Read subsequent frames
+                if (0 < CVI_MBUF_ReadFrame(readerid, 0, &stReadFrameInfo, 100)) {
+                    // Only process video frames (not audio)
+                    if (stReadFrameInfo.frameParam.frameType != CVI_MEDIA_AFRAME_A) {
+                        // Write all video frames (I, P, B) after the first I-frame has been written.
+                        // The first I-frame was handled by the waiting loop.
                         fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameBufLen, 1, pastVencChnCfg->pFile);
+                        APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Writing frame type: %d, length: %d\n", pastVencChnCfg->VencChn, stReadFrameInfo.frameParam.frameType, stReadFrameInfo.frameParam.frameLen);
+
+                        // Increment fileNum for every video frame written after the first I-frame
+                        pastVencChnCfg->fileNum++;
                     }
                 }
             }
 
             if (pastVencChnCfg->pFile)
             {
-                if (++pastVencChnCfg->fileNum > pastVencChnCfg->u32Duration) {
+                // Check if file duration is reached after potentially writing a frame
+                if (pastVencChnCfg->fileNum > pastVencChnCfg->u32Duration) {
+                    APP_PROF_LOG_PRINT(LEVEL_INFO, "[venc%d] End save! Duration reached.\n", pastVencChnCfg->VencChn);
                     pastVencChnCfg->fileNum = 0;
                     fclose(pastVencChnCfg->pFile);
                     pastVencChnCfg->pFile = NULL;
-                    CVI_MBUF_DestoryReader(readerid);
-                    free(stReadFrameInfo.frameBuf);
-                    APP_PROF_LOG_PRINT(LEVEL_INFO, "End save! \n");
-                    remove("/tmp/rec");
+                    // Reader and buffer are kept allocated until /tmp/rec disappears or thread stops
+                    remove("/tmp/rec"); // Stop recording by removing the flag file
                 }
             }
         }
-        else
+        else // if (access("/tmp/rec", F_OK) != 0)
         {
+            // If file is open (meaning recording was in progress), close file and cleanup
+            if (pastVencChnCfg->pFile) {
+                APP_PROF_LOG_PRINT(LEVEL_WARN, "[venc%d] Stop saving, /tmp/rec not found.\n", pastVencChnCfg->VencChn);
+                fclose(pastVencChnCfg->pFile);
+                pastVencChnCfg->pFile = NULL;
+                // Reader and buffer are kept allocated while thread is running
+                // Reset fileNum when saving stops
+                pastVencChnCfg->fileNum = 0;
+            }
+            // If file was not open, nothing to do but sleep
             sleep(1);
         }
     }
 
+    // Final cleanup when thread stops
+    APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Thread stopping, performing final cleanup.\n", VencChn);
+    if (pastVencChnCfg->pFile) {
+        APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Closing file on thread exit.\n", pastVencChnCfg->VencChn);
+        fclose(pastVencChnCfg->pFile);
+        pastVencChnCfg->pFile = NULL;
+    }
+    if (readerid) {
+         APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Destroying reader on thread exit.\n", pastVencChnCfg->VencChn);
+         CVI_MBUF_DestoryReader(readerid);
+         readerid = NULL;
+    }
+    if (stReadFrameInfo.frameBuf) {
+        APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Freeing frame buffer on thread exit.\n", pastVencChnCfg->VencChn);
+        free(stReadFrameInfo.frameBuf);
+        stReadFrameInfo.frameBuf = NULL;
+    }
+
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "[venc%d] Thread_StreamTask_Proc exit.\n", VencChn);
     return NULL;
 }
 

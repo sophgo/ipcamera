@@ -1,5 +1,6 @@
 #include "app_ipcam_comm.h"
 #include <sys/time.h>
+#include "cvi_sys.h"
 
 unsigned int GetCurTimeInMsec(void)
 {
@@ -121,7 +122,7 @@ int h265Parse(void *pData, int *ps32ReadLen)
     int tmp = 0;
     int bNewPic    = 0;
     int findStart = 0;
-	int findEnd   = 0;
+    int findEnd   = 0;
 
     if ((pData == NULL) || (ps32ReadLen == NULL) || (*ps32ReadLen <= 0)) {
         return -1;
@@ -180,31 +181,76 @@ int mjpegParse(void *pData, int *ps32ReadLen, unsigned int *pu32Start)
     }
 
     for (i = 0; i < *ps32ReadLen - 1; i++) {
-    	if (pu8Buf[i] == 0xFF && pu8Buf[i + 1] == 0xD8) {
-    		*pu32Start = i;
-    		findStart = 1;
-    		i = i + 2;
-    		break;
-    	}
+        if (pu8Buf[i] == 0xFF && pu8Buf[i + 1] == 0xD8) {
+            *pu32Start = i;
+            findStart = 1;
+            i = i + 2;
+            break;
+        }
     }
     for (; i < *ps32ReadLen - 3; i++) {
-    	if ((pu8Buf[i] == 0xFF) && (pu8Buf[i + 1] & 0xF0) == 0xE0) {
-    		u32Len = (pu8Buf[i + 2] << 8) + pu8Buf[i + 3];
-    		i += 1 + u32Len;
-    	} else {
-    		break;
-    	}
+        if ((pu8Buf[i] == 0xFF) && (pu8Buf[i + 1] & 0xF0) == 0xE0) {
+            u32Len = (pu8Buf[i + 2] << 8) + pu8Buf[i + 3];
+            i += 1 + u32Len;
+        } else {
+            break;
+        }
     }
     for (; i < *ps32ReadLen - 1; i++) {
-    	if (pu8Buf[i] == 0xFF && pu8Buf[i + 1] == 0xD9) {
-    		findEnd = 1;
-    		break;
-    	}
+        if (pu8Buf[i] == 0xFF && pu8Buf[i + 1] == 0xD9) {
+            findEnd = 1;
+            break;
+        }
     }
     *ps32ReadLen = i + 2;
 
     if ((findStart == 0) || (findEnd == 0)) {
-    	return -1;
+        return -1;
     }
     return 0;
+}
+
+CVI_S32 app_ipcam_Comm_SaveFrameToFile(const CVI_CHAR *filename, VIDEO_FRAME_INFO_S *pstVideoFrame)
+{
+    CVI_S32 s32Ret = CVI_SUCCESS;
+    FILE *fp;
+    CVI_U32 u32len, u32DataLen;
+
+    fp = fopen(filename, "w");
+    if (fp == CVI_NULL) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "open data file error\n");
+        return CVI_FAILURE;
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        u32DataLen = pstVideoFrame->stVFrame.u32Stride[i] * pstVideoFrame->stVFrame.u32Height;
+        if (u32DataLen == 0)
+            continue;
+        if (i > 0 && ((pstVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_YUV_PLANAR_420) ||
+            (pstVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_NV12) ||
+            (pstVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_NV21)))
+            u32DataLen >>= 1;
+
+        pstVideoFrame->stVFrame.pu8VirAddr[i]
+            = CVI_SYS_Mmap(pstVideoFrame->stVFrame.u64PhyAddr[i], pstVideoFrame->stVFrame.u32Length[i]);
+
+        CVI_SYS_IonInvalidateCache(pstVideoFrame->stVFrame.u64PhyAddr[i],
+            pstVideoFrame->stVFrame.pu8VirAddr[i], pstVideoFrame->stVFrame.u32Length[i]);
+        APP_PROF_LOG_PRINT(LEVEL_DEBUG, "plane(%d): paddr(%#"PRIx64") vaddr(%p) stride(%d)\n",
+               i, pstVideoFrame->stVFrame.u64PhyAddr[i],
+               pstVideoFrame->stVFrame.pu8VirAddr[i],
+               pstVideoFrame->stVFrame.u32Stride[i]);
+        APP_PROF_LOG_PRINT(LEVEL_DEBUG, " data_len(%d) plane_len(%d)\n",
+                  u32DataLen, pstVideoFrame->stVFrame.u32Length[i]);
+        u32len = fwrite(pstVideoFrame->stVFrame.pu8VirAddr[i], u32DataLen, 1, fp);
+        if (u32len <= 0) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "fwrite data(%d) error\n", i);
+            s32Ret = CVI_FAILURE;
+            break;
+        }
+        CVI_SYS_Munmap(pstVideoFrame->stVFrame.pu8VirAddr[i], pstVideoFrame->stVFrame.u32Length[i]);
+    }
+
+    fclose(fp);
+    return s32Ret;
 }

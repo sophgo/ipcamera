@@ -30,6 +30,7 @@ typedef struct APP_VPSS_GRP_CFG_S {
     MMF_CHN_S astChn[2];
     CVI_BOOL aGdcEn[VPSS_MAX_PHY_CHN_NUM];
     CVI_U32	aGdcConfigId[VPSS_MAX_PHY_CHN_NUM];
+    CVI_BOOL abSaveFileEn[VPSS_MAX_PHY_CHN_NUM];
 } APP_VPSS_GRP_CFG_T;
 
 typedef struct APP_PARAM_VPSS_CFG_S {
@@ -44,6 +45,7 @@ int app_ipcam_Vpss_Create(VPSS_GRP VpssGrp);
 int app_ipcam_Vpss_Destroy(VPSS_GRP VpssGrp);
 int app_ipcam_Vpss_Bind(VPSS_GRP VpssGrp);
 int app_ipcam_Vpss_Unbind(VPSS_GRP VpssGrp);
+int app_ipcam_Vpss_SaveFrameToFile(void);
 
 #ifdef __cplusplus
 }

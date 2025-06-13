@@ -98,7 +98,6 @@ CVI_S32 app_ipcam_Gdc_SendFrame(
 CVI_S32 app_ipcam_Gdc_ReleaseFrame(APP_GDC_CFG_T *pstGdcCfg);
 CVI_S32 app_ipcam_Gdc_GetFrame(APP_GDC_CFG_T *pstGdcCfg, VIDEO_FRAME_INFO_S *pstVideoFrame);
 CVI_S32 app_ipcam_Gdc_SendFile(APP_GDC_CFG_T *pstGdcCfg);
-CVI_S32 app_ipcam_Gdc_SaveFileFromFrame(const CVI_CHAR *filename, VIDEO_FRAME_INFO_S *pstVideoFrame);
 
 #ifdef __cplusplus
 }

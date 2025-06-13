@@ -155,8 +155,7 @@ static void rtsp_service_media_task(void *arg)
         s32Ret = CVI_MBUF_ReadFrame(readerId, ctx->i_frame_flag
                                         , &stReadFrameInfo, 100);
         if (s32Ret < 0) {
-            APP_PROF_LOG_PRINT(LEVEL_INFO
-                , "CVI_MBUF_ReadFrame failed. s32Ret:%d.\n", s32Ret);
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "CVI_MBUF_ReadFrame failed. s32Ret:%d.\n", s32Ret);
             continue;
         }
         if ((ctx->i_frame_flag)

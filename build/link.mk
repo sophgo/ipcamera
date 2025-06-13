@@ -67,7 +67,6 @@ endif
 
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_recorder
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_file_recover
-LIBS-$(CONFIG_MODULE_RINGBUF)                     += -lapp_ringbuffer
 LIBS-$(CONFIG_MODULE_COMMON)                      += -lapp_common
 LIBS-$(CONFIG_MODULE_CJSON)                       += -lapp_cjson
 LIBS-$(CONFIG_MODULE_MININI)                      += -lapp_minini
@@ -155,6 +154,9 @@ LIBS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -lnanomsg
 LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_RTSP_DIR)/lib -lcomp_rtsp
 LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
 LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_OSAL_DIR)/lib -lcomp_osal
+
+#RBUF
+LIBS-$(CONFIG_MODULE_RINGBUF) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
 
 #MBUF
 LIBS-$(CONFIG_MODULE_MBUF) += -L$(CVI_MBUF_DIR)/lib -lcomp_mbuf

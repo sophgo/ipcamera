@@ -182,10 +182,10 @@ config RESOURCE_INSTALL_FBM_CV186AH_WEVB_SC4336P_SC4336P
 	help
 		"support install fbm cv186ah_wevb_sc4336p_sc4336p.ini"
 
-config RESOURCE_INSTALL_FBM_CV186AH_WEVB_OS04E10_OS04E10
-	bool "install fbm_cv186ah_wevb_os04e10_os04e10"
+config RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OS04E10_2OV9282
+	bool "install fbm_cv186ah_wevb_2os04e10_2ov9282"
 	help
-		"support install fbm cv186ah_wevb_os04e10_os04e10.ini"
+		"support install fbm cv186ah_wevb_2os04e10_2ov9282.ini"
 
 config RESOURCE_INSTALL_FBM_CV186AH_WEVB_2OS04E10_2SC4336P
 	bool "install fbm_cv186ah_wevb_2os04e10_2sc4336p"

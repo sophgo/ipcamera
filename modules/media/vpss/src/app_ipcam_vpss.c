@@ -38,6 +38,48 @@ APP_PARAM_VPSS_CFG_T *app_ipcam_Vpss_Param_Get(void)
     return g_pstVpssCfg;
 }
 
+int app_ipcam_Vpss_SaveFrameToFile(void)
+{
+    CVI_S32 s32Ret = CVI_SUCCESS;
+    CVI_CHAR astFileNameOut[64] = {0};
+	VIDEO_FRAME_INFO_S stVideoFrame = {0};
+
+    for (CVI_U32 VpssGrp = 0; VpssGrp < g_pstVpssCfg->u32GrpCnt; VpssGrp++) {
+        for (CVI_U32 VpssChn = 0; VpssChn < VPSS_MAX_PHY_CHN_NUM; VpssChn++) {
+            if (g_pstVpssCfg->astVpssGrpCfg[VpssGrp].abChnEnable[VpssChn]
+                && g_pstVpssCfg->astVpssGrpCfg[VpssGrp].abChnCreate[VpssChn]
+                && g_pstVpssCfg->astVpssGrpCfg[VpssGrp].abSaveFileEn[VpssChn]) {
+
+                memset(&stVideoFrame, 0, sizeof(stVideoFrame));
+                s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVideoFrame, 1000);
+                if (s32Ret != CVI_SUCCESS) {
+                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VPSS_GetChnFrame fail. s32Ret: 0x%x !\n", s32Ret);
+                    return s32Ret;
+                }
+
+                snprintf(astFileNameOut, 64, "vpss_grp%d_chn%d_%dx%dx%s.yuv",
+                    VpssGrp, VpssChn,
+                    stVideoFrame.stVFrame.u32Width,
+                    stVideoFrame.stVFrame.u32Height,
+                    GetFmtName(stVideoFrame.stVFrame.enPixelFormat));
+
+                s32Ret = app_ipcam_Comm_SaveFrameToFile(astFileNameOut, &stVideoFrame);
+                if (s32Ret != CVI_SUCCESS) {
+                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Comm_SaveFrameToFile fail. s32Ret: 0x%x !\n", s32Ret);
+                    CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVideoFrame);
+                    return s32Ret;
+                }
+
+                CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVideoFrame);
+
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "save file %s success\n", astFileNameOut);
+            }
+        }
+    }
+
+    return CVI_SUCCESS;
+}
+
 int app_ipcam_Vpss_Destroy(VPSS_GRP VpssGrp)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
@@ -127,6 +169,7 @@ int app_ipcam_Vpss_Create(VPSS_GRP VpssGrp)
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VPSS_SetChnCrop(%d) failed with %d\n", VpssChn, s32Ret);
                 goto VPSS_EXIT;
             }
+
             if (CVI_VPSS_EnableChn(pstVpssGrpCfg->VpssGrp, VpssChn) != CVI_SUCCESS) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VPSS_EnableChn(%d) failed with %d\n", VpssChn, s32Ret);
                 goto VPSS_EXIT;
@@ -285,11 +328,18 @@ int app_ipcam_Vpss_Init(void)
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Vpss grp(%d) Create failed with 0x%x!\n", VpssGrp, s32Ret);
             return s32Ret;
         }
+
         s32Ret = app_ipcam_Vpss_Bind(VpssGrp);
         if (s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Vpss grp(%d) Bind failed with 0x%x!\n", VpssGrp, s32Ret);
             return s32Ret;
         }
+    }
+
+    s32Ret = app_ipcam_Vpss_SaveFrameToFile();
+    if (s32Ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vpss_SaveFrameToFile failed with 0x%x!\n", s32Ret);
+        return s32Ret;
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "vpss init ------------------> end \n");

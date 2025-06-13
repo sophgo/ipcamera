@@ -136,6 +136,7 @@ CVI_CHAR *GetFmtName(PIXEL_FORMAT_E enPixFmt);
 int h264Parse(void *pData, int *ps32ReadLen);
 int h265Parse(void *pData, int *ps32ReadLen);
 int mjpegParse(void *pData, int *ps32ReadLen, unsigned int *pu32Start);
+CVI_S32 app_ipcam_Comm_SaveFrameToFile(const CVI_CHAR *filename, VIDEO_FRAME_INFO_S *pstVideoFrame);
 
 #ifdef __cplusplus
 }

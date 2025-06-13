@@ -462,50 +462,6 @@ CVI_S32 app_ipcam_Gdc_ReleaseFrame(APP_GDC_CFG_T *pstGdcCfg) {
     return s32Ret;
 }
 
-CVI_S32 app_ipcam_Gdc_SaveFileFromFrame(const CVI_CHAR *filename, VIDEO_FRAME_INFO_S *pstVideoFrame)
-{
-    FILE *fp;
-    CVI_U32 u32len, u32DataLen;
-
-    fp = fopen(filename, "w");
-    if (fp == CVI_NULL) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "open data file error\n");
-        return CVI_FAILURE;
-    }
-
-    for (int i = 0; i < 3; ++i) {
-        u32DataLen = pstVideoFrame->stVFrame.u32Stride[i] * pstVideoFrame->stVFrame.u32Height;
-        if (u32DataLen == 0)
-            continue;
-        if (i > 0 && ((pstVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_YUV_PLANAR_420) ||
-            (pstVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_NV12) ||
-            (pstVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_NV21)))
-            u32DataLen >>= 1;
-
-        pstVideoFrame->stVFrame.pu8VirAddr[i]
-            = CVI_SYS_Mmap(pstVideoFrame->stVFrame.u64PhyAddr[i], pstVideoFrame->stVFrame.u32Length[i]);
-
-        CVI_SYS_IonInvalidateCache(pstVideoFrame->stVFrame.u64PhyAddr[i],
-            pstVideoFrame->stVFrame.pu8VirAddr[i], pstVideoFrame->stVFrame.u32Length[i]);
-        APP_PROF_LOG_PRINT(LEVEL_DEBUG, "plane(%d): paddr(%#"PRIx64") vaddr(%p) stride(%d)\n",
-               i, pstVideoFrame->stVFrame.u64PhyAddr[i],
-               pstVideoFrame->stVFrame.pu8VirAddr[i],
-               pstVideoFrame->stVFrame.u32Stride[i]);
-        APP_PROF_LOG_PRINT(LEVEL_DEBUG, " data_len(%d) plane_len(%d)\n",
-                  u32DataLen, pstVideoFrame->stVFrame.u32Length[i]);
-        u32len = fwrite(pstVideoFrame->stVFrame.pu8VirAddr[i], u32DataLen, 1, fp);
-        if (u32len <= 0) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "fwrite data(%d) error\n", i);
-            break;
-        }
-        CVI_SYS_Munmap(pstVideoFrame->stVFrame.pu8VirAddr[i], pstVideoFrame->stVFrame.u32Length[i]);
-    }
-
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "fwrite data(%s) success!\n", filename);
-    fclose(fp);
-    return CVI_SUCCESS;
-}
-
 CVI_S32 GDCFileToFrame(SIZE_S *stSize, PIXEL_FORMAT_E enPixelFormat,
         CVI_CHAR *filename, VIDEO_FRAME_INFO_S *pstVideoFrame)
 {
