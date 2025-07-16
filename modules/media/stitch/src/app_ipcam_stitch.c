@@ -50,8 +50,6 @@ Qhead *qHead[STITCH_MAX_TOTAL_SRC_NUM] = {NULL};
 int qLength[STITCH_MAX_TOTAL_SRC_NUM] = {0};
 
 pthread_cond_t conda[STITCH_MAX_TOTAL_SRC_NUM];
-pthread_cond_t condaLength[STITCH_MAX_TOTAL_SRC_NUM];
-pthread_mutex_t mutexd[STITCH_MAX_TOTAL_SRC_NUM];
 pthread_mutex_t mutexs[STITCH_MAX_TOTAL_SRC_NUM];
 pthread_mutex_t mutexqLength[STITCH_MAX_TOTAL_SRC_NUM];
 
@@ -165,6 +163,77 @@ static CVI_S32 app_stitch_Set_Wgt_Param(APP_PARAM_STITCH_GRP_CFG_S *pstStitchGrp
     return s32Ret;
 }
 
+static CVI_S32 app_stitch_SyncFrame(CVI_S32 grpIdx)
+{
+    CVI_S32 s32Ret = CVI_SUCCESS;
+    int i = 0;
+    CVI_U64 maxPTS = 0, curPTS = 0;
+    int index;
+    VB_BLK blk;
+    Node *node;
+    CVI_U64 u64PhyAddr = 0;
+    int srcNum = g_pstStitchCfg->astStitchGrpCfg[grpIdx].srcNum;
+    CVI_U64 ptsArr[STITCH_MAX_TOTAL_SRC_NUM] = {0};
+
+    /* Only synchronize frames in unbind mode */
+    for (i = 0; i < srcNum; i++) {
+        if (g_pstStitchCfg->astStitchGrpCfg[grpIdx].srcParam[i].bBindEn != 0) {
+            APP_PROF_LOG_PRINT(LEVEL_WARN, "stitch grpIdx[%d] src bind mode not support sync frame!\n", grpIdx);
+            return CVI_SUCCESS;
+        }
+    }
+
+    /* Get all src queue headers PTS
+    *  Find the maximum PTS
+    */
+    for (i = 0; i < srcNum; i++) {
+        index = g_pstStitchCfg->astStitchGrpCfg[grpIdx].srcParam[i].src_idx;
+        pthread_mutex_lock(&mutexs[index]);
+        while (SIMPLEQ_FIRST(qHead[index]) == NULL) {
+            pthread_cond_wait(&conda[index], &mutexs[index]);
+        }
+        ptsArr[i] = SIMPLEQ_FIRST(qHead[index])->stVideoFrame.stVFrame.u64PTS;
+        if (ptsArr[i] > maxPTS) {
+            maxPTS = ptsArr[i];
+        }
+        pthread_mutex_unlock(&mutexs[index]);
+    }
+
+    /* Drop all src queue headers frame
+    *  Less than (maxPTS - sync_frame_thresh)
+    */
+    for (i = 0; i < srcNum; i++) {
+        index = g_pstStitchCfg->astStitchGrpCfg[grpIdx].srcParam[i].src_idx;
+        pthread_mutex_lock(&mutexs[index]);
+        while (SIMPLEQ_FIRST(qHead[index]) != NULL) {
+            curPTS = SIMPLEQ_FIRST(qHead[index])->stVideoFrame.stVFrame.u64PTS;
+            if (curPTS < maxPTS - g_pstStitchCfg->astStitchGrpCfg[grpIdx].u64SyncFrameThresh) {
+                u64PhyAddr = SIMPLEQ_FIRST(qHead[index])->stVideoFrame.stVFrame.u64PhyAddr[0];
+                node = SIMPLEQ_FIRST(qHead[index]);
+                SIMPLEQ_REMOVE_HEAD(qHead[index], field);
+                free(node);
+
+                pthread_mutex_lock(&mutexqLength[index]);
+                qLength[index]--;
+                pthread_mutex_unlock(&mutexqLength[index]);
+
+                if (u64PhyAddr) {
+                    blk = CVI_VB_PhysAddr2Handle(u64PhyAddr);
+                    if (blk != VB_INVALID_HANDLE) {
+                        s32Ret = CVI_VB_ReleaseBlock(blk);
+                    }
+                }
+                APP_PROF_LOG_PRINT(LEVEL_WARN, "Stitch grpIdx[%d] SrcIdx[%d] Drop Chn Frame! (curPTS=%" PRIu64 ", maxPTS=%" PRIu64 ")\n", grpIdx, index, curPTS, maxPTS);
+            } else {
+                break;
+            }
+        }
+        pthread_mutex_unlock(&mutexs[index]);
+    }
+
+    return s32Ret;
+}
+
 static CVI_S32 app_stitch_Src_Start(APP_STITCH_SRC_CFG_S *param)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
@@ -209,12 +278,13 @@ static CVI_S32 app_stitch_Src_Start(APP_STITCH_SRC_CFG_S *param)
     }
 
     /*Insert iNode to tail of the queue*/
-    pthread_mutex_lock(&mutexd[param->src_idx]);
+    APP_PROF_LOG_PRINT(LEVEL_DEBUG, "Src_Start: index=%d, timeRef=%u, pts=%" PRIu64 " qLength = %d\n", param->src_idx, param->stImgIn.stVFrame.u32TimeRef, param->stImgIn.stVFrame.u64PTS, qLength[param->src_idx]);
+    pthread_mutex_lock(&mutexs[param->src_idx]);
     Node *iNode = (Node *)malloc(sizeof(Node));
     iNode->stVideoFrame = param->stImgIn;
     SIMPLEQ_INSERT_TAIL(qHead[param->src_idx], iNode, field);
     pthread_cond_signal(&conda[param->src_idx]);
-    pthread_mutex_unlock(&mutexd[param->src_idx]);
+    pthread_mutex_unlock(&mutexs[param->src_idx]);
 
     pthread_mutex_lock(&mutexqLength[param->src_idx]);
     qLength[param->src_idx]++;
@@ -251,8 +321,21 @@ static CVI_S32 app_ipcam_stitch_proc()
     CVI_U64 u64PhyAddr;
     Node *node;
     int i = 0, j = 0, index = 0;
+    CVI_U32 timeRef = 0;
+    CVI_U64 pts = 0;
 
     while (g_Stitch_Running) {
+
+        /*Sync frame*/
+        for (i = 0; i < g_pstStitchCfg->s32GrpCnt; i++) {
+            if (g_pstStitchCfg->astStitchGrpCfg[i].bSyncFrameEn) {
+                s32Ret = app_stitch_SyncFrame(i);
+                if (s32Ret != CVI_SUCCESS) {
+                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_stitch_SyncFrame failed!\n");
+                    continue;
+                }
+            }
+        }
 
         /*Send frame to Stitch if ready
         * Only in stitch unbind mode, need to wait for semaphore and enter this block
@@ -268,6 +351,11 @@ static CVI_S32 app_ipcam_stitch_proc()
                     if (SIMPLEQ_FIRST(qHead[index]) == NULL) {
                         pthread_cond_wait(&conda[index], &mutexs[index]);
                     }
+
+                    timeRef = SIMPLEQ_FIRST(qHead[index])->stVideoFrame.stVFrame.u32TimeRef;
+                    pts = SIMPLEQ_FIRST(qHead[index])->stVideoFrame.stVFrame.u64PTS;
+                    APP_PROF_LOG_PRINT(LEVEL_DEBUG, "Stitch_Proc: index=%d, timeRef=%u, pts=%" PRIu64 " qLength = %d\n", index, timeRef, pts, qLength[index]);
+
                     s32Ret = CVI_STITCH_SendFrame(g_pstStitchCfg->astStitchGrpCfg[i].grpId,
                         (STITCH_SRC_IDX) j,
                         &SIMPLEQ_FIRST(qHead[index])->stVideoFrame,
@@ -344,7 +432,6 @@ CVI_S32 app_ipcam_Stitch_UnInit(void)
             for (m = 0; m < g_pstStitchCfg->astStitchGrpCfg[k].srcNum; m++) {
                 if (g_pstStitchCfg->astStitchGrpCfg[k].srcParam[m].bBindEn == 0) {
                     pthread_cond_destroy(&conda[m]);
-                    pthread_mutex_destroy(&mutexd[m]);
                     pthread_mutex_destroy(&mutexs[m]);
                     pthread_mutex_destroy(&mutexqLength[m]);
 
@@ -447,7 +534,6 @@ CVI_S32 app_ipcam_Stitch_Init(void)
 
                     SIMPLEQ_INIT(qHead[index]);
                     pthread_cond_init(&conda[index], NULL);
-                    pthread_mutex_init(&mutexd[index], NULL);
                     pthread_mutex_init(&mutexs[index], NULL);
                     pthread_mutex_init(&mutexqLength[index], NULL);
 

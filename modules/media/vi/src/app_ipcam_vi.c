@@ -1888,12 +1888,6 @@ int app_ipcam_Vi_Isp_Init(void)
         memset(stsCfg.stAECfg.au8Weight, 1,
                 AE_WEIGHT_ZONE_ROW * AE_WEIGHT_ZONE_COLUMN * sizeof(CVI_U8));
 
-        // stsCfg.stAECfg.stCrop[1].bEnable = 0;
-        // stsCfg.stAECfg.stCrop[1].u16X = 0;
-        // stsCfg.stAECfg.stCrop[1].u16Y = 0;
-        // stsCfg.stAECfg.stCrop[1].u16W = stPubAttr.stWndRect.u32Width;
-        // stsCfg.stAECfg.stCrop[1].u16H = stPubAttr.stWndRect.u32Height;
-
         stsCfg.stWBCfg.u16ZoneRow = AWB_ZONE_ORIG_ROW;
         stsCfg.stWBCfg.u16ZoneCol = AWB_ZONE_ORIG_COLUMN;
         stsCfg.stWBCfg.stCrop.u16X = 0;
@@ -1952,6 +1946,12 @@ int app_ipcam_Vi_Isp_Init(void)
 
         s32Ret = CVI_ISP_SetStatisticsConfig(ViPipe, &stsCfg);
         APP_IPCAM_CHECK_RET(s32Ret, "ISP Set Statistic fail, ViPipe[%d]\n", ViPipe);
+
+        /* Set AE/AWB multi-camera parameter synchronization */
+        if (g_pstViCtx->astIspCfg[ViPipe].astIspStitchAttr.enable) {
+            s32Ret = CVI_ISP_SetStitchAttr(ViPipe, &g_pstViCtx->astIspCfg[ViPipe].astIspStitchAttr);
+            APP_IPCAM_CHECK_RET(s32Ret, "ISP Set StitchAttr fail, ViPipe[%d]\n", ViPipe);
+        }
 
         s32Ret = CVI_ISP_Init(ViPipe);
         APP_IPCAM_CHECK_RET(s32Ret, "ISP Init fail, ViPipe[%d]\n", ViPipe);

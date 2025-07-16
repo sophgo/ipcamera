@@ -289,6 +289,29 @@ int Load_Param_Vi(const char *file)
         memset(tmp_section, 0, sizeof(tmp_section));
         snprintf(tmp_section, sizeof(tmp_section), "vi_cfg_isp%d", i);
         pViIniCfg->astIspCfg[i].bAfFliter = ini_getl(tmp_section, "af_filter", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.enable = ini_getl(tmp_section, "stitch_attr_en", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.bMainPipe = ini_getl(tmp_section, "main_pipe", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.bCalibEnable = ini_getl(tmp_section, "calib_enable", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.bCombineSts = ini_getl(tmp_section, "statistic", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.u8CombChnSum = ini_getl(tmp_section, "combine_chn_cnt", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.u8CombChn = ini_getl(tmp_section, "combine_chn_number", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.u8Group = ini_getl(tmp_section, "group", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.u32CalibLumaRatio = ini_getl(tmp_section, "calib_luma_ratio", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.u32CalibRGainRatio = ini_getl(tmp_section, "calib_rgain_ratio", 0, file);
+        pViIniCfg->astIspCfg[i].astIspStitchAttr.u32CalibBGainRatio = ini_getl(tmp_section, "calib_bgain_ratio", 0, file);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "sensor_ID=%d af_filter %d stitchAttr: enable=%d, mainPipe=%d, calibEnable=%d, combineSts=%d, combChnSum=%d, combChn=%d, group=%d, calibLumaRatio=%d, calibRGainRatio=%d, calibBGainRatio=%d\n",
+            i,
+            pViIniCfg->astIspCfg[i].bAfFliter,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.enable,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.bMainPipe,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.bCalibEnable,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.bCombineSts,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.u8CombChnSum,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.u8CombChn,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.u8Group,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.u32CalibLumaRatio,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.u32CalibRGainRatio,
+            pViIniCfg->astIspCfg[i].astIspStitchAttr.u32CalibBGainRatio);
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading vi config ------------------> done \n\n");

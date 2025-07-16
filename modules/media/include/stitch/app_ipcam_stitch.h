@@ -29,6 +29,8 @@ typedef struct APP_PARAM_STITCH_GRP_CFG_S {
     CVI_U32 u32AttachVbPool;
     CVI_BOOL bSaveFileEn;
     CVI_CHAR filename_out[64];
+    CVI_BOOL bSyncFrameEn;
+    CVI_U64 u64SyncFrameThresh;
     //wgtAttr
     CVI_S32 wgt_value_alpha[STITCH_MAX_SRC_NUM -1];
     CVI_S32 wgt_value_beta[STITCH_MAX_SRC_NUM -1];

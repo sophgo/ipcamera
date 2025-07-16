@@ -202,6 +202,7 @@ typedef struct APP_PARAM_SNAP_INFO_S {
 
 typedef struct APP_PARAM_ISP_CFG_T {
     CVI_BOOL bAfFliter;
+    ISP_STITCH_ATTR_S astIspStitchAttr;
 } APP_PARAM_ISP_CFG_S;
 
 typedef struct APP_PARAM_VI_CFG_T {

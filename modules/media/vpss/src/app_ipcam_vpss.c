@@ -51,7 +51,7 @@ int app_ipcam_Vpss_SaveFrameToFile(void)
                 && g_pstVpssCfg->astVpssGrpCfg[VpssGrp].abSaveFileEn[VpssChn]) {
 
                 memset(&stVideoFrame, 0, sizeof(stVideoFrame));
-                s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVideoFrame, 1000);
+                s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVideoFrame, 2000);
                 if (s32Ret != CVI_SUCCESS) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VPSS_GetChnFrame fail. s32Ret: 0x%x !\n", s32Ret);
                     return s32Ret;

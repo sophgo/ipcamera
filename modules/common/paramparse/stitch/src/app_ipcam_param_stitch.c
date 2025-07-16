@@ -50,6 +50,8 @@ int Load_Param_Stitch(const char *file)
         StitchGrp->srcAttr.size[2].u32Height = ini_getl(tmp_section, "src2_height", 0, file);
         StitchGrp->srcAttr.size[3].u32Width = ini_getl(tmp_section, "src3_width", 0, file);
         StitchGrp->srcAttr.size[3].u32Height = ini_getl(tmp_section, "src3_height", 0, file);
+        StitchGrp->bSyncFrameEn = ini_getl(tmp_section, "sync_frame_en", 0, file);
+        StitchGrp->u64SyncFrameThresh = ini_getl(tmp_section, "sync_frame_thresh", 0, file);
 
         ini_gets(tmp_section, "pixel_fmt", " ", str_name, PARAM_STRING_NAME_LEN, file);
         ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, pixel_format, PIXEL_FORMAT_MAX, &enum_num);
@@ -177,10 +179,13 @@ int Load_Param_Stitch(const char *file)
         StitchGrp->bSaveFileEn = ini_getl(tmp_section, "savefile_en", 0, file);
 
         APP_PROF_LOG_PRINT(LEVEL_INFO,
-            "StitchGrp%d: grpId:%d srcNum:%d way_num:%d\n",
+            "StitchGrp%d: grpId:%d srcNum:%d way_num:%d sync_frame_en:%d sync_frame_thresh:%" PRIu64 "\n",
             i, StitchGrp->grpId,
             StitchGrp->srcNum,
-            StitchGrp->srcAttr.way_num);
+            StitchGrp->srcAttr.way_num,
+            StitchGrp->bSyncFrameEn,
+            StitchGrp->u64SyncFrameThresh
+        );
 
         APP_PROF_LOG_PRINT(LEVEL_INFO,
             "StitchGrp%d: fmt_in:%d size[0]=%dx%d size[1]=%dx%d size[2]=%dx%d size[3]=%dx%d\n",
