@@ -68,11 +68,19 @@ static APP_OSDC_CANVAS_CFG_S g_stOsdcCanvasCfg = {0};
 APP_OSDC_AI_RECT_RATIO_S g_stPdRectRatio = {0};
 APP_OSDC_AI_RECT_RATIO_S g_stMdRectRatio = {0};
 APP_OSDC_AI_RECT_RATIO_S g_stFdRectRatio = {0};
+APP_OSDC_AI_RECT_RATIO_S g_stHumanKeypointRectRatio = {0};
 
-static cvtdl_object_t g_objMetaPd = {0};
-static cvimd_object_t g_objMetaMd = {0};
+#ifdef PD_SUPPORT
+static TDLObject g_objMetaPd = {0};
+#endif
+#ifdef MD_SUPPORT
+static TDLObject g_objMetaMd = {0};
+#endif
 #ifdef FACE_SUPPORT
-static cvtdl_face_t g_objMetaFd = {0};
+static TDLFace g_objMetaFd = {0};
+#endif
+#ifdef HUMAN_KEYPOINT_SUPPORT
+static TDLObject g_objMetaHumanKeypoint = {0};
 #endif
 #endif
 
@@ -148,23 +156,23 @@ static CVI_VOID GetTimeStr(const struct tm *pstTime, char *pazStr, CVI_S32 s32Ma
         pstTime->tm_hour, pstTime->tm_min, pstTime->tm_sec);
 }
 
-#ifdef AI_SUPPORT
-static CVI_VOID GetDebugStr(char *pazStr, CVI_S32 s32MaxLen)
-{
-    if (NULL == pazStr || 0 >= s32MaxLen) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "szStr is NULL or s32MaxLen:%d invalid!\n", s32MaxLen);
-        return ;
-    }
+// #ifdef AI_SUPPORT
+// static CVI_VOID GetDebugStr(char *pazStr, CVI_S32 s32MaxLen)
+// {
+//     if (NULL == pazStr || 0 >= s32MaxLen) {
+//         APP_PROF_LOG_PRINT(LEVEL_ERROR, "szStr is NULL or s32MaxLen:%d invalid!\n", s32MaxLen);
+//         return ;
+//     }
 
-#ifdef FACE_SUPPORT
-    snprintf(pazStr, s32MaxLen, "MD[%02dFPS]PD[%02dFPS]FD[%02dFPS]",
-            app_ipcam_Ai_MD_ProcFps_Get(), app_ipcam_Ai_PD_ProcFps_Get(), app_ipcam_Ai_FD_ProcFps_Get());
-#else
-    snprintf(pazStr, s32MaxLen, "MD[%02dFPS]PD[%02dFPS]",
-            app_ipcam_Ai_MD_ProcFps_Get(), app_ipcam_Ai_PD_ProcFps_Get());
-#endif
-}
-#endif
+// #ifdef FACE_SUPPORT
+//     snprintf(pazStr, s32MaxLen, "MD[%02dFPS]PD[%02dFPS]FD[%02dFPS]",
+//             app_ipcam_Ai_MD_ProcFps_Get(), app_ipcam_Ai_PD_ProcFps_Get(), app_ipcam_Ai_FD_ProcFps_Get());
+// #else
+//     snprintf(pazStr, s32MaxLen, "MD[%02dFPS]PD[%02dFPS]",
+//             app_ipcam_Ai_MD_ProcFps_Get(), app_ipcam_Ai_PD_ProcFps_Get());
+// #endif
+// }
+// #endif
 
 int app_ipcam_Osd_Bitmap_Update(char *szStr, BITMAP_S *pstBitmap)
 {
@@ -555,48 +563,43 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
     VPSS_CHN_ATTR_S *pVpssChnAttr = &app_ipcam_Vpss_Param_Get()->astVpssGrpCfg[pstChn->s32DevId].astVpssChnAttr[pstChn->s32ChnId];
     s32Ratio = fmax(((float)pVpssChnAttr->u32Width / (float)pastChnInfo->u32Width), ((float)pVpssChnAttr->u32Height / (float)pastChnInfo->u32Height));
     #ifdef AI_SUPPORT
+    #ifdef PD_SUPPORT
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowPdRect[iOsdcIndex]) {
         app_ipcam_Ai_PD_ObjDrawInfo_Get(&g_objMetaPd);
-        if (g_objMetaPd.size > 0) {
+        if (g_objMetaPd.size > 0 && g_objMetaPd.info != NULL) {
             for (i = 0; i < g_objMetaPd.size; i++) {
                 if (OsdcObjsNum >= OSDC_OBJS_MAX) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
                     break;
                 }
-
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stPdRectRatio.ScaleX * g_objMetaPd.info[i].bbox.x1);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stPdRectRatio.ScaleY * g_objMetaPd.info[i].bbox.y1);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = g_stPdRectRatio.ScaleX * (g_objMetaPd.info[i].bbox.x2 - g_objMetaPd.info[i].bbox.x1);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = g_stPdRectRatio.ScaleY * (g_objMetaPd.info[i].bbox.y2 - g_objMetaPd.info[i].bbox.y1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stPdRectRatio.ScaleX * g_objMetaPd.info[i].box.x1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stPdRectRatio.ScaleY * g_objMetaPd.info[i].box.y1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = g_stPdRectRatio.ScaleX * (g_objMetaPd.info[i].box.x2 - g_objMetaPd.info[i].box.x1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = g_stPdRectRatio.ScaleY * (g_objMetaPd.info[i].box.y2 - g_objMetaPd.info[i].box.y1);
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 4;
-                if(!strcmp(g_objMetaPd.info[i].name, "Intrusion")){
-                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_RED(0);
-                }
-                else{
-                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_CYAN(0);
-                }
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_FALSE;
                 pstObjAttr[OsdcObjsNum].enObjType = RGN_CMPR_RECT;
 
                 OsdcObjsNum++;
             }
-            CVI_TDL_Free(&g_objMetaPd);
+            TDL_ReleaseObjectMeta(&g_objMetaPd);
         }
     }
+    #endif
     #ifdef MD_SUPPORT
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowMdRect[iOsdcIndex]) {
         app_ipcam_Ai_MD_ObjDrawInfo_Get(&g_objMetaMd);
-        if (g_objMetaMd.num_boxes > 0) {
-            for (i = 0; i < g_objMetaMd.num_boxes; i++) {
+        if (g_objMetaMd.size > 0 && g_objMetaMd.info != NULL) {
+            for (i = 0; i < g_objMetaMd.size; i++) {
                 if (OsdcObjsNum >= OSDC_OBJS_MAX) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
                     break;
                 }
 
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stMdRectRatio.ScaleX * g_objMetaMd.p_boxes[4*i]);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stMdRectRatio.ScaleY * g_objMetaMd.p_boxes[4*i+1]);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = g_stMdRectRatio.ScaleX * (g_objMetaMd.p_boxes[4*i+2] - g_objMetaMd.p_boxes[4*i]);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = g_stMdRectRatio.ScaleY * (g_objMetaMd.p_boxes[4*i+3] - g_objMetaMd.p_boxes[4*i+1]);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stMdRectRatio.ScaleX * g_objMetaMd.info[i].box.x1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stMdRectRatio.ScaleY * g_objMetaMd.info[i].box.y1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = g_stMdRectRatio.ScaleX * (g_objMetaMd.info[i].box.x2 - g_objMetaMd.info[i].box.x1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = g_stMdRectRatio.ScaleY * (g_objMetaMd.info[i].box.y2 - g_objMetaMd.info[i].box.y1);
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 4;
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_YELLOW(0);
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_FALSE;
@@ -604,7 +607,7 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
 
                 OsdcObjsNum++;
             }
-            app_ipcam_Ai_MD_obj_Free(&g_objMetaMd);
+            TDL_ReleaseObjectMeta(&g_objMetaMd);
         }
     }
     #endif
@@ -612,17 +615,17 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
 #ifdef FACE_SUPPORT
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowFdRect[iOsdcIndex]) {
         app_ipcam_Ai_FD_ObjDrawInfo_Get(&g_objMetaFd);
-        if (g_objMetaFd.size > 0) {
+        if (g_objMetaFd.size > 0 && g_objMetaFd.info != NULL) {
             for (i = 0; i < g_objMetaFd.size; i++) {
                 if (OsdcObjsNum >= OSDC_OBJS_MAX) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
                     return CVI_FAILURE;
                 }
 
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stFdRectRatio.ScaleX * g_objMetaFd.info[i].bbox.x1);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stFdRectRatio.ScaleY * g_objMetaFd.info[i].bbox.y1);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = g_stFdRectRatio.ScaleX * (g_objMetaFd.info[i].bbox.x2 - g_objMetaFd.info[i].bbox.x1);
-                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = g_stFdRectRatio.ScaleY * (g_objMetaFd.info[i].bbox.y2 - g_objMetaFd.info[i].bbox.y1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stFdRectRatio.ScaleX * g_objMetaFd.info[i].box.x1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stFdRectRatio.ScaleY * g_objMetaFd.info[i].box.y1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = g_stFdRectRatio.ScaleX * (g_objMetaFd.info[i].box.x2 - g_objMetaFd.info[i].box.x1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = g_stFdRectRatio.ScaleY * (g_objMetaFd.info[i].box.y2 - g_objMetaFd.info[i].box.y1);
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 4;
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_RED(0);
                 pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_FALSE;
@@ -630,7 +633,34 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
 
                 OsdcObjsNum++;
             }
-            CVI_TDL_Free(&g_objMetaFd);
+            TDL_ReleaseFaceMeta(&g_objMetaFd);
+        }
+    }
+#endif
+#ifdef HUMAN_KEYPOINT_SUPPORT
+    if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowHumanKeypointRect[iOsdcIndex]) {
+        app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(&g_objMetaHumanKeypoint);
+        if (g_objMetaHumanKeypoint.size > 0 && g_objMetaHumanKeypoint.info != NULL) {
+            printf("obj_meta.size:%d\n", g_objMetaHumanKeypoint.size);
+            for (i = 0; i < g_objMetaHumanKeypoint.size; i++) {
+                for (int j = 0; j < 17; j++) {
+                    if (OsdcObjsNum >= OSDC_OBJS_MAX) {
+                        APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
+                        break;
+                    }
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].landmark_properity[j].x) - 8;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stHumanKeypointRectRatio.ScaleY * (g_objMetaHumanKeypoint.info[i].landmark_properity[j].y-12)) - 8;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = 16 ;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = 16 ;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 8;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_RED(0);
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_TRUE;
+                    pstObjAttr[OsdcObjsNum].enObjType = RGN_CMPR_RECT;
+
+                    OsdcObjsNum++;
+                }
+            }
+            TDL_ReleaseObjectMeta(&g_objMetaHumanKeypoint);
         }
     }
 #endif
@@ -675,16 +705,16 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
                 break;
 
                 case TYPE_DEBUG:
-                    #ifdef AI_SUPPORT
-                        memset(szStr, 0, APP_OSD_STR_LEN_MAX);
-                        GetDebugStr(szStr, APP_OSD_STR_LEN_MAX);
-                        s32StrLen = strnlen(szStr, APP_OSD_STR_LEN_MAX);
-                        pszStr = szStr;
-                        stBitmap.u32Width = OSD_LIB_FONT_W * s32StrLen;
-                        stBitmap.u32Height = OSD_LIB_FONT_H;
-                    #else
-                        g_pstOsdcCfg->osdcObj[iOsdcIndex][i].bShow = 0;
-                    #endif
+                    // #ifdef AI_SUPPORT
+                    //     memset(szStr, 0, APP_OSD_STR_LEN_MAX);
+                    //     GetDebugStr(szStr, APP_OSD_STR_LEN_MAX);
+                    //     s32StrLen = strnlen(szStr, APP_OSD_STR_LEN_MAX);
+                    //     pszStr = szStr;
+                    //     stBitmap.u32Width = OSD_LIB_FONT_W * s32StrLen;
+                    //     stBitmap.u32Height = OSD_LIB_FONT_H;
+                    // #else
+                    //     g_pstOsdcCfg->osdcObj[iOsdcIndex][i].bShow = 0;
+                    // #endif
                 break;
 
                 default:
@@ -732,11 +762,7 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
             pstObjAttr[OsdcObjsNum].stBitmap.stRect.s32Y = g_pstOsdcCfg->osdcObj[iOsdcIndex][i].y1 * s32Ratio;;
             pstObjAttr[OsdcObjsNum].stBitmap.stRect.u32Width = stBitmap.u32Width;
             pstObjAttr[OsdcObjsNum].stBitmap.stRect.u32Height = stBitmap.u32Height;
-#ifndef __CV184X__
-            pstObjAttr[OsdcObjsNum].stBitmap.u32BitmapPAddr = (CVI_U32)g_pstOsdcCfg->osdcObj[iOsdcIndex][i].u64BitmapPhyAddr;
-#else
             pstObjAttr[OsdcObjsNum].stBitmap.u64BitmapPAddr = (CVI_U32)g_pstOsdcCfg->osdcObj[iOsdcIndex][i].u64BitmapPhyAddr;
-#endif
 
             free(stBitmap.pData);
         } else {
@@ -789,14 +815,6 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
 
 static int app_ipcam_ObjRectRatio_Set(void)
 {
-    #ifdef AI_SUPPORT
-    APP_PARAM_AI_PD_CFG_S *pstPdCfg = app_ipcam_Ai_PD_Param_Get();
-    APP_PARAM_AI_MD_CFG_S *pstMdCfg = app_ipcam_Ai_MD_Param_Get();
-    //APP_PARAM_AI_FD_CFG_S *pstFdCfg = app_ipcam_Ai_FD_Param_Get();
-    _NULL_POINTER_CHECK_(pstPdCfg, -1);
-    _NULL_POINTER_CHECK_(pstMdCfg, -1);
-    //_NULL_POINTER_CHECK_(pstFdCfg, -1);
-
     /* get main-streaming VPSS Grp0Chn0 size */
     APP_VPSS_GRP_CFG_T *pstVpssCfg = &app_ipcam_Vpss_Param_Get()->astVpssGrpCfg[0];
     _NULL_POINTER_CHECK_(pstVpssCfg, -1);
@@ -807,18 +825,24 @@ static int app_ipcam_ObjRectRatio_Set(void)
     stOdecSize.u32Height = pstVpssCfg->astVpssChnAttr[0].u32Height;
     APP_PROF_LOG_PRINT(LEVEL_INFO, "draw canvas size W=%d H=%d\n", stOdecSize.u32Width, stOdecSize.u32Height);
 
+    #ifdef PD_SUPPORT
+    APP_PARAM_AI_PD_CFG_S *pstPdCfg = app_ipcam_Ai_PD_Param_Get();
+    _NULL_POINTER_CHECK_(pstPdCfg, -1);
     /* set AI PD rect-ratio */
-    g_stPdRectRatio.VpssChn_W = pstPdCfg->model_size_w;
-    g_stPdRectRatio.VpssChn_H = pstPdCfg->model_size_h;
+    g_stPdRectRatio.VpssChn_W = pstPdCfg->u32GrpWidth;
+    g_stPdRectRatio.VpssChn_H = pstPdCfg->u32GrpHeight;
     g_stPdRectRatio.ScaleX = g_stPdRectRatio.ScaleY =
         fmax(((float)stOdecSize.u32Width / (float)g_stPdRectRatio.VpssChn_W), ((float)stOdecSize.u32Height / (float)g_stPdRectRatio.VpssChn_H));
-
+    #endif
+    #ifdef MD_SUPPORT
+    APP_PARAM_AI_MD_CFG_S *pstMdCfg = app_ipcam_Ai_MD_Param_Get();
+    _NULL_POINTER_CHECK_(pstMdCfg, -1);
     /* set AI MD rect-ratio */
     g_stMdRectRatio.VpssChn_W = pstMdCfg->u32GrpWidth;
     g_stMdRectRatio.VpssChn_H = pstMdCfg->u32GrpHeight;
     g_stMdRectRatio.ScaleX = (float)stOdecSize.u32Width / (float)g_stMdRectRatio.VpssChn_W;
     g_stMdRectRatio.ScaleY = (float)stOdecSize.u32Height / (float)g_stMdRectRatio.VpssChn_H;
-
+    #endif
     /* set AI FD rect-ratio */
     #ifdef FACE_SUPPORT
     APP_PARAM_AI_FD_CFG_S *pstFdCfg = app_ipcam_Ai_FD_Param_Get();
@@ -829,6 +853,12 @@ static int app_ipcam_ObjRectRatio_Set(void)
     g_stFdRectRatio.ScaleX = (float)stOdecSize.u32Width / (float)g_stFdRectRatio.VpssChn_W;
     g_stFdRectRatio.ScaleY = (float)stOdecSize.u32Height / (float)g_stFdRectRatio.VpssChn_H;
     #endif
+    #ifdef HUMAN_KEYPOINT_SUPPORT
+    APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S *pstHumanKeypointCfg = app_ipcam_Ai_Human_Keypoint_Param_Get();
+    _NULL_POINTER_CHECK_(pstHumanKeypointCfg, -1);
+    /* set AI Human Keypoint Detect rect-ratio */
+    g_stHumanKeypointRectRatio.ScaleX = g_stHumanKeypointRectRatio.ScaleY =
+        fmax(((float)stOdecSize.u32Width / (float)pstHumanKeypointCfg->model_size_w), ((float)stOdecSize.u32Height / (float)pstHumanKeypointCfg->model_size_h));
     #endif
 
     return CVI_SUCCESS;

@@ -112,20 +112,20 @@ typedef struct _APP_CRY_INFO_S {
 } APP_CRY_INFO_S;
 typedef struct _APP_PD_INFO_S {
     bool enabled;
-    bool Intrusion_enabled;
+    // bool Intrusion_enabled;
     float threshold;
-    uint32_t region_stRect_x1;
-    uint32_t region_stRect_y1;
-    uint32_t region_stRect_x2;
-    uint32_t region_stRect_y2;
-    uint32_t region_stRect_x3;
-    uint32_t region_stRect_y3;
-    uint32_t region_stRect_x4;
-    uint32_t region_stRect_y4;
-    uint32_t region_stRect_x5;
-    uint32_t region_stRect_y5;
-    uint32_t region_stRect_x6;
-    uint32_t region_stRect_y6;
+    // uint32_t region_stRect_x1;
+    // uint32_t region_stRect_y1;
+    // uint32_t region_stRect_x2;
+    // uint32_t region_stRect_y2;
+    // uint32_t region_stRect_x3;
+    // uint32_t region_stRect_y3;
+    // uint32_t region_stRect_x4;
+    // uint32_t region_stRect_y4;
+    // uint32_t region_stRect_x5;
+    // uint32_t region_stRect_y5;
+    // uint32_t region_stRect_x6;
+    // uint32_t region_stRect_y6;
 } APP_PD_INFO_S;
 
 
@@ -138,11 +138,7 @@ typedef enum APP_VIDEO_RESOLUTION_T {
     APP_RESOLUTION_1080P_H = 1080,
     APP_RESOLUTION_720P_W  = 1280,
     APP_RESOLUTION_720P_H  = 720,
-#ifdef __CV184X__
     APP_RESOLUTION_576P_W  = 768,
-#else
-    APP_RESOLUTION_576P_W  = 720,
-#endif
     APP_RESOLUTION_576P_H  = 576,
     APP_RESOLUTION_360P_W  = 640,
     APP_RESOLUTION_360P_H  = 360,

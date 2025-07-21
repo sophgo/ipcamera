@@ -14,10 +14,6 @@
 #include "dsi_ota7290b.h"
 #include "dsi_ota7290b_1920.h"
 #include "dsi_st7701.h"
-#ifndef __CV184X__
-#include "bt656_tp2803.h"
-#include "i80_st7789v.h"
-#endif
 
 #include "app_ipcam_comm.h"
 #include "app_ipcam_mipi_tx.h"
@@ -31,33 +27,11 @@ CVI_S32 app_ipcam_Panel_FillIntfAttr(APP_PARAM_VO_CFG_T* const pstVoCfg)
 
     switch (pstVoCfg->stVoPubAttr.enIntfType) {
 
-        // case VO_INTF_I80:
-        //     pstVoCfg->stVoPubAttr.sti80Cfg = stI80Cfg;
-        //     break;
-#ifndef __CV184X__
-        case VO_INTF_CVBS:
-        case VO_INTF_YPBPR:
-        case VO_INTF_VGA:
-#endif
         case VO_INTF_BT656:
-#ifndef __CV184X__
-            pstVoCfg->stVoPubAttr.stBtAttr = stTP2803Cfg;
-#endif
             break;
         case VO_INTF_BT1120:
-#ifndef __CV184X__
-        case VO_INTF_LCD:
-        case VO_INTF_LCD_18BIT:
-        case VO_INTF_LCD_24BIT:
-        case VO_INTF_LCD_30BIT:
-        case VO_INTF_HDMI:
-#endif
             break;
-
         case VO_INTF_MIPI:
-#ifndef __CV184X__
-        case VO_INTF_MIPI_SLAVE:
-#endif
             //no need, MIPI-DSI is setup by mipi-tx
             break;
 

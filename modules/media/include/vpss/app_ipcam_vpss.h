@@ -33,9 +33,7 @@ typedef struct APP_VPSS_GRP_CFG_S {
 } APP_VPSS_GRP_CFG_T;
 
 typedef struct APP_PARAM_VPSS_CFG_S {
-#ifdef __CV184X__
     VPSS_MODE_S stVPSSMode;
-#endif
     CVI_U32 u32GrpCnt;
     APP_VPSS_GRP_CFG_T astVpssGrpCfg[CVI_MAX_VPSS_GRP];
 } APP_PARAM_VPSS_CFG_T;

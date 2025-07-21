@@ -8,20 +8,6 @@
 #include "app_ipcam_comm.h"
 #include "app_ipcam_paramparse.h"
 
-#ifndef __CV184X__
-//private attribute
-const char *vpss_mode[VPSS_MODE_BUTT] = {
-    [VPSS_MODE_SINGLE] = "VPSS_MODE_SINGLE",
-    [VPSS_MODE_DUAL] = "VPSS_MODE_DUAL",
-    [VPSS_MODE_RGNEX] = "VPSS_MODE_RGNEX"
-};
-
-const char *vpss_input[VPSS_INPUT_BUTT] = {
-    [VPSS_INPUT_MEM] = "VPSS_INPUT_MEM",
-    [VPSS_INPUT_ISP] = "VPSS_INPUT_ISP"
-};
-#endif
-
 int Load_Param_Sys(const char *file)
 {
     CVI_U32 i = 0;
@@ -114,34 +100,6 @@ int Load_Param_Sys(const char *file)
             Sys->stVIVPSSMode.aenMode[i] = enum_num;
         }
     }
-#ifndef __CV184X__
-    memset(tmp_section, 0, sizeof(tmp_section));
-    snprintf(tmp_section, sizeof(tmp_section), "vpss_mode");
-
-    ini_gets(tmp_section, "enMode", " ", str_name, PARAM_STRING_NAME_LEN, file);
-    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vpss_mode, VPSS_MODE_BUTT, &enum_num);
-    if (ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
-    } else {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
-        Sys->stVPSSMode.enMode = enum_num;
-    }
-
-    CVI_U32 dev_cnt = ini_getl("vpss_dev", "dev_cnt", 0, file);
-    for (i = 0; i < dev_cnt; i++) {
-        memset(tmp_section, 0, sizeof(tmp_section));
-        snprintf(tmp_section, sizeof(tmp_section), "vpss_dev%d", i);
-        ini_gets(tmp_section, "aenInput", " ", str_name, PARAM_STRING_NAME_LEN, file);
-        ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vpss_input, VPSS_INPUT_BUTT, &enum_num);
-        if (ret != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
-        } else {
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][enMode] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
-            Sys->stVPSSMode.aenInput[i] = enum_num;
-        }
-        Sys->stVPSSMode.ViPipe[i] = ini_getl(tmp_section, "ViPipe", 0, file);
-    }
-#endif
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading systerm config ------------------>done \n\n");
 
     return CVI_SUCCESS;

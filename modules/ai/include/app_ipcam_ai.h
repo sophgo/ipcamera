@@ -2,16 +2,14 @@
 #define __APP_IPCAM_AI_H__
 
 #include "cvi_type.h"
-#include "cvi_tdl.h"
+#include "tdl_sdk.h"
+#include "tdl_utils.h"
 #include "cvi_comm_video.h"
 #include "cvi_vpss.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_vi.h"
 #include "app_ipcam_vpss.h"
 #include "app_ipcam_venc.h"
-#include "cvi_tdl_app.h"
-#include "cvi_ive.h"
-#include "cvi_md.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -45,28 +43,9 @@ __attribute__ ((always_inline)) inline void AutoUnLock(void *mutex) {
         pthread_mutex_unlock(&mutex);                                \
     } while(0)
 
-typedef CVI_S32 (*pfpInferenceFunc)(cvitdl_handle_t handle, VIDEO_FRAME_INFO_S *frame, CVI_TDL_SUPPORTED_MODEL_E model_index, cvtdl_object_t *obj);
-typedef CVI_S32 (*pfpFaceInferenceFunc)(cvitdl_handle_t handle, VIDEO_FRAME_INFO_S *frame, CVI_TDL_SUPPORTED_MODEL_E model_index, cvtdl_face_t *obj);
-typedef CVI_S32 (*pfpRescaleFunc)(const VIDEO_FRAME_INFO_S *frame, cvtdl_object_t *obj);
-
-typedef struct {
-  int *p_boxes;
-  uint32_t num_boxes;
-} cvimd_object_t;
-
-/** @struct cvtdl_service_brush_t
- *  @ingroup core_cviaiservice
- *  @brief Brush structure for bounding box drawing
- *
- */
-typedef struct {
-  struct {
-    float r;
-    float g;
-    float b;
-  } color;
-  uint32_t size;
-} cvimd_service_brush_t;
+typedef CVI_S32 (*pfpInferenceFunc)(TDLHandle handle, const TDLModel model_id, TDLImage image_handle, TDLObject *obj);
+typedef CVI_S32 (*pfpFaceInferenceFunc)(TDLHandle handle, const TDLModel model_id, TDLImage image_handle, TDLFace *obj);
+typedef CVI_S32 (*pfpRescaleFunc)(const TDLImage image_handle, TDLObject *obj);
 
 typedef struct APP_PARAM_AI_MD_CFG_T {
     CVI_BOOL bEnable;
@@ -77,75 +56,54 @@ typedef struct APP_PARAM_AI_MD_CFG_T {
     CVI_U32 threshold;
     CVI_U32 u32BgUpPeriod;
     CVI_U32 miniArea;
-    cvimd_service_brush_t rect_brush;
 } APP_PARAM_AI_MD_CFG_S;
 
 
 typedef struct APP_PARAM_AI_CRY_CFG_T {
     CVI_BOOL bEnable;
-    CVI_TDL_SUPPORTED_MODEL_E model_id;
+    TDLModel model_id;
     CVI_U32 application_scene;
     char model_path[MODEL_PATH_LEN];
 } APP_PARAM_AI_CRY_CFG_S;
 
 typedef struct APP_PARAM_AI_PD_CFG_T {
     CVI_BOOL bEnable;
-    CVI_BOOL Intrusion_bEnable;
-    CVI_BOOL capture_enable;
-    CVI_S32 capture_frames;
+    // CVI_BOOL Intrusion_bEnable;
+    // CVI_BOOL capture_enable;
+    // CVI_S32 capture_frames;
     VPSS_GRP VpssGrp;
     VPSS_CHN VpssChn;
     CVI_U32 u32GrpWidth;
 	CVI_U32 u32GrpHeight;
-    CVI_U32 model_size_w;
-    CVI_U32 model_size_h;
-    CVI_U32 region_stRect_x1;
-    CVI_U32 region_stRect_y1;
-    CVI_U32 region_stRect_x2;
-    CVI_U32 region_stRect_y2;
-    CVI_U32 region_stRect_x3;
-    CVI_U32 region_stRect_y3;
-    CVI_U32 region_stRect_x4;
-    CVI_U32 region_stRect_y4;
-    CVI_U32 region_stRect_x5;
-    CVI_U32 region_stRect_y5;
-    CVI_U32 region_stRect_x6;
-    CVI_U32 region_stRect_y6;
-    CVI_BOOL bVpssPreProcSkip;
+    // CVI_U32 model_size_w;
+    // CVI_U32 model_size_h;
+    // CVI_U32 region_stRect_x1;
+    // CVI_U32 region_stRect_y1;
+    // CVI_U32 region_stRect_x2;
+    // CVI_U32 region_stRect_y2;
+    // CVI_U32 region_stRect_x3;
+    // CVI_U32 region_stRect_y3;
+    // CVI_U32 region_stRect_x4;
+    // CVI_U32 region_stRect_y4;
+    // CVI_U32 region_stRect_x5;
+    // CVI_U32 region_stRect_y5;
+    // CVI_U32 region_stRect_x6;
+    // CVI_U32 region_stRect_y6;
+    // CVI_BOOL bVpssPreProcSkip;
     float threshold;
-    CVI_TDL_SUPPORTED_MODEL_E model_id;
+    TDLModel model_id;
     char model_path[MODEL_PATH_LEN];
-    cvtdl_service_brush_t rect_brush;
 } APP_PARAM_AI_PD_CFG_S;
 
 typedef struct APP_PARAM_AI_FD_CFG_T {
     CVI_BOOL FD_bEnable;
-    CVI_BOOL FR_bEnable;
-    CVI_BOOL MASK_bEnable;
-    CVI_BOOL CAPTURE_bEnable;
-    CVI_BOOL FACE_AE_bEnable;
     VPSS_GRP VpssGrp;
     VPSS_CHN VpssChn;
-    VB_POOL FdPoolId;
     CVI_U32 u32GrpWidth;
 	CVI_U32 u32GrpHeight;
-    CVI_U32 model_size_w;
-    CVI_U32 model_size_h;
-    CVI_BOOL bVpssPreProcSkip;
     float threshold_fd;
-    float threshold_fr;
-    float threshold_mask;
-    CVI_U32 thr_size_min;
-    CVI_U32 thr_size_max;
-    float thr_laplacian;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_fd;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_fr;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_mask;
+    TDLModel model_id_fd;
     char model_path_fd[MODEL_PATH_LEN];
-    char model_path_capture[MODEL_PATH_LEN];
-    char model_path_fr[MODEL_PATH_LEN];
-    char model_path_mask[MODEL_PATH_LEN];
-    cvtdl_service_brush_t rect_brush;
 } APP_PARAM_AI_FD_CFG_S;
 
 typedef struct APP_PARAM_AI_FACE_AE_CFG_T {
@@ -178,6 +136,19 @@ typedef struct APP_PARAM_AI_IR_FD_CFG_T {
     
 }APP_PARAM_AI_IR_FD_CFG_S;
 
+typedef struct APP_PARAM_AI_HUMAN_KEYPOINT_CFG_T {
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 model_size_w;
+    CVI_U32 model_size_h;
+    CVI_BOOL bVpssPreProcSkip;
+    float threshold;
+    TDLModel model_id;
+    char model_path[MODEL_PATH_LEN];
+    // cvtdl_service_brush_t rect_brush;
+} APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S;
+
 /* Personnel detection function */
 APP_PARAM_AI_PD_CFG_S *app_ipcam_Ai_PD_Param_Get(void);
 CVI_VOID app_ipcam_Ai_PD_ProcStatus_Set(CVI_BOOL flag);
@@ -187,7 +158,7 @@ CVI_BOOL app_ipcam_Ai_PD_Pause_Get(void);
 int app_ipcam_Ai_PD_Rect_Draw(VIDEO_FRAME_INFO_S *pstVencFrame);
 int app_ipcam_Ai_PD_Start(void);
 int app_ipcam_Ai_PD_Stop(void);
-int app_ipcam_Ai_PD_ObjDrawInfo_Get(cvtdl_object_t *pstAiObj);
+int app_ipcam_Ai_PD_ObjDrawInfo_Get(TDLObject *pstAiObj);
 CVI_U32 app_ipcam_Ai_PD_ProcFps_Get(void);
 CVI_S32 app_ipcam_Ai_PD_ProcTime_Get(void);
 CVI_S32 app_ipcam_Pd_threshold_Set(float threshold);
@@ -205,7 +176,7 @@ CVI_BOOL app_ipcam_Ai_FD_Pause_Get(void);
 int app_ipcam_Ai_FD_Rect_Draw(VIDEO_FRAME_INFO_S *pstVencFrame);
 int app_ipcam_Ai_FD_Start(void);
 int app_ipcam_Ai_FD_Stop(void);
-int app_ipcam_Ai_FD_ObjDrawInfo_Get(cvtdl_face_t *pstAiObj);
+int app_ipcam_Ai_FD_ObjDrawInfo_Get(TDLFace *pstAiObj);
 CVI_U32 app_ipcam_Ai_FD_ProcFps_Get(void);
 CVI_S32 app_ipcam_Ai_FD_ProcTime_Get(void);
 #endif
@@ -228,13 +199,13 @@ CVI_BOOL app_ipcam_Ai_MD_Pause_Get(void);
 // int app_ipcam_Ai_MD_Rect_Draw(VIDEO_FRAME_INFO_S *pstVencFrame);
 int app_ipcam_Ai_MD_Start(void);
 int app_ipcam_Ai_MD_Stop(void);
-int app_ipcam_Ai_MD_ObjDrawInfo_Get(cvimd_object_t *pstMdObj);
+int app_ipcam_Ai_MD_ObjDrawInfo_Get(TDLObject *pstMdObj);
 CVI_U32 app_ipcam_Ai_MD_ProcFps_Get(void);
 CVI_S32 app_ipcam_Ai_MD_ProcTime_Get(void);
 CVI_VOID app_ipcam_Ai_MD_Thresold_Set(CVI_U32 value);
 CVI_U32 app_ipcam_Ai_MD_Thresold_Get(void);
 CVI_S32 app_ipcam_Ai_MD_StatusGet(void);
-CVI_VOID app_ipcam_Ai_MD_obj_Free(cvimd_object_t *pstMdObj);
+// CVI_VOID app_ipcam_Ai_MD_obj_Free(cvimd_object_t *pstMdObj);
 
 /* baby_cry detection function */
 #ifdef AUDIO_SUPPORT
@@ -255,13 +226,25 @@ CVI_S32 app_ipcam_Ai_Cry_StatusGet(void);
 
 #ifdef FACE_SUPPORT
 /* face ae */
-CVI_VOID app_ipcam_Ai_FD_AEStart(VIDEO_FRAME_INFO_S *pstFrame, cvtdl_face_t *pstFace);
+// CVI_VOID app_ipcam_Ai_FD_AEStart(VIDEO_FRAME_INFO_S *pstFrame, TDLFace *pstFace);
+// /* face capture*/
+// CVI_S32 app_ipcam_Ai_Face_Capture_Init(TDLHandle *handle);
+// CVI_S32 app_ipcam_Ai_Face_Capture(VIDEO_FRAME_INFO_S *stfdFrame, TDLFace *capture_face);
+// CVI_S32 app_ipcam_Ai_Face_Capture_Stop(void);
+#endif
 
-
-/* face capture*/
-CVI_S32 app_ipcam_Ai_Face_Capture_Init(cvitdl_handle_t *handle);
-CVI_S32 app_ipcam_Ai_Face_Capture(VIDEO_FRAME_INFO_S *stfdFrame,cvtdl_face_t *capture_face);
-CVI_S32 app_ipcam_Ai_Face_Capture_Stop(void);
+#ifdef HUMAN_KEYPOINT_SUPPORT
+/* Human Keypoint Detection function */
+APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S *app_ipcam_Ai_Human_Keypoint_Param_Get(void);
+CVI_VOID app_ipcam_Ai_Human_Keypoint_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Human_Keypoint_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Human_Keypoint_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Human_Keypoint_Pause_Get(void);
+int app_ipcam_Ai_Human_Keypoint_Start(void);
+int app_ipcam_Ai_Human_Keypoint_Stop(void);
+int app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(TDLObject *pstAiObj);
+CVI_S32 app_ipcam_Human_Keypoint_threshold_Set(float threshold);
+CVI_S32 app_ipcam_Ai_Human_Keypoint_StatusGet(void);
 #endif
 
 /*****************************************************************

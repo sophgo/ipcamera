@@ -3,6 +3,7 @@ LIBS += -L$(TARGET_OUT_DIR)/lib/
 ifeq ($(CONFIG_MODULE_PARAMPARSE), y)
 LIBS-y += -Wl,--whole-archive
 LIBS-y                                            += -lapp_paramparse
+LIBS-y                                            += -lapp_paramparse_module
 LIBS-$(CONFIG_MODULE_MEDIA_SYS)                   += -lapp_paramparse_sys
 LIBS-$(CONFIG_MODULE_MEDIA_VI)                    += -lapp_paramparse_vi
 LIBS-$(CONFIG_MODULE_MEDIA_VPSS)                  += -lapp_paramparse_vpss
@@ -39,11 +40,9 @@ LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_ai_fd_cace
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_ai_irface
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_ai_babycry
 
-LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_panel
 
-LIBS-y                                            += -lapp_media_module
 LIBS-$(CONFIG_MODULE_MEDIA_SYS)                   += -lapp_media_sys
 LIBS-$(CONFIG_MODULE_MEDIA_VI)                    += -lapp_media_vi
 LIBS-$(CONFIG_MODULE_MEDIA_VPSS)                  += -lapp_media_vpss
@@ -55,6 +54,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT)               += -lapp_media_vdecsoft
 LIBS-$(CONFIG_MODULE_MEDIA_MSG)                   += -lapp_media_msg
 LIBS-$(CONFIG_MODULE_CVIUAC)                      += -lapp_cvi_uac
 LIBS-$(CONFIG_MODULE_CVIUVC)                      += -lapp_cvi_uvc
+LIBS-y                                            += -lapp_media_module
 
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_recorder
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_file_recover
@@ -70,28 +70,26 @@ else
 endif
 
 ## MEDIA
-ifeq ($(SOC_SEGMENT), CV184X)
+# 双系统
+ifeq ($(DUAL_OS), y) 
 LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lawb -lae -laf -lsensor -lmipi -lini
+# 单系统
 else
-LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lcvi_bin_isp -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lawb -lae -laf
+LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lisp_algo -lawb -lae -laf -lsensor -lsensor_cfg -lsns_full -lmipi -lini
 endif
-LIBS-$(CONFIG_SUPPORT_ATOMIC) += -latomic
-LIBS-y += -L$(MW_PATH)/lib/3rd
 
 ## PQTOOL
-ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
-LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bdynamic -ldl -Wl,-Bstatic -lcvi_ispd2 -lsys -lcvi_json-c -lvi -lvpss -lvo -lrgn -lgdc
-else
-LIBS-$(CONFIG_MODULE_PQTOOL) += -ldl -lcvi_json-c
-endif
+LIBS-$(CONFIG_MODULE_PQTOOL) += -L$(TOP_DIR)/libsophon/install/libsophon-0.4.9/lib
+LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -laf -lisp -lraw_dump -lcvi_json-c -lbmlib
+
+LIBS-$(CONFIG_SUPPORT_ATOMIC) += -latomic
+LIBS-y += -L$(MW_PATH)/lib/3rd
 
 ## VDEC_SOFT
 LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -L$(FFMPEG_6_0_LIB_DIR) -lavcodec -lavutil -lswresample -lswscale
 
 ## DISPLAY
-ifneq ($(SOC_SEGMENT), CV180X)
-  LIBS-$(CONFIG_MODULE_DISPLAY) += -lmipi_tx
-endif
+LIBS-$(CONFIG_MODULE_DISPLAY) += -lmipi_tx
 
 ## MESSAGES
 LIBS-$(CONFIG_MODULE_MEDIA_MSG) += -lmsg -lcvilink -lipcm
@@ -100,11 +98,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_MSG) += -lmsg -lcvilink -lipcm
 LIBS-$(CONFIG_MODULE_MEDIA_EFUSE) += -lmisc
 
 ## AUDIO
-ifeq ($(SOC_SEGMENT), CV184X)
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_dnvqe -lcvi_vqe -lcvi_ssp -lcvi_ssp2 -lcvi_RES1 -lcvi_VoiceEngine
-else
-LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine -ldnvqe -lsbc
-endif
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -laacdec2 -laacenc2 -laacsbrdec2 -laacsbrenc2 -laaccomm2
 LIBS-$(CONFIG_MODULE_AUDIO_MP3)  += -lcvi_mp3 -lmad
 LIBS-$(CONFIG_MODULE_CVIUAC)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine
@@ -126,35 +120,23 @@ else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
 JPEG-TUBRO = -lturbojpeg
+## AI
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/install/CV184X/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/libsophon/install/libsophon-0.4.9/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/install/CV184X/sample/3rd/opencv/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/zlib-src/lib/
 
-LIBS-$(CONFIG_MODULE_AI) += -L$(TDL_PATH)/install/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TDL_PATH)/install/sample/3rd/opencv/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/libsophon-0.4.9/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/lib
+ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
+AISDK := -ltdl-static
+TPU =  -lbmrt -lbmlib -lbmodel
+else
+AISDK := -Wl,-Bdynamic -ltdl
+TPU =  -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
+endif
+OPENCV += -lz -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lIlmImf -llibjasper -llibjpeg -llibpng -llibtiff -llibwebp
+LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
+LIBS-$(CONFIG_MODULE_AI) += -lvi -lvpss -lvo -lrgn -lgdc
 
-ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # libs static link
-  MDSDK := -lcvi_tdl -lcvi_tdl_app -lcvi_md
-  LIB_AUDIO := -lapp_media_audio
-  ifeq ($(SOC_SEGMENT), CV180X)
-    IVE := -lcvi_ive_tpu-static
-  else
-    IVE := -lcvi_ive
-    ifeq ($(TARGET_MACHINE),$(filter $(TARGET_MACHINE), arm-linux-gnueabihf))
-      OPENCV += -ltegra_hal
-    endif
-    OPENCV += -lopencv_imgproc -lopencv_core
-  endif
-  TPU = -lcvikernel-static -lcviruntime-static -lcnpy -lcvimath-static -lz
-  LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(MDSDK) $(IVE) $(TPU) $(OPENCV) $(LIB_AUDIO) $(JPEG-TUBRO) -Wl,--end-group
-  LIBS-$(CONFIG_MODULE_AI) += -lvi -lvpss -lvo -lrgn -lgdc
-else # libs dynamic link
-  MDSDK := -lcvi_tdl -lcvi_tdl_app -lcvi_md
-  IVE := -lcvi_ive
-  LIB_AUDIO = -lapp_media_audio
-  TPU := -lcnpy -lcvikernel -lcvimath -lcviruntime -lz
-  LIBS-$(CONFIG_MODULE_AI) += $(MDSDK) $(TPU) $(IVE) $(LIB_AUDIO) $(JPEG-TUBRO)
-endif # libs static link end
 
 ## MULTI_PROCESS_SUPPORT
 LIBS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -lnanomsg
@@ -176,11 +158,18 @@ LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR) -L$(OPENSSL_LIB_DIR) -l
 LIBS-$(CONFIG_MODULE_OTA) += -lapp_ota
 LIBS += $(LIBS-y)
 
-ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
-ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu riscv64-unknown-linux-gnu),)
-  LIBS += -static
-endif
-endif
-ifneq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu riscv64-unknown-linux-gnu),)
+
+ifeq ($(CONFIG_MODULE_AI), y)
   LIBS += -Wl,-Bdynamic -ldl -pthread
+else
+  ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
+  ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu riscv64-unknown-linux-gnu),)
+    LIBS += -static
+  endif
+  endif
+  ifneq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu riscv64-unknown-linux-gnu),)
+    LIBS += -Wl,-Bdynamic -ldl -pthread
+  endif
 endif
+
+

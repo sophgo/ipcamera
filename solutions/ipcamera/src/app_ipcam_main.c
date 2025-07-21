@@ -39,7 +39,7 @@ static CVI_VOID app_ipcam_ExitSig_handle(CVI_S32 signo)
     CVI_S32 s32Ret = CVI_SUCCESS;
     signal(SIGINT, SIG_IGN);
     signal(SIGTERM, SIG_IGN);
-    
+
     if ((SIGINT == signo) || (SIGTERM == signo)) {
         app_ipcam_Exit();
         APP_PROF_LOG_PRINT(LEVEL_INFO, "ipcam receive a signal(%d) from terminate\n", signo);
@@ -49,7 +49,7 @@ static CVI_VOID app_ipcam_ExitSig_handle(CVI_S32 signo)
 }
 
 static CVI_VOID app_ipcam_Usr1Sig_handle(CVI_S32 signo)
-{    
+{
     if (SIGUSR1 == signo) {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "ipcam receive a signal(%d) from terminate and start trigger a picture\n", signo);
         app_ipcam_JpgCapFlag_Set(CVI_TRUE);
@@ -72,10 +72,10 @@ static int app_ipcam_Peripheral_UnInit(void)
     return CVI_SUCCESS;
 }
 
-/* 
+/*
 * this thread handle a series of small tasks include
 * a. send AI framerate to Web-client
-* b. 
+* b.
 */
 static void *ThreadMisc(void *arg)
 {
@@ -136,13 +136,6 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_Record_UnInit(), "running SD Record");
     #endif
 
-    #ifdef WEB_SOCKET
-    APP_CHK_RET(app_ipcam_WebSocket_DeInit(), "WebSocket DeInit");
-    APP_CHK_RET(app_ipcam_NetCtrl_DeInit(), "NetCtrl DeInit");
-    #endif
-
-    APP_CHK_RET(app_ipcam_Osdc_DeInit(), "OsdC DeInit");
-
     #ifdef AI_SUPPORT
     #ifdef PD_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_PD_Stop(), "PD Stop");
@@ -153,6 +146,10 @@ static int app_ipcam_Exit(void)
     #ifdef FACE_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_FD_Stop(), "FD Stop");
     #endif
+    #endif
+
+    #ifdef OSDC_SUPPORT
+    APP_CHK_RET(app_ipcam_Osdc_DeInit(), "OsdC DeInit");
     #endif
 
     #ifdef AUDIO_SUPPORT
@@ -175,15 +172,16 @@ static int app_ipcam_Exit(void)
 
     APP_CHK_RET(app_ipcam_Sys_DeInit(), "System DeInit");
 
+    #ifdef WEB_SOCKET
+    APP_CHK_RET(app_ipcam_WebSocket_DeInit(), "WebSocket DeInit");
+    APP_CHK_RET(app_ipcam_NetCtrl_DeInit(), "NetCtrl DeInit");
+    #endif
+
     APP_CHK_RET(app_ipcam_Peripheral_UnInit(), "UnInit Peripheral");
 
     #ifdef ANONMSG_ENABLE
     APP_CHK_RET(app_ipcam_MsgAnonDeInit(), "MsgAnon DeInit");
     #endif
-#ifndef __CV184X__
-    APP_CHK_RET(app_ipcam_Msg_Deinit(), "Msg Stop");
-#endif
-
     APP_CHK_RET(app_ipcam_Mbuf_UnInit(), "UnInit Mbuf");
 
     return CVI_SUCCESS;
@@ -192,14 +190,6 @@ static int app_ipcam_Exit(void)
 
 static int app_ipcam_Init(void)
 {
-#ifndef __CV184X__
-    APP_CHK_RET(app_ipcam_Msg_Init(), "init Msg failed");
-
-    #ifdef ANONMSG_ENABLE
-    APP_CHK_RET(app_ipcam_MsgAnonInit(), "init MsgAnon");
-    #endif
-#endif
-
     APP_CHK_RET(app_ipcam_Peripheral_Init(), "Init Peripheral");
 
     APP_CHK_RET(app_ipcam_Sys_Init(), "init systerm");
@@ -208,11 +198,13 @@ static int app_ipcam_Init(void)
 
     APP_CHK_RET(app_ipcam_Vpss_Init(), "init vpss module");
 
+    #ifdef OSDC_SUPPORT
     APP_CHK_RET(app_ipcam_Osdc_Init(), "init Draw Osdc");
+    #endif
 
     #ifdef WEB_SOCKET
     APP_CHK_RET(app_ipcam_NetCtrl_Init(), "Net Ctrl init");
-    
+
     APP_CHK_RET(app_ipcam_WebSocket_Init(), "websocket init");
     #endif
 
@@ -260,8 +252,10 @@ int main(int argc, char *argv[])
     /* init modules include <Peripheral; Sys; VI; VB; OSD; Venc; AI; Audio; etc.> */
     APP_CHK_RET(app_ipcam_Init(), "app_ipcam_Init");
 
+    #ifdef RTSP_SUPPORT
     /* create rtsp server */
     APP_CHK_RET(app_ipcam_Rtsp_Server_Create(), "create rtsp server");
+    #endif
 
     /* start video encode */
     APP_CHK_RET(app_ipcam_Venc_Start(APP_VENC_ALL), "start video processing");
@@ -310,6 +304,6 @@ int main(int argc, char *argv[])
     while (1) {
         sleep(1);
     };
-    
+
     return CVI_SUCCESS;
 }

@@ -448,12 +448,6 @@ static int ImagePage_Get_Sharpen(void)
         return s32Ret;
     }
 
-    if (stDRCAttr.Enable && (stDRCAttr.enOpType == OP_TYPE_MANUAL)) {
-#ifndef __CV184X__
-    s_sharpenn = stDRCAttr.stManual.GlobalGain;
-#endif
-    }
-
     return s_sharpenn;
 }
 
@@ -474,10 +468,6 @@ static int ImagePage_Set_Sharpness(int value)
 
     stDRCAttr.Enable = CVI_TRUE;
     stDRCAttr.enOpType = OP_TYPE_MANUAL;
-#ifndef __CV184X__
-    stDRCAttr.stManual.GlobalGain = (CVI_U8)s_sharpenn;
-#endif
-
     ret = CVI_ISP_SetSharpenAttr(viPipe, &stDRCAttr);
     if (ret != CVI_SUCCESS) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_ISP_SetSharpenAttr failed\n");
@@ -494,31 +484,6 @@ static int ImagePage_Get_2DNR(void)
 static int ImagePage_Set_2DNR(int value)
 {
     CVI_S32 ret = CVI_SUCCESS;
-#ifndef __CV184X__
-    ISP_YNR_ATTR_S stNioseYnrAttr;
-    memset(&stNioseYnrAttr, 0, sizeof(ISP_YNR_ATTR_S));
-    s_noise2d = value;
-    APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
-    int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
-    APP_PROF_LOG_PRINT(LEVEL_DEBUG,"enter: %s, %d\n", __func__, value);
-    ret = CVI_ISP_GetYNRAttr(viPipe, &stNioseYnrAttr);
-    if (ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_DEBUG,"CVI_ISP_GetYNRAttr failed\n");
-        return ret;
-    }
-    for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
-        stNioseYnrAttr.stAuto.FilterType[i] = s_noise2d;
-    }
-
-    ret = CVI_ISP_SetYNRAttr(viPipe, &stNioseYnrAttr);
-    if (ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_DEBUG,"CVI_ISP_SetYNRAttr failed\n");
-        return ret;
-    }
-    for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "FilterType[%d]=%d\n", i, stNioseYnrAttr.stAuto.FilterType[i]);
-    }
-#endif
     return ret;
 }
 
@@ -541,22 +506,12 @@ static int ImagePage_Set_3DNR(int value)
         APP_PROF_LOG_PRINT(LEVEL_DEBUG,"CVI_ISP_GetTNRAttr failed\n");
         return ret;
     }
-#ifndef __CV184X__
-    for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
-        stNioseTnrAttr.stAuto.TnrStrength0[i] = s_noise3d;
-    }
-#endif
 
     ret = CVI_ISP_SetTNRAttr(viPipe, &stNioseTnrAttr);
     if (ret != CVI_SUCCESS) {
         APP_PROF_LOG_PRINT(LEVEL_DEBUG,"CVI_ISP_SetTNRAttr failed\n");
         return ret;
     }
-#ifndef __CV184X__
-    for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "TnrStrength0[%d]=%d\n", i, stNioseTnrAttr.stAuto.TnrStrength0[i]);
-    }
-#endif
     return ret;
 }
 
@@ -639,14 +594,12 @@ static int ImagePage_Set_WB(int value)
 
 static int ImagePage_Get_RedGain(void)
 {
-#ifdef __CV184X__
     ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
     APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
     s_redGain = stRadialShadingGainLutAttr.GGain[0];
-#endif
     return s_redGain;
 }
 
@@ -654,7 +607,6 @@ static int ImagePage_Set_RedGain(int value)
 {
     APP_PROF_LOG_PRINT(LEVEL_DEBUG, "enter: %s, %d\n", __func__, value);
     s_redGain = value;
-#ifdef __CV184X__
     ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
     APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
@@ -664,20 +616,17 @@ static int ImagePage_Set_RedGain(int value)
         stRadialShadingGainLutAttr.GGain[i] = s_redGain;
     }
     CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
-#endif
     return 0;
 }
 
 static int ImagePage_Get_BlueGain(void)
 {
-#ifdef __CV184X__
     ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
     APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
     s_blueGain = stRadialShadingGainLutAttr.GGain[0];
-#endif
     return s_blueGain;
 }
 
@@ -685,7 +634,6 @@ static int ImagePage_Set_BlueGain(int value)
 {
     APP_PROF_LOG_PRINT(LEVEL_DEBUG, "enter: %s, %d\n", __func__, value);
     s_blueGain = value;
-#ifdef __CV184X__
     ISP_RADIAL_SHADING_GAIN_LUT_ATTR_S stRadialShadingGainLutAttr;
     APP_PARAM_VI_CTX_S *pstViParamCfg = app_ipcam_Vi_Param_Get();
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
@@ -695,7 +643,6 @@ static int ImagePage_Set_BlueGain(int value)
         stRadialShadingGainLutAttr.GGain[i] = s_blueGain;
     }
     CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
-#endif
     return 0;
 }
 
@@ -706,55 +653,16 @@ static int ImagePage_Get_Defog_Enable(void)
 
 static int ImagePage_Set_Defog_Enable(int value)
 {
-#ifndef __CV184X__
-    CVI_S32 ret;
-    VI_PIPE viPipe = 0;
-    ISP_DEHAZE_ATTR_S dehazeAttr;
-    APP_PROF_LOG_PRINT(LEVEL_DEBUG,"enter: %s, %d\n", __func__, value);
-    s_defogEnabled = value;
-    if (s_shutterEnabled == CVI_TRUE) {
-        CVI_ISP_GetDehazeAttr(viPipe, &dehazeAttr);
-        dehazeAttr.Enable = s_defogEnabled;
-        ret = CVI_ISP_SetDehazeAttr(viPipe, &dehazeAttr);
-        if (ret != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_DEBUG,"CVI_ISP_SetDehazeAttr failed\n");
-        }
-    } else {
-        APP_PROF_LOG_PRINT(LEVEL_DEBUG,"shutter\n");
-    }
-#endif
     return 0;
 }
 
 static int ImagePage_Get_Defog(void)
 {
-#ifndef __CV184X__
-    VI_PIPE viPipe = 0;
-    ISP_DEHAZE_ATTR_S dehazeAttr;
-    CVI_ISP_GetDehazeAttr(viPipe, &dehazeAttr);
-    s_defog = dehazeAttr.stAuto.Strength[0];
-#endif
     return s_defog;
 }
 
 static int ImagePage_Set_Defog(int value)
 {
-#ifndef __CV184X__
-    VI_PIPE viPipe = 0;
-    ISP_DEHAZE_ATTR_S dehazeAttr;
-    APP_PROF_LOG_PRINT(LEVEL_DEBUG,"enter: %s, %d\n", __func__, value);
-    s_defog = value;
-    if (s_shutterEnabled == CVI_TRUE) {
-        CVI_ISP_GetDehazeAttr(viPipe, &dehazeAttr);
-        for(int i = 0;i< ISP_AUTO_ISO_STRENGTH_NUM ;i++){
-            dehazeAttr.stAuto.Strength[i] = s_defog;           // 0-100
-        }
-
-        CVI_ISP_SetDehazeAttr(viPipe, &dehazeAttr);
-    } else {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Defog hasen't enable\n");
-    }
-#endif
     return 0;
 }
 
@@ -1020,30 +928,12 @@ static int ImagePage_Set_KeepColor(int value)
 
 static int ImagePage_Get_Dis(void)
 {
-#ifndef __CV184X__
-    ISP_DIS_ATTR_S stDisAttr;
-
-    CVI_ISP_GetDisAttr(0, &stDisAttr);
-
-    return stDisAttr.enable;
-#else
     return 0;
-#endif
 }
 
 static int ImagePage_Set_Dis(int value)
 {
-#ifndef __CV184X__
-    APP_PROF_LOG_PRINT(LEVEL_DEBUG,"enter: %s, %d\n", __func__, value);
-    ISP_DIS_ATTR_S stDisAttr;
-
-    CVI_ISP_GetDisAttr(0, &stDisAttr);
-    stDisAttr.enable = value;
-
-    return CVI_ISP_SetDisAttr(0, &stDisAttr);
-#else
     return 0;
-#endif
 }
 
 static int SetImgInfoCallBack(void *param, const char *cmd, const char *val)
@@ -1932,42 +1822,42 @@ int CVI_IPC_NetCtrlSetPd(APP_PD_INFO_S pspdinfo)
         }
     }
 
-    if (!((pstPdInfo->region_stRect_x1 == pspdinfo.region_stRect_x1) &&
-        (pstPdInfo->region_stRect_y1 == pspdinfo.region_stRect_y1) &&
-        (pstPdInfo->region_stRect_x2 == pspdinfo.region_stRect_x2) &&
-        (pstPdInfo->region_stRect_y2 == pspdinfo.region_stRect_y2) &&
-        (pstPdInfo->region_stRect_x3 == pspdinfo.region_stRect_x3) &&
-        (pstPdInfo->region_stRect_y3 == pspdinfo.region_stRect_y3) &&
-        (pstPdInfo->region_stRect_x4 == pspdinfo.region_stRect_x4) &&
-        (pstPdInfo->region_stRect_y4 == pspdinfo.region_stRect_y4) &&
-        (pstPdInfo->region_stRect_x5 == pspdinfo.region_stRect_x5) &&
-        (pstPdInfo->region_stRect_y5 == pspdinfo.region_stRect_y5) &&
-        (pstPdInfo->region_stRect_x6 == pspdinfo.region_stRect_x6) &&
-        (pstPdInfo->region_stRect_y6 == pspdinfo.region_stRect_y6)) ||
-        (pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled))
-    {
-        app_ipcam_Ai_PD_Stop();
-        if(pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)
-        {
-            pstPdInfo->Intrusion_bEnable = pspdinfo.Intrusion_enabled;
-        }
-        else{
-            pstPdInfo->region_stRect_x1 = pspdinfo.region_stRect_x1;
-            pstPdInfo->region_stRect_y1 = pspdinfo.region_stRect_y1;
-            pstPdInfo->region_stRect_x2 = pspdinfo.region_stRect_x2;
-            pstPdInfo->region_stRect_y2 = pspdinfo.region_stRect_y2;
-            pstPdInfo->region_stRect_x3 = pspdinfo.region_stRect_x3;
-            pstPdInfo->region_stRect_y3 = pspdinfo.region_stRect_y3;
-            pstPdInfo->region_stRect_x4 = pspdinfo.region_stRect_x4;
-            pstPdInfo->region_stRect_y4 = pspdinfo.region_stRect_y4;
-            pstPdInfo->region_stRect_x5 = pspdinfo.region_stRect_x5;
-            pstPdInfo->region_stRect_y5 = pspdinfo.region_stRect_y5;
-            pstPdInfo->region_stRect_x6 = pspdinfo.region_stRect_x6;
-            pstPdInfo->region_stRect_y6 = pspdinfo.region_stRect_y6;
-        }
-        app_ipcam_Ai_PD_Start();
-        return 0;
-    }
+    // if (!((pstPdInfo->region_stRect_x1 == pspdinfo.region_stRect_x1) &&
+    //     (pstPdInfo->region_stRect_y1 == pspdinfo.region_stRect_y1) &&
+    //     (pstPdInfo->region_stRect_x2 == pspdinfo.region_stRect_x2) &&
+    //     (pstPdInfo->region_stRect_y2 == pspdinfo.region_stRect_y2) &&
+    //     (pstPdInfo->region_stRect_x3 == pspdinfo.region_stRect_x3) &&
+    //     (pstPdInfo->region_stRect_y3 == pspdinfo.region_stRect_y3) &&
+    //     (pstPdInfo->region_stRect_x4 == pspdinfo.region_stRect_x4) &&
+    //     (pstPdInfo->region_stRect_y4 == pspdinfo.region_stRect_y4) &&
+    //     (pstPdInfo->region_stRect_x5 == pspdinfo.region_stRect_x5) &&
+    //     (pstPdInfo->region_stRect_y5 == pspdinfo.region_stRect_y5) &&
+    //     (pstPdInfo->region_stRect_x6 == pspdinfo.region_stRect_x6) &&
+    //     (pstPdInfo->region_stRect_y6 == pspdinfo.region_stRect_y6)) ||
+    //     (pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled))
+    // {
+    //     app_ipcam_Ai_PD_Stop();
+    //     if(pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)
+    //     {
+    //         pstPdInfo->Intrusion_bEnable = pspdinfo.Intrusion_enabled;
+    //     }
+    //     else{
+    //         pstPdInfo->region_stRect_x1 = pspdinfo.region_stRect_x1;
+    //         pstPdInfo->region_stRect_y1 = pspdinfo.region_stRect_y1;
+    //         pstPdInfo->region_stRect_x2 = pspdinfo.region_stRect_x2;
+    //         pstPdInfo->region_stRect_y2 = pspdinfo.region_stRect_y2;
+    //         pstPdInfo->region_stRect_x3 = pspdinfo.region_stRect_x3;
+    //         pstPdInfo->region_stRect_y3 = pspdinfo.region_stRect_y3;
+    //         pstPdInfo->region_stRect_x4 = pspdinfo.region_stRect_x4;
+    //         pstPdInfo->region_stRect_y4 = pspdinfo.region_stRect_y4;
+    //         pstPdInfo->region_stRect_x5 = pspdinfo.region_stRect_x5;
+    //         pstPdInfo->region_stRect_y5 = pspdinfo.region_stRect_y5;
+    //         pstPdInfo->region_stRect_x6 = pspdinfo.region_stRect_x6;
+    //         pstPdInfo->region_stRect_y6 = pspdinfo.region_stRect_y6;
+    //     }
+    //     app_ipcam_Ai_PD_Start();
+    //     return 0;
+    // }
 
     if(pstPdInfo->threshold != pspdinfo.threshold)
     {
@@ -2007,21 +1897,21 @@ static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
     // pd
     #ifdef PD_SUPPORT
     cJSON_AddNumberToObject(cjsonAiAttr, "pd_enable", app_ipcam_Ai_PD_StatusGet());
-    cJSON_AddNumberToObject(cjsonAiAttr, "pd_intrusion_enable", app_ipcam_Ai_PD_StatusGet() ? pstPdInfo->Intrusion_bEnable : 0);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "pd_intrusion_enable", app_ipcam_Ai_PD_StatusGet() ? pstPdInfo->Intrusion_bEnable : 0);
     cJSON_AddNumberToObject(cjsonAiAttr, "pd_threshold", (int)(pstPdInfo->threshold * 100));
 
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x1",  pstPdInfo->region_stRect_x1);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y1",  pstPdInfo->region_stRect_y1);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x2",  pstPdInfo->region_stRect_x2);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y2",  pstPdInfo->region_stRect_y2);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x3",  pstPdInfo->region_stRect_x3);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y3",  pstPdInfo->region_stRect_y3);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x4",  pstPdInfo->region_stRect_x4);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y4",  pstPdInfo->region_stRect_y4);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x5",  pstPdInfo->region_stRect_x5);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y5",  pstPdInfo->region_stRect_y5);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x6",  pstPdInfo->region_stRect_x6);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y6",  pstPdInfo->region_stRect_y6);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x1",  pstPdInfo->region_stRect_x1);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y1",  pstPdInfo->region_stRect_y1);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x2",  pstPdInfo->region_stRect_x2);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y2",  pstPdInfo->region_stRect_y2);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x3",  pstPdInfo->region_stRect_x3);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y3",  pstPdInfo->region_stRect_y3);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x4",  pstPdInfo->region_stRect_x4);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y4",  pstPdInfo->region_stRect_y4);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x5",  pstPdInfo->region_stRect_x5);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y5",  pstPdInfo->region_stRect_y5);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x6",  pstPdInfo->region_stRect_x6);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y6",  pstPdInfo->region_stRect_y6);
     #endif
 
     //cry
@@ -2089,57 +1979,57 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
     PdInfo.threshold = atoi(cjsonObj->valuestring) / 100.0;
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "pd_intrusion_enable");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.Intrusion_enabled = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "pd_intrusion_enable");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.Intrusion_enabled = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x1");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x1 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x1");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x1 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y1");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y1 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y1");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y1 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x2");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x2 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x2");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x2 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y2");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y2 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y2");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y2 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x3");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x3 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x3");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x3 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y3");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y3 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y3");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y3 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x4");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x4 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x4");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x4 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y4");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y4 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y4");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y4 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x5");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x5 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x5");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x5 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y5");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y5 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y5");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y5 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x6");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x6 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x6");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x6 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y6");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y6 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y6");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y6 = atoi(cjsonObj->valuestring);
     #endif
     #ifdef MD_SUPPORT
     ret = CVI_IPC_NetCtrlSetMd(MdInfo);

@@ -7,14 +7,14 @@
 #include "app_ipcam_sys.h"
 #include "app_ipcam_vi.h"
 #include "app_ipcam_vpss.h"
-#include "app_ipcam_osd.h"
 #include "app_ipcam_venc.h"
 #include "app_ipcam_mq.h"
-#ifndef __CV184X__
-#include "app_ipcam_msg.h"
-#endif
 #include "app_ipcam_ircut.h"
 #include "app_ipcam_module.h"
+
+#ifdef OSDC_SUPPORT
+#include "app_ipcam_osd.h"
+#endif
 
 #ifdef RTSP_SUPPORT
 #include "app_ipcam_rtsp.h"
@@ -24,7 +24,7 @@
 #include "app_ipcam_audio.h"
 #endif
 
-#ifdef VDEC_SUPPORT 
+#ifdef VDEC_SUPPORT
 #include "app_ipcam_vdec.h"
 #endif
 

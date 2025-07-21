@@ -11,8 +11,6 @@ extern "C" {
 #include "cvi_defines.h"
 #include "cvi_comm_vo.h"
 
-
-#ifdef __CV184X__
 typedef enum _VO_MODE_E {
     VO_MODE_1MUX,
     VO_MODE_2MUX,
@@ -27,7 +25,6 @@ typedef enum _VO_MODE_E {
     VO_MODE_2X4,
     VO_MODE_BUTT
 } VO_MODE_E;
-#endif
 
 typedef struct APP_PARAM_VO_CFG_S {
     VO_DEV s32VoDev;

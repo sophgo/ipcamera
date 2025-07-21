@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "app_ipcam_ai.h"
+#include "tdl_sdk.h"
 
 /**************************************************************************
  *                              M A C R O S                               *
@@ -35,8 +36,8 @@ static CVI_U32 g_MDProc;
 static volatile bool g_bMDRunning = CVI_FALSE;
 static volatile bool g_bMDPause = CVI_FALSE;
 static pthread_t g_MDThreadHandle;
-static cvi_md_handle_t g_MDHandle = NULL;
-static cvimd_object_t g_stMDObjDraw;
+static TDLHandle g_MDHandle = NULL;
+static TDLObject g_stMDObjDraw;
 /**************************************************************************
  *                 E X T E R N A L    R E F E R E N C E S                 *
  **************************************************************************/
@@ -101,14 +102,51 @@ static void app_ipcam_Ai_Param_dump(void)
 
 }
 
-CVI_VOID app_ipcam_Ai_MD_obj_Free(cvimd_object_t *pstMdObj)
-{
-    pstMdObj->num_boxes = 0;
-    if(pstMdObj->p_boxes)
-    {
-        free(pstMdObj->p_boxes);
-        pstMdObj->p_boxes = NULL;
+/**
+ * 深拷贝 TDLObject 结构体
+ * @param dst 目标对象（需预先分配内存）
+ * @param src 源对象
+ * @return 0成功，-1失败
+ */
+static int deep_copy_tdl_object(TDLObject* dst, const TDLObject* src) {
+    // 1. 参数检查
+    if (dst == NULL || src == NULL) {
+        return -1;
     }
+
+    // 2. 拷贝基本成员
+    dst->size = src->size;
+    dst->width = src->width;
+    dst->height = src->height;
+
+    // 3. 处理 TDLObjectInfo 数组
+    if (src->info != NULL && src->size > 0) {
+        // 分配新数组内存
+        dst->info = (TDLObjectInfo*)malloc(src->size * sizeof(TDLObjectInfo));
+        if (dst->info == NULL) {
+            return -1;
+        }
+
+        // 逐个拷贝对象信息
+        for (uint32_t i = 0; i < src->size; i++) {
+            // 拷贝基本成员
+            dst->info[i].box.x1 = src->info[i].box.x1;
+            dst->info[i].box.x2 = src->info[i].box.x2;
+            dst->info[i].box.y1 = src->info[i].box.y1;
+            dst->info[i].box.y2 = src->info[i].box.y2;
+            // dst->info[i].score = src->info[i].score;
+            // dst->info[i].class_id = src->info[i].class_id;
+            // dst->info[i].landmark_size = src->info[i].landmark_size;
+            // dst->info[i].obj_type = src->info[i].obj_type;
+            
+            // landmark_properity 设为 NULL（不拷贝原数据）
+            dst->info[i].landmark_properity = NULL;
+        }
+    } else {
+        return 0;
+    }
+
+    return 0;
 }
 
 static CVI_S32 app_ipcam_Ai_MD_Proc_Init()
@@ -125,10 +163,10 @@ static CVI_S32 app_ipcam_Ai_MD_Proc_Init()
 
     app_ipcam_Ai_Param_dump();
 
-    s32Ret  = CVI_MD_Create_Handle(&g_MDHandle);
+    g_MDHandle = TDL_CreateHandle(0);
     if (s32Ret != CVI_SUCCESS)
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_MD_Create_Handle failed with %#x!\n", s32Ret);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "MD CreateHandle failed with %#x!\n", s32Ret);
         return s32Ret;
     }
 
@@ -151,16 +189,31 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
     float iTime_gop;
     iTime_start = GetCurTimeInMsec();
 
+    TDLObject roi = {0};
+    roi.size = 1;
+    roi.info = (TDLObjectInfo *)malloc(sizeof(TDLObjectInfo));
+    if (roi.info == NULL) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to allocate memory for roi.info\n");
+    }
+    roi.info[0].box.x1 = 0;
+    roi.info[0].box.y1 = 0;
+    roi.info[0].box.x2 = g_pstMdCfg->u32GrpWidth - 1;
+    roi.info[0].box.y2 = g_pstMdCfg->u32GrpHeight - 1;
+
     CVI_U32 count = 0;
     CVI_U32 u32BgUpPeriod = g_pstMdCfg->u32BgUpPeriod;
 
     CVI_U32 miniArea = g_pstMdCfg->miniArea;
     app_ipcam_Ai_MD_Thresold_Set(g_pstMdCfg->threshold);
-    cvimd_object_t obj_meta;
-    memset(&obj_meta, 0, sizeof(cvimd_object_t));
+    TDLObject obj_meta;
+    memset(&obj_meta, 0, sizeof(TDLObject));
     
-    VIDEO_FRAME_INFO_S stVencFrame;
-    memset(&stVencFrame, 0, sizeof(VIDEO_FRAME_INFO_S));
+    VIDEO_FRAME_INFO_S stVencFrame_back;
+    memset(&stVencFrame_back, 0, sizeof(VIDEO_FRAME_INFO_S));
+    VIDEO_FRAME_INFO_S stVencFrame_det;
+    memset(&stVencFrame_det, 0, sizeof(VIDEO_FRAME_INFO_S));
+
+    TDLImage image_back, image_det;
 
     VPSS_GRP VpssGrp = g_pstMdCfg->VpssGrp;
     VPSS_CHN VpssChn = g_pstMdCfg->VpssChn;
@@ -174,41 +227,41 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
             usleep(1000*1000);
             continue;
         }
-        s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVencFrame, 3000);
-        if (s32Ret != CVI_SUCCESS)
-        {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) get frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
-            pthread_mutex_unlock(&g_MdStatusMutex);
-            usleep(100*1000);
-            continue;
-        }
-        pthread_mutex_unlock(&g_MdStatusMutex);
-        iTime_proc = GetCurTimeInMsec();
         
-        if ((count % u32BgUpPeriod) == 0)
+        if ((count % u32BgUpPeriod) == 0)   // 更新背景图
         {
             APP_PROF_LOG_PRINT(LEVEL_TRACE, "update BG interval=%d, threshold=%d, miniArea=%d\n",
             u32BgUpPeriod, g_MDThreshold, miniArea);
-            // Update background. For simplicity, we just set new frame directly.
-            if (CVI_MD_Set_Background(g_MDHandle, &stVencFrame) != CVI_SUCCESS)
+            s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVencFrame_back, 3000);
+            if (s32Ret != CVI_SUCCESS)
             {
-                APP_PROF_LOG_PRINT(LEVEL_ERROR, "Cannot update background for motion detection\n");
-                CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame);
-                break;
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+                pthread_mutex_unlock(&g_MdStatusMutex);
+                usleep(100*1000);
+                continue;
             }
+            image_back = TDL_WrapFrame((void*)&stVencFrame_back, false);
         }
+        pthread_mutex_unlock(&g_MdStatusMutex);
+        iTime_proc = GetCurTimeInMsec();
 
-        // Detect moving objects. All moving objects are store in obj_meta.
-        CVI_MD_Detect(g_MDHandle, &stVencFrame, &obj_meta.p_boxes, &obj_meta.num_boxes, g_MDThreshold, miniArea);
-        g_MDProc = GetCurTimeInMsec() - iTime_proc;
-        APP_PROF_LOG_PRINT(LEVEL_TRACE, "MD process takes %d\n", g_MDProc);
-
-        s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame);
+        s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVencFrame_det, 3000);
         if (s32Ret != CVI_SUCCESS)
         {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) get frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
         }
+        image_det = TDL_WrapFrame((void*)&stVencFrame_det, false);
 
+        TDL_MotionDetection(g_MDHandle, image_back, image_det, &roi, g_MDThreshold, miniArea, &obj_meta);
+        // for(uint32_t i = 0; i < obj_meta.size; i++)
+        // {
+        //     printf( "++++++++++++++ MD obj: %d, box: (%f, %f, %f, %f)\n", 
+        //         i+1, obj_meta.info[i].box.x1, obj_meta.info[i].box.y1, 
+        //         obj_meta.info[i].box.x2, obj_meta.info[i].box.y2);
+        // }
+
+        g_MDProc = GetCurTimeInMsec() - iTime_proc;
+        APP_PROF_LOG_PRINT(LEVEL_TRACE, "MD process takes %d\n", g_MDProc);
         md_frame ++;
         iTime_fps = GetCurTimeInMsec();
         iTime_gop = (float)(iTime_fps - iTime_start)/1000;
@@ -217,26 +270,54 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
             g_MDFps = md_frame/iTime_gop;
             md_frame = 0;
             iTime_start = iTime_fps;
-        }
-        
-        if (obj_meta.num_boxes == 0) {
-            count = (count == u32BgUpPeriod) ? (1) : (count+1);
-            app_ipcam_Ai_MD_obj_Free(&obj_meta);
+        }      
+
+        if (obj_meta.size == 0 || obj_meta.info == NULL) {
+            TDL_ReleaseObjectMeta(&obj_meta);
+            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_det);
+            if (s32Ret != CVI_SUCCESS)
+            {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+            }
+            TDL_DestroyImage(image_det);
+
+            if ((count % u32BgUpPeriod) == (u32BgUpPeriod - 1) )
+            {
+                s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_back);     
+                if (s32Ret != CVI_SUCCESS)
+                {
+                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+                }
+                TDL_DestroyImage(image_back);
+            }
+
+            count = (count == u32BgUpPeriod) ? (1) : (count+1); // 计数+1
             continue;
         }
         SMT_MutexAutoLock(g_MDMutex, lock);
-        if (g_stMDObjDraw.p_boxes) {
-            app_ipcam_Ai_MD_obj_Free(&g_stMDObjDraw);
+        if (g_stMDObjDraw.info != NULL) {
+            TDL_ReleaseObjectMeta(&g_stMDObjDraw);
         }
-        memset(&g_stMDObjDraw, 0, sizeof(cvimd_object_t));
-        g_stMDObjDraw.num_boxes = obj_meta.num_boxes;
-        g_stMDObjDraw.p_boxes = (int *)malloc(g_stMDObjDraw.num_boxes * sizeof(int) * 4);
-        memset(g_stMDObjDraw.p_boxes, 0,  g_stMDObjDraw.num_boxes * sizeof(int) * 4 );
-        memcpy(g_stMDObjDraw.p_boxes, obj_meta.p_boxes, g_stMDObjDraw.num_boxes * sizeof(int) * 4);
+        memset(&g_stMDObjDraw, 0, sizeof(TDLObject));
+        deep_copy_tdl_object(&g_stMDObjDraw, &obj_meta);
+        TDL_ReleaseObjectMeta(&obj_meta);
 
-        app_ipcam_Ai_MD_obj_Free(&obj_meta);
-
-        count = (count == u32BgUpPeriod) ? (1) : (count+1);
+        if ((count % u32BgUpPeriod) == (u32BgUpPeriod - 1) )
+        {
+            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_back);     
+            if (s32Ret != CVI_SUCCESS)
+            {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+            }
+            TDL_DestroyImage(image_back);
+        }
+        s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_det);
+        if (s32Ret != CVI_SUCCESS)
+        {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+        }
+        TDL_DestroyImage(image_det);
+        count = (count == u32BgUpPeriod) ? (1) : (count+1);     // 计数+1
     }
 
     pthread_exit(NULL);
@@ -244,24 +325,21 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
     return NULL;
 }
 
-int app_ipcam_Ai_MD_ObjDrawInfo_Get(cvimd_object_t *pstMdObj)
+int app_ipcam_Ai_MD_ObjDrawInfo_Get(TDLObject *pstMdObj)
 {
     _NULL_POINTER_CHECK_(pstMdObj, -1);
 
     SMT_MutexAutoLock(g_MDMutex, lock);
 
-    if (g_stMDObjDraw.num_boxes == 0) {
+    if (g_stMDObjDraw.size == 0) {
         return CVI_SUCCESS;
     } else {
-        pstMdObj->num_boxes = g_stMDObjDraw.num_boxes;
-        pstMdObj->p_boxes = (int *)malloc(pstMdObj->num_boxes * sizeof(int) * 4);
-        _NULL_POINTER_CHECK_(pstMdObj->p_boxes, -1);
-        memset(pstMdObj->p_boxes, 0, pstMdObj->num_boxes * sizeof(int) * 4);
-        memcpy(pstMdObj->p_boxes, g_stMDObjDraw.p_boxes, pstMdObj->num_boxes * sizeof(int) * 4);
-
-        app_ipcam_Ai_MD_obj_Free(&g_stMDObjDraw);
+        memset(pstMdObj, 0, sizeof(TDLObject));
+        deep_copy_tdl_object(pstMdObj, &g_stMDObjDraw);
+        if (g_stMDObjDraw.info != NULL) { 
+            TDL_ReleaseObjectMeta(&g_stMDObjDraw);
+        }
     }
-
     return CVI_SUCCESS;
 }
 
@@ -291,7 +369,7 @@ int app_ipcam_Ai_MD_Stop(void)
         g_MDThreadHandle = 0;
     }
 
-    s32Ret = CVI_MD_Destroy_Handle(g_MDHandle);
+    s32Ret = TDL_DestroyHandle(g_MDHandle);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_MD_Destroy_Handle failed with 0x%x!\n", s32Ret);

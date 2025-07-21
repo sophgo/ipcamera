@@ -21,7 +21,6 @@ const char *aspect_ratio[ASPECT_RATIO_MAX] = {
     [ASPECT_RATIO_MANUAL] = "ASPECT_RATIO_MANUAL"
 };
 
-#ifdef __CV184X__
 const char *vpss_mode[VPSS_MODE_BUTT] = {
     [VPSS_MODE_SINGLE] = "VPSS_MODE_SINGLE",
     [VPSS_MODE_DUAL] = "VPSS_MODE_DUAL"
@@ -31,7 +30,6 @@ const char *vpss_input[VPSS_INPUT_BUTT] = {
     [VPSS_INPUT_MEM] = "VPSS_INPUT_MEM",
     [VPSS_INPUT_ISP] = "VPSS_INPUT_ISP"
 };
-#endif
 
 int Load_Param_Vpss(const char *file)
 {
@@ -54,7 +52,6 @@ int Load_Param_Vpss(const char *file)
 
     Vpss->u32GrpCnt = ini_getl(tmp_section, "vpss_grp", 0, file);
 
-#ifdef __CV184X__
     memset(tmp_section, 0, sizeof(tmp_section));
     snprintf(tmp_section, sizeof(tmp_section), "vpss_mode");
 
@@ -81,7 +78,6 @@ int Load_Param_Vpss(const char *file)
             Vpss->stVPSSMode.aenInput[i] = enum_num;
         }
     }
-#endif
 
     for (grp_idx = 0; grp_idx < Vpss->u32GrpCnt; grp_idx++) {
         memset(tmp_section, 0, sizeof(tmp_section));

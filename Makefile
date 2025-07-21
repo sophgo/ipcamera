@@ -7,14 +7,6 @@ TOPSUBDIRS := ipcamera
 export SOC_SEGMENT := $(shell echo $(CHIP_SEGMENT) | tr a-z A-Z)
 export SOC_SEGMENT_LOWER := $(shell echo $(SOC_SEGMENT) | tr A-Z a-z)
 
-ifeq ($(SOC_SEGMENT), CV181X)
-export SOC_NICK_NAME := CV181X
-export SOC_NICK_NAME_LOWER := $(shell echo $(SOC_NICK_NAME) | tr A-Z a-z)
-endif
-ifeq ($(SOC_SEGMENT), CV180X)
-export SOC_NICK_NAME := CV180X
-export SOC_NICK_NAME_LOWER := $(shell echo $(SOC_NICK_NAME) | tr A-Z a-z)
-endif
 ifeq ($(SOC_SEGMENT), CV184X)
 export SOC_NICK_NAME := CV184X
 export SOC_NICK_NAME_LOWER := $(shell echo $(SOC_NICK_NAME) | tr A-Z a-z)
@@ -25,7 +17,7 @@ $(info SOC_NICK_NAME=$(SOC_NICK_NAME))
 $(info SOC_NICK_NAME_LOWER=$(SOC_NICK_NAME_LOWER))
 
 ## setup path ##
-ifeq ($(findstring $(SOC_SEGMENT), CV180X CV181X CV184X), )
+ifeq ($(findstring $(SOC_SEGMENT), CV184X), )
 	$(error UNKNOWN chip series - $(SOC_SEGMENT))
 endif
 
@@ -36,20 +28,16 @@ export SRCTREE PROJECT TARGET_OUT_DIR
 $(PROJECT): .config
 	$(MAKE) -C solutions/$@ $(strip $(subst $@,,$(MAKECMDGOALS)))
 
-
 $(TOPSUBDIRS): $(PROJECT)
 
 $(TOPTARGETS): $(TOPSUBDIRS)
 
-#Use defconfig cv181x_ipcamera_defconfig or cv180x_ipcamera_defconfig
+#Use defconfig cv184x_ipcamera_defconfig
 .config :
-ifeq ($(SOC_SEGMENT), CV181X)
-	$(MAKE) -f $(SRCTREE)/Kbuild cv181x_ipcamera_defconfig
-else ifeq ($(SOC_SEGMENT), CV180X)
-	$(MAKE) -f $(SRCTREE)/Kbuild cv180x_ipcamera_defconfig
+ifeq ($(SOC_SEGMENT), CV184X)
+	$(MAKE) -f $(SRCTREE)/Kbuild cv184x_ipcamera_defconfig
 endif
 
-#.PHONY: $(TOPTARGETS) $(TOPSUBDIRS)
 all : $(SRCTREE)/.config $(SUBDIRS) $(TARGET)
 
 

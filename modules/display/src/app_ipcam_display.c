@@ -18,9 +18,6 @@ APP_PARAM_MULTI_DISPLAY_CFG_T g_stDisplayCfg = {
                 .enIntfType = VO_INTF_MIPI,
                 .enIntfSync = VO_OUTPUT_720x1280_60,
                 .stSyncInfo = {CVI_FALSE, CVI_FALSE, 0, 0, 0, 0, 0, 0, 0, 0, 0, CVI_FALSE, CVI_FALSE, CVI_FALSE},
-#ifndef __CV184X__
-                .sti80Cfg = {{0, 1, 2, 3}, VO_I80_FORMAT_RGB565, 200},
-#endif
             },
             .stLayerAttr = {
                 .stDispRect = {.s32X = 0, .s32Y = 0, .u32Width = 720, .u32Height = 1280},

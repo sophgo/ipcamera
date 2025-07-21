@@ -12,7 +12,6 @@ int Load_Param_Ai_MD(const char * file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading MD config ------------------> start \n");
 
-    float color_t;
     APP_PARAM_AI_MD_CFG_S *Md = app_ipcam_Ai_MD_Param_Get();
 
     Md->bEnable       = ini_getl("ai_md_config", "md_enable", 0, file);
@@ -24,22 +23,10 @@ int Load_Param_Ai_MD(const char * file)
     Md->miniArea      = ini_getl("ai_md_config", "miniArea", 0, file);
     Md->u32BgUpPeriod = ini_getl("ai_md_config", "bgUpPeriod", 0, file);
 
-    color_t = ini_getf("ai_md_config", "color_r", 0, file);
-    Md->rect_brush.color.r = color_t*255;
-    color_t = ini_getf("ai_md_config", "color_g", 0, file);
-    Md->rect_brush.color.g = color_t*255;
-    color_t = ini_getf("ai_md_config", "color_b", 0, file);
-    Md->rect_brush.color.b = color_t*255;
-
-    Md->rect_brush.size = ini_getl("ai_md_config", "color_size", 0, file);
-
     APP_PROF_LOG_PRINT(LEVEL_INFO, "bEnable=%d Grp=%d Chn=%d GrpW=%d GrpH=%d\n",
         Md->bEnable, Md->VpssGrp, Md->VpssChn, Md->u32GrpWidth, Md->u32GrpHeight);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "threshold=%d miniArea=%d u32BgUpPeriod=%d\n",
         Md->threshold, Md->miniArea, Md->u32BgUpPeriod);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "color r=%f g=%f b=%f size=%d\n",
-        Md->rect_brush.color.r, Md->rect_brush.color.g,
-        Md->rect_brush.color.b, Md->rect_brush.size);
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading MD config ------------------> done \n\n");
 

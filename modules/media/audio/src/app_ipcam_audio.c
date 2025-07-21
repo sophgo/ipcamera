@@ -25,13 +25,8 @@
 #include "cvi_mp3_decode.h"
 #endif
 
-#if defined(__CV180X__) || defined(__CV181X__)
-#define ACODEC_ADC          "/dev/cvitekaadc"
-#define ACODEC_DAC          "/dev/cvitekadac"
-#else
 #define ACODEC_ADC          "/dev/cv182xaadc"
 #define ACODEC_DAC          "/dev/cv182xadac"
-#endif
 #define SPEAKER_GPIO        CVI_GPIOA_15
 
 #define AUDIOAI_RECORD_PATH     "/mnt/sd/sample_record.raw"

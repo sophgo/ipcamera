@@ -63,34 +63,6 @@ int app_ipcam_Sys_EnableFastBoot(void)
 static int COMM_SYS_Init(VB_CONFIG_S *pstVbConfig)
 {
     CVI_S32 s32Ret = CVI_FAILURE;
-#ifndef __CV184X__
-    CVI_SYS_Exit();
-    CVI_VB_Exit();
-
-    if (pstVbConfig == NULL) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "input parameter is null, it is invaild!\n");
-        return APP_IPCAM_ERR_FAILURE;
-    }
-
-    s32Ret = CVI_VB_SetConfig(pstVbConfig);
-    if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "CVI_VB_SetConf failed!\n");
-        return s32Ret;
-    }
-
-    s32Ret = CVI_VB_Init();
-    if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "CVI_VB_Init failed!\n");
-        return s32Ret;
-    }
-
-    s32Ret = CVI_SYS_Init();
-    if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "CVI_SYS_Init failed!\n");
-        CVI_VB_Exit();
-        return s32Ret;
-    }
-#else
     CVI_VB_Exit();
     CVI_SYS_Exit();
 
@@ -118,9 +90,6 @@ static int COMM_SYS_Init(VB_CONFIG_S *pstVbConfig)
         CVI_SYS_Exit();
         return s32Ret;
     }
-#endif
-
-
     return CVI_SUCCESS;
 }
 
@@ -214,15 +183,6 @@ int app_ipcam_Sys_Init(void)
             ret = APP_IPCAM_ERR_FAILURE;
             goto error;
         }
-
-#ifndef __CV184X__
-        rc = CVI_SYS_SetVPSSModeEx(&pattr->stVPSSMode);
-        if (rc != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "CVI_SYS_SetVPSSModeEx failed with %#x\n", rc);
-            ret = APP_IPCAM_ERR_FAILURE;
-            goto error;
-        }
-#endif
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "system init ------------------> done \n");

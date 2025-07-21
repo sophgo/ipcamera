@@ -1,27 +1,15 @@
 # MEDIA
-ifeq ($(SOC_SEGMENT), CV184X)
 INCS-y += -I$(MW_PATH)/include -I$(ISP_INC) -I$(MW_PATH)/include/isp/$(SOC_NICK_NAME_LOWER) -I$(MW_PATH)/modules/isp/$(SOC_NICK_NAME_LOWER)/isp-daemon2/inc/
-else
-INCS-y += -I$(MW_PATH)/include -I$(ISP_INC) -I$(MW_PATH)/include/isp/$(SOC_NICK_NAME_LOWER)
-endif
 
 # DISPLAY
-ifneq ($(SOC_SEGMENT), CV180X)
-  INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel/$(SOC_NICK_NAME_LOWER)
-  DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
-  DEFS-$(CONFIG_MODULE_MEDIA_VO) +=-DVO_SUPPORT
-endif
+INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel
+DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
+DEFS-$(CONFIG_MODULE_MEDIA_VO) +=-DVO_SUPPORT
 
-ifeq ($(SOC_SEGMENT), CV184X)
-  INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel
-  DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
-  DEFS-$(CONFIG_MODULE_MEDIA_VO) +=-DVO_SUPPORT
-endif
-
-## EFUSE FASTBOOT
+# EFUSE FASTBOOT
 DEFS-$(CONFIG_MODULE_MEDIA_EFUSE) += -DEFUSE
 
-## ANONMSG
+# ANONMSG
 DEFS-$(CONFIG_MODULE_MEDIA_ANONMSG) += -DANONMSG_ENABLE
 
 # VDEC
@@ -49,11 +37,14 @@ INCS-$(CONFIG_MODULE_AI_MD) += -I$(MW_PATH)/include/md
 INCS-$(CONFIG_MODULE_AI_MD) += -I$(TDL_PATH)/install/include/md
 INCS-$(CONFIG_MODULE_AI_MD) += -I$(TDL_PATH)/install/include/cvi_md
 
-# AI
 INCS-$(CONFIG_MODULE_AI) += -I$(APP_PREBUILT_DIR)/jpegturbo/include
-DEFS-$(CONFIG_MODULE_AI)+= -DAI_SUPPORT
-INCS-$(CONFIG_MODULE_AI)+= -I$(TDL_PATH)/install/include/cvi_tdl
-INCS-$(CONFIG_MODULE_AI)+= -I$(TDL_PATH)/install/include/cvi_tdl_app
+DEFS-$(CONFIG_MODULE_AI) += -DAI_SUPPORT
+INCS-$(CONFIG_MODULE_AI) += -I$(TDL_PATH)/install/CV184X/include
+INCS-$(CONFIG_MODULE_AI) += -I$(TDL_PATH)/install/CV184X/include/c_apis
+INCS-$(CONFIG_MODULE_AI) += -I$(TDL_PATH)/include/framework
+INCS-$(CONFIG_MODULE_AI) += -I$(TDL_PATH)/include/components
+INCS-$(CONFIG_MODULE_AI) += -I$(TDL_PATH)/include/nn
+INCS-$(CONFIG_MODULE_AI) += -I$(TOP_DIR)/libsophon/install/libsophon-0.4.9/include
 
 # AI_PD
 DEFS-$(CONFIG_MODULE_AI_PD) += -DPD_SUPPORT
@@ -81,6 +72,7 @@ DEFS-$(CONFIG_MODULE_RTSP)    += -DRTSP_SUPPORT
 
 # PQTOOL
 DEFS-$(CONFIG_MODULE_PQTOOL) += -DSUPPORT_ISP_PQTOOL
+INCS-$(CONFIG_MODULE_PQTOOL) += -I$(MW_PATH)/modules/isp/common/raw_dump/inc
 
 # RECORD
 DEFS-$(CONFIG_MODULE_RECORD) += -DRECORD_SUPPORT
@@ -99,9 +91,7 @@ DEFS-$(CONFIG_MODULE_NETWORK) += -DWEB_SOCKET
 INCS-$(CONFIG_MODULE_NETWORK) += -I$(APP_PREBUILT_DIR)/openssl/include
 
 # SENSOR
-ifeq ($(SOC_SEGMENT), CV184X)
 INCS-y += -I$(SENSOR_LIST_INC)
-endif
 
 GDB_DEBUG = 0
 ifeq ($(GDB_DEBUG), 1)
@@ -135,6 +125,7 @@ INCS-$(CONFIG_MODULE_RECORD)			+= -I$(SRCTREE)/modules/record/include/file_recov
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/display/include
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/peripheral/panel/include
 INCS-$(CONFIG_MODULE_AI_MD)				+= -I$(SRCTREE)/modules/ai/md/include
+INCS-y                            += -I$(APP_COMPONENTS_DIR)/cvi_osal/include
 
 INCS += $(INCS-y)
 TARGETFLAGS += $(INCS)
@@ -153,15 +144,7 @@ else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
 
-ifeq ("$(SOC_SEGMENT)", "CV181X")
-  CFLAGS += -D__CV181X__
-endif
-ifeq ("$(SOC_SEGMENT)", "CV180X")
-  CFLAGS += -D__CV180X__
-endif
-ifeq ("$(SOC_SEGMENT)", "CV184X")
-  CFLAGS += -D__CV184X__
-endif
+CFLAGS += -D__CV184X__
 
 CFLAGS += -std=gnu11 -g -Wall -Wextra -Werror -fPIC -ffunction-sections -fdata-sections -Wl,--gc-sections
 ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu arm-none-linux-musleabihf),)

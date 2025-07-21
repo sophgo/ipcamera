@@ -188,6 +188,12 @@ __attribute__((weak)) int Load_Param_Ai_CRY(const char *file)
     return 0;
 }
 
+__attribute__((weak)) int Load_Param_Ai_HumanKeypoint(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
+
 __attribute__((weak)) int Load_Param_Record(const char *file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
@@ -259,18 +265,10 @@ const char *compress_mode[COMPRESS_MODE_BUTT] = {
 const char *vi_vpss_mode[VI_VPSS_MODE_BUTT] = {
     [VI_OFFLINE_VPSS_OFFLINE] = "VI_OFFLINE_VPSS_OFFLINE",
     [VI_OFFLINE_VPSS_ONLINE] = "VI_OFFLINE_VPSS_ONLINE",
-#ifdef __CV184X__
     [VI_SLICE_VPSS_OFFLINE] = "VI_SLICE_VPSS_OFFLINE",
     [VI_SLICE_VPSS_ONLINE] = "VI_SLICE_VPSS_ONLINE",
-#endif
     [VI_ONLINE_VPSS_OFFLINE] = "VI_ONLINE_VPSS_OFFLINE",
     [VI_ONLINE_VPSS_ONLINE] = "VI_ONLINE_VPSS_ONLINE",
-#ifndef __CV184X__
-    [VI_BE_OFL_POST_OL_VPSS_OFL] = "VI_BE_OFL_POST_OL_VPSS_OFL",
-    [VI_BE_OFL_POST_OFL_VPSS_OFL] = "VI_BE_OFL_POST_OFL_VPSS_OFL",
-    [VI_BE_OL_POST_OFL_VPSS_OFL] = "VI_BE_OL_POST_OFL_VPSS_OFL",
-    [VI_BE_OL_POST_OL_VPSS_OFL] = "VI_BE_OL_POST_OL_VPSS_OFL"
-#endif
 };
 
 const char *mode_id[CVI_ID_BUTT] = {
@@ -484,6 +482,7 @@ int app_ipcam_Param_Load(void)
     APP_CHK_RET(Load_Param_Ai_FD(ParamCfgFile), "Load AI FD Param");
     APP_CHK_RET(Load_Param_Ai_IRFD(ParamCfgFile), "Load AI IR FD Param");
     APP_CHK_RET(Load_Param_Ai_CRY(ParamCfgFile), "Load AI Cry Param");
+    APP_CHK_RET(Load_Param_Ai_HumanKeypoint(ParamCfgFile), "Load AI Human Keypoint Param");
     APP_CHK_RET(Load_Param_Record(ParamCfgFile), "Load Record Param");
     return CVI_SUCCESS;
 }

@@ -360,7 +360,7 @@ int CVI_MQ_Send_RAW_ACK(
     int16_t recv_len;
     FD_ZERO(&fds);
     FD_SET(socket_fd, &fds);
-    APP_PROF_LOG_PRINT(LEVEL_DEBUG,"tv_sec = %ld tv_usec = %ld\n",timeout.tv_sec, timeout.tv_usec);
+    //APP_PROF_LOG_PRINT(LEVEL_DEBUG,"tv_sec = %ld tv_usec = %ld\n",timeout.tv_sec, timeout.tv_usec);
     ret = TEMP_FAILURE_RETRY(select(max_fd + 1, &fds, NULL, NULL, &timeout));
     if(ret > 0) {
         recv_len = recv(socket_fd, (void *)msg_ack, sizeof(MSG_ACK_t), MSG_WAITALL);
