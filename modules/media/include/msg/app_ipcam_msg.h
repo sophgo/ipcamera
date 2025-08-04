@@ -9,7 +9,6 @@ typedef enum _ANONMSG_TYPE_E{
 
 typedef int (*ANONMSG_FN)(ANONMSG_TYPE_E msgid, int buf_type,void * buf, unsigned int len);
 
-
 int app_ipcam_Msg_Init();
 int app_ipcam_Msg_Deinit();
 

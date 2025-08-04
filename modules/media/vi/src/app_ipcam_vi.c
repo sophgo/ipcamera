@@ -44,9 +44,7 @@ APP_PARAM_VI_CTX_S g_stViCtx, *g_pstViCtx = &g_stViCtx;
 
 static pthread_t AF_pthread;
 static CVI_BOOL bAfFilterEnable;
-#ifndef __CV184X__
 static pthread_t g_IspPid[VI_MAX_DEV_NUM];
-#endif
 
 #ifdef SUPPORT_ISP_PQTOOL
 static CVI_BOOL bISPDaemon = CVI_FALSE;
@@ -389,7 +387,6 @@ static CVI_VOID app_ipcam_Ispd_Unload(CVI_VOID)
 }
 #endif
 
-#ifndef __CV184X__
 CVI_S32 app_ipcam_Vi_DevAttr_Get(SNS_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDevAttr)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
@@ -557,7 +554,6 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SNS_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIspPu
 
     return s32Ret;
 }
-#endif
 
 int app_ipcam_Vi_framerate_Set(VI_PIPE ViPipe, CVI_S32 framerate)
 {
@@ -572,7 +568,6 @@ int app_ipcam_Vi_framerate_Set(VI_PIPE ViPipe, CVI_S32 framerate)
     return CVI_SUCCESS;
 }
 
-#ifndef __CV184X__
 int app_ipcam_Vi_Sensor_Start(void)
 {
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
@@ -602,11 +597,9 @@ int app_ipcam_Vi_Sensor_Start(void)
     }
     return CVI_SUCCESS;
 }
-#endif
 
 int app_ipcam_Vi_Mipi_Start(void)
 {
-#ifndef __CV184X__
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
         APP_CHK_RET(CVI_SENSOR_SetSnsGpioInit(i, g_pstViCtx->astSensorCfg[i].s32Rst_port_idx,
         g_pstViCtx->astSensorCfg[i].s32Rst_pin,
@@ -618,32 +611,9 @@ int app_ipcam_Vi_Mipi_Start(void)
         APP_CHK_RET(CVI_SENSOR_EnableSnsClk(i, 1), "CVI_SENSOR_EnableSnsClk failed");
         APP_CHK_RET(CVI_SENSOR_RstSnsGpio(i, 0), "CVI_SENSOR_RstSnsGpio failed");
     }
-#else
-    SNS_COMBO_DEV_ATTR_S combo_dev_attr;
-    for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-        CVI_S32 devno = 0, rstport, rstpin, rstpol;
-        devno = g_pstViCtx->stSensorCfg.sns_ini_cfg.MipiDev[i];
-        rstport = g_pstViCtx->stSensorCfg.sns_ini_cfg.s32RstPort[i];
-        rstpin = g_pstViCtx->stSensorCfg.sns_ini_cfg.s32RstPin[i];
-        rstpol = g_pstViCtx->stSensorCfg.sns_ini_cfg.s32RstPol[i];
-
-        if (CVI_SNS_GetSnsRxAttr(i, &combo_dev_attr) != CVI_SUCCESS) {
-			APP_PROF_LOG_PRINT(LEVEL_ERROR, "get mipi dev_%d attr failed!\n", i);
-			return CVI_FAILURE;
-		}
-
-        APP_CHK_RET(CVI_MIPI_SetSensorReset(devno, rstport, rstpin, rstpol, 1), "CVI_MIPI_SetSensorReset failed");
-        APP_CHK_RET(CVI_MIPI_SetMipiReset(i, 1), "CVI_MIPI_SetMipiReset failed");
-        APP_CHK_RET(CVI_MIPI_SetMipiAttr(i, (CVI_VOID*)&combo_dev_attr), "CVI_MIPI_SetMipiAttr failed");
-        APP_CHK_RET(CVI_MIPI_SetSensorClock(i, 1), "CVI_MIPI_SetSensorClock failed");
-        APP_CHK_RET(CVI_MIPI_SetSensorReset(devno, rstport, rstpin, rstpol, 0), "CVI_MIPI_SetSensorReset failed");
-        APP_CHK_RET(CVI_SNS_SetSnsProbe(i), "CVI_SNS_SetSnsProbe failed");
-    }
-#endif
     return CVI_SUCCESS;
 }
 
-#ifndef __CV184X__
 int app_ipcam_Vi_Start_SensorProbe()
 {
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
@@ -651,7 +621,6 @@ int app_ipcam_Vi_Start_SensorProbe()
     }
     return CVI_SUCCESS;
 }
-#endif
 
 int app_ipcam_Vi_Dev_Start(void)
 {
@@ -660,76 +629,19 @@ int app_ipcam_Vi_Dev_Start(void)
     VI_DEV         ViDev;
     VI_DEV_ATTR_S  stViDevAttr;
 
-#ifdef __CV184X__
-    VI_DEV_BIND_PIPE_S stViDevBindAttr;
-    VI_DEV_ATTR_EX_S    stViDevAttrEx;
-#endif
-
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-#ifndef __CV184X__
         APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
-#endif
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         ViDev = pstChnCfg->s32ChnId;
-#ifndef __CV184X__
+
         app_ipcam_Vi_DevAttr_Get(pstSnsCfg->enSnsType, &stViDevAttr);
         stViDevAttr.stSize.u32Width     = pstChnCfg->u32Width;
         stViDevAttr.stSize.u32Height    = pstChnCfg->u32Height;
         stViDevAttr.stWDRAttr.enWDRMode = pstChnCfg->enWDRMode;
-#else
-        stViDevAttr.snrFps				= g_pstViCtx->stSensorCfg.sns_cfg.f32FrameRate[i];
-        stViDevAttr.stSize.u32Width		= g_pstViCtx->stSensorCfg.sns_cfg.u32ImageWigth[i];
-        stViDevAttr.stSize.u32Height	= g_pstViCtx->stSensorCfg.sns_cfg.u32ImageHeight[i];
-        stViDevAttr.enIntfMode			= (VI_INTF_MODE_E)g_pstViCtx->stSensorCfg.sns_cfg.enInterFaceMode[i];
-        stViDevAttr.enInputDataType		= (VI_DATA_TYPE_E)g_pstViCtx->stSensorCfg.sns_cfg.enFormatMode[i];
-        stViDevAttr.enDataSeq			= (VI_YUV_DATA_SEQ_E)g_pstViCtx->stSensorCfg.sns_cfg.enYuvFormat[i];
-        stViDevAttr.stWDRAttr.enWDRMode	= g_pstViCtx->stSensorCfg.sns_cfg.enWDRMode[i];
-        stViDevAttr.enWorkMode			= (VI_WORK_MODE_E)g_pstViCtx->stSensorCfg.sns_cfg.enChnMode[i];
-        stViDevAttr.enScanMode          = VI_SCAN_PROGRESSIVE;
-#endif
-#ifdef __CV184X__
-        CVI_S32             s32PipeCnt = 0;
 
-        APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
-        for (int j = 0; j < WDR_MAX_PIPE_NUM; j++) {
-            if (pstPipeCfg->aPipe[j] >= 0  && pstPipeCfg->aPipe[j] < VI_MAX_PIPE_NUM) {
-                stViDevBindAttr.PipeId[j] = pstPipeCfg->aPipe[j];
-                s32PipeCnt++;
-                stViDevBindAttr.u32Num = s32PipeCnt;
-            }
-        }
-        stViDevBindAttr.u32Num			= 1;
-        stViDevBindAttr.MipiDev = g_pstViCtx->stSensorCfg.sns_ini_cfg.MipiDev[i];
-        s32Ret = CVI_VI_SetDevBindAttr(ViDev, &stViDevBindAttr);
-        if (s32Ret != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VI_SetDevBindAttr failed with %#x!\n", s32Ret);
-            return s32Ret;
-        }
-#endif
         s32Ret = CVI_VI_SetDevAttr(ViDev, &stViDevAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetDevAttr(%d) failed!\n", ViDev);
 
-#ifdef __CV184X__
-        if(g_pstViCtx->stSensorCfg.sns_ini_cfg.u8MuxDev[i])
-        {
-            stViDevAttrEx.bMuxDev = true;
-            stViDevAttrEx.u8SnsrNum = g_pstViCtx->u32WorkSnsCnt;
-            stViDevAttrEx.phyDev = g_pstViCtx->stSensorCfg.sns_ini_cfg.u8AttachDev[i];
-            for (int j = 0; j < SWITCH_GPIO_NUM; j++) {
-                stViDevAttrEx.stGpioCfg[j].bEnable = g_pstViCtx->stSensorCfg.sns_ini_cfg.s32SwitchPort[i][j] != -1 ? true : false;
-                stViDevAttrEx.stGpioCfg[j].s32GpioPort = g_pstViCtx->stSensorCfg.sns_ini_cfg.s32SwitchPort[i][j];
-                stViDevAttrEx.stGpioCfg[j].s32GpioPin = g_pstViCtx->stSensorCfg.sns_ini_cfg.s32SwitchPin[i][j];
-                stViDevAttrEx.stGpioCfg[j].s32GpioPol = g_pstViCtx->stSensorCfg.sns_ini_cfg.s32SwitchPol[i][j];
-            }
-            s32Ret = CVI_VI_SetDevAttrEx(ViDev, &stViDevAttrEx);
-            if (s32Ret != CVI_SUCCESS) {
-                APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetDevAttrEx failed with %#x!\n", s32Ret);
-                return s32Ret;
-            }
-        }
-
-
-#endif
         s32Ret = CVI_VI_EnableDev(ViDev);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_EnableDev(%d) failed!\n", ViDev);
     }
@@ -768,30 +680,16 @@ int app_ipcam_Vi_Pipe_Start(void)
     VI_PIPE_ATTR_S stViPipeAttr;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-
-#ifndef __CV184X__
         APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
-#endif
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         APP_PARAM_PIPE_CFG_T *psPipeCfg = &g_pstViCtx->astPipeInfo[i];
-#ifndef __CV184X__
+
         s32Ret = app_ipcam_Vi_PipeAttr_Get(pstSnsCfg->enSnsType, &stViPipeAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Vi_PipeAttr_Get failed!\n");
 
         stViPipeAttr.u32MaxW = pstChnCfg->u32Width;
         stViPipeAttr.u32MaxH = pstChnCfg->u32Height;
         stViPipeAttr.enCompressMode = pstChnCfg->enCompressMode;
-#else
-        stViPipeAttr.u32MaxW						= g_pstViCtx->stSensorCfg.sns_cfg.u32ImageWigth[i];
-        stViPipeAttr.u32MaxH						= g_pstViCtx->stSensorCfg.sns_cfg.u32ImageHeight[i];
-        stViPipeAttr.enPixFmt						= PIXEL_FORMAT_RGB_BAYER_12BPP;
-        stViPipeAttr.enBitWidth					= DATA_BITWIDTH_12;
-        stViPipeAttr.stFrameRate.s32SrcFrameRate	= -1;
-        stViPipeAttr.stFrameRate.s32DstFrameRate	= -1;
-        stViPipeAttr.bNrEn						= CVI_TRUE;
-        stViPipeAttr.bYuvBypassPath				= g_pstViCtx->stSensorCfg.sns_cfg.bBypassIsp[i];
-        stViPipeAttr.enCompressMode				= pstChnCfg->enCompressMode;
-#endif
 
         for (int j = 0; j < WDR_MAX_PIPE_NUM; j++) {
             if ((psPipeCfg->aPipe[j] >= 0) && (psPipeCfg->aPipe[j] < WDR_MAX_PIPE_NUM)) {
@@ -902,141 +800,11 @@ int app_ipcam_Vi_Isp_Init(void)
 {
     CVI_S32 s32Ret;
 
-#ifdef __CV184X__
-    VI_PIPE              ViPipe;
-    ISP_PUB_ATTR_S       stPubAttr;
-    ISP_STATISTICS_CFG_S stsCfg;
-    ISP_BIND_ATTR_S      stBindAttr;
-    ALG_LIB_S            stAeLib;
-    ALG_LIB_S            stAwbLib;
-#endif
-
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-#ifndef __CV184X__
         APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
-#else
-        APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
-        APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
-        ViPipe = pstPipeCfg->aPipe[0];
-
-        stAeLib.s32Id = ViPipe;
-        strcpy(stAeLib.acLibName, CVI_AE_LIB_NAME);//, sizeof(CVI_AE_LIB_NAME));
-        s32Ret = CVI_AE_Register(ViPipe, &stAeLib);
-        APP_IPCAM_CHECK_RET(s32Ret, "AE Algo register fail, ViPipe[%d]\n", ViPipe);
-
-        stAwbLib.s32Id = ViPipe;
-        strcpy(stAwbLib.acLibName, CVI_AWB_LIB_NAME);//, sizeof(CVI_AWB_LIB_NAME));
-        s32Ret = CVI_AWB_Register(ViPipe, &stAwbLib);
-        APP_IPCAM_CHECK_RET(s32Ret, "AWB Algo register fail, ViPipe[%d]\n", ViPipe);
-
-        memset(&stBindAttr, 0, sizeof(ISP_BIND_ATTR_S));
-        stBindAttr.sensorId = 0;
-        snprintf(stBindAttr.stAeLib.acLibName, sizeof(CVI_AE_LIB_NAME), "%s", CVI_AE_LIB_NAME);
-        stBindAttr.stAeLib.s32Id = ViPipe;
-        snprintf(stBindAttr.stAwbLib.acLibName, sizeof(CVI_AWB_LIB_NAME), "%s", CVI_AWB_LIB_NAME);
-        stBindAttr.stAwbLib.s32Id = ViPipe;
-        s32Ret = CVI_ISP_SetBindAttr(ViPipe, &stBindAttr);
-        APP_IPCAM_CHECK_RET(s32Ret, "Bind Algo fail, ViPipe[%d]\n", ViPipe);
-
-        s32Ret = CVI_ISP_MemInit(ViPipe);
-        APP_IPCAM_CHECK_RET(s32Ret, "Init Ext memory fail, ViPipe[%d]\n", ViPipe);
-
-        stPubAttr.enBayer = (ISP_BAYER_FORMAT_E)g_pstViCtx->stSensorCfg.sns_cfg.enBayerFormat[i];
-
-        stPubAttr.stWndRect.s32X = 0;
-        stPubAttr.stWndRect.s32Y = 0;
-        stPubAttr.stWndRect.u32Width  = pstChnCfg->u32Width;
-        stPubAttr.stWndRect.u32Height = pstChnCfg->u32Height;
-        stPubAttr.stSnsSize.u32Width  = pstChnCfg->u32Width;
-        stPubAttr.stSnsSize.u32Height = pstChnCfg->u32Height;
-        stPubAttr.f32FrameRate        = g_pstViCtx->stSensorCfg.sns_cfg.f32FrameRate[i];
-
-        stPubAttr.enWDRMode           = g_pstViCtx->stSensorCfg.sns_cfg.enWDRMode[i];
-
-        s32Ret = CVI_ISP_SetPubAttr(ViPipe, &stPubAttr);
-            APP_IPCAM_CHECK_RET(s32Ret, "SetPubAttr fail, ViPipe[%d]\n", ViPipe);
-
-        memset(&stsCfg, 0, sizeof(ISP_STATISTICS_CFG_S));
-        s32Ret = CVI_ISP_GetStatisticsConfig(ViPipe, &stsCfg);
-        APP_IPCAM_CHECK_RET(s32Ret, "ISP Get Statistic fail, ViPipe[%d]\n", ViPipe);
-        stsCfg.stAECfg.stCrop[0].bEnable = 0;
-        stsCfg.stAECfg.stCrop[0].u16X = 0;
-        stsCfg.stAECfg.stCrop[0].u16Y = 0;
-        stsCfg.stAECfg.stCrop[0].u16W = stPubAttr.stWndRect.u32Width;
-        stsCfg.stAECfg.stCrop[0].u16H = stPubAttr.stWndRect.u32Height;
-        memset(stsCfg.stAECfg.au8Weight, 1,
-                AE_WEIGHT_ZONE_ROW * AE_WEIGHT_ZONE_COLUMN * sizeof(CVI_U8));
-
-        // stsCfg.stAECfg.stCrop[1].bEnable = 0;
-        // stsCfg.stAECfg.stCrop[1].u16X = 0;
-        // stsCfg.stAECfg.stCrop[1].u16Y = 0;
-        // stsCfg.stAECfg.stCrop[1].u16W = stPubAttr.stWndRect.u32Width;
-        // stsCfg.stAECfg.stCrop[1].u16H = stPubAttr.stWndRect.u32Height;
-
-        stsCfg.stWBCfg.u16ZoneRow = AWB_ZONE_ORIG_ROW;
-        stsCfg.stWBCfg.u16ZoneCol = AWB_ZONE_ORIG_COLUMN;
-        stsCfg.stWBCfg.stCrop.u16X = 0;
-        stsCfg.stWBCfg.stCrop.u16Y = 0;
-        stsCfg.stWBCfg.stCrop.u16W = stPubAttr.stWndRect.u32Width;
-        stsCfg.stWBCfg.stCrop.u16H = stPubAttr.stWndRect.u32Height;
-        stsCfg.stWBCfg.u16BlackLevel = 0;
-        stsCfg.stWBCfg.u16WhiteLevel = 4095;
-        stsCfg.stFocusCfg.stConfig.bEnable = 1;
-        stsCfg.stFocusCfg.stConfig.u8HFltShift = 1;
-        stsCfg.stFocusCfg.stConfig.s8HVFltLpCoeff[0] = 1;
-        stsCfg.stFocusCfg.stConfig.s8HVFltLpCoeff[1] = 2;
-        stsCfg.stFocusCfg.stConfig.s8HVFltLpCoeff[2] = 3;
-        stsCfg.stFocusCfg.stConfig.s8HVFltLpCoeff[3] = 5;
-        stsCfg.stFocusCfg.stConfig.s8HVFltLpCoeff[4] = 10;
-        stsCfg.stFocusCfg.stConfig.stRawCfg.PreGammaEn = 0;
-        stsCfg.stFocusCfg.stConfig.stPreFltCfg.PreFltEn = 1;
-        stsCfg.stFocusCfg.stConfig.u16Hwnd = 17;
-        stsCfg.stFocusCfg.stConfig.u16Vwnd = 15;
-        stsCfg.stFocusCfg.stConfig.stCrop.bEnable = 0;
-        // AF offset and size has some limitation.
-        stsCfg.stFocusCfg.stConfig.stCrop.u16X = AF_XOFFSET_MIN;
-        stsCfg.stFocusCfg.stConfig.stCrop.u16Y = AF_YOFFSET_MIN;
-        stsCfg.stFocusCfg.stConfig.stCrop.u16W = stPubAttr.stWndRect.u32Width - AF_XOFFSET_MIN * 2;
-        stsCfg.stFocusCfg.stConfig.stCrop.u16H = stPubAttr.stWndRect.u32Height - AF_YOFFSET_MIN * 2;
-        //Horizontal HP0
-        stsCfg.stFocusCfg.stHParam_FIR0.s8HFltHpCoeff[0] = 0;
-        stsCfg.stFocusCfg.stHParam_FIR0.s8HFltHpCoeff[1] = 0;
-        stsCfg.stFocusCfg.stHParam_FIR0.s8HFltHpCoeff[2] = 13;
-        stsCfg.stFocusCfg.stHParam_FIR0.s8HFltHpCoeff[3] = 24;
-        stsCfg.stFocusCfg.stHParam_FIR0.s8HFltHpCoeff[4] = 0;
-        //Horizontal HP1
-        stsCfg.stFocusCfg.stHParam_FIR1.s8HFltHpCoeff[0] = 1;
-        stsCfg.stFocusCfg.stHParam_FIR1.s8HFltHpCoeff[1] = 2;
-        stsCfg.stFocusCfg.stHParam_FIR1.s8HFltHpCoeff[2] = 4;
-        stsCfg.stFocusCfg.stHParam_FIR1.s8HFltHpCoeff[3] = 8;
-        stsCfg.stFocusCfg.stHParam_FIR1.s8HFltHpCoeff[4] = 0;
-        //Vertical HP
-        stsCfg.stFocusCfg.stVParam_FIR.s8VFltHpCoeff[0] = 13;
-        stsCfg.stFocusCfg.stVParam_FIR.s8VFltHpCoeff[1] = 24;
-        stsCfg.stFocusCfg.stVParam_FIR.s8VFltHpCoeff[2] = 0;
-
-        stsCfg.unKey.bit1FEAeGloStat = 1;
-        stsCfg.unKey.bit1FEAeLocStat = 1;
-        stsCfg.unKey.bit1AwbStat1 = 1;
-        stsCfg.unKey.bit1AwbStat2 = 1;
-        stsCfg.unKey.bit1FEAfStat = 1;
-
-        //LDG
-        stsCfg.stFocusCfg.stConfig.u8ThLow = 0;
-        stsCfg.stFocusCfg.stConfig.u8ThHigh = 255;
-        stsCfg.stFocusCfg.stConfig.u8GainLow = 30;
-        stsCfg.stFocusCfg.stConfig.u8GainHigh = 20;
-        stsCfg.stFocusCfg.stConfig.u8SlopLow = 8;
-        stsCfg.stFocusCfg.stConfig.u8SlopHigh = 15;
-
-        s32Ret = CVI_ISP_SetStatisticsConfig(ViPipe, &stsCfg);
-        APP_IPCAM_CHECK_RET(s32Ret, "ISP Set Statistic fail, ViPipe[%d]\n", ViPipe);
-#endif
         s32Ret = CVI_ISP_Init(i);
         APP_IPCAM_CHECK_RET(s32Ret, "ISP Init fail, ViPipe[%d]\n", i);
-#ifndef __CV184X__
         app_ipcam_Framerate_Set(i, pstSnsCfg->s32Framerate);
-#endif
     }
 
     if (access(PQ_BIN_SDR, F_OK) == 0) {
@@ -1053,7 +821,6 @@ int app_ipcam_Vi_Isp_Init(void)
     return CVI_SUCCESS;
 }
 
-#ifndef __CV184X__
 int app_ipcam_Vi_Isp_DeInit(void)
 {
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
@@ -1066,9 +833,7 @@ int app_ipcam_Vi_Isp_DeInit(void)
     return CVI_SUCCESS;
 
 }
-#endif
 
-#ifndef __CV184X__
 static void callback_FPS(int fps)
 {
     static CVI_FLOAT uMaxFPS[VI_MAX_DEV_NUM] = {0};
@@ -1089,9 +854,7 @@ static void callback_FPS(int fps)
         CVI_ISP_SetPubAttr(i, &pubAttr);
     }
 }
-#endif
 
-#ifndef __CV184X__
 void *ISP_Thread(void *arg)
 {
     CVI_S32 s32Ret;
@@ -1116,7 +879,6 @@ void *ISP_Thread(void *arg)
 
     return CVI_NULL;
 }
-#endif
 
 int app_ipcam_Vi_Isp_Start(void)
 {
@@ -1153,24 +915,16 @@ int app_ipcam_Vi_Chn_Start(void)
 
     VI_PIPE        ViPipe = 0;
     VI_CHN         ViChn  = 0;
-#ifndef __CV184X__
     VI_DEV_ATTR_S  stViDevAttr;
-#endif
     VI_CHN_ATTR_S  stViChnAttr;
-#ifndef __CV184X__
     VI_DEV         ViDev  = 0;
-#endif
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-
-#ifndef __CV184X__
         APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
-#endif
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         ViPipe = pstChnCfg->s32ChnId;
         ViChn = pstChnCfg->s32ChnId;
 
-#ifndef __CV184X__
         s32Ret = app_ipcam_Vi_DevAttr_Get(pstSnsCfg->enSnsType, &stViDevAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Vi_DevAttr_Get(%d) failed!\n", ViPipe);
 
@@ -1191,43 +945,19 @@ int app_ipcam_Vi_Chn_Start(void)
             stViChnAttr.bMirror = pstSnsCfg->u8Orien & 0x1;
             stViChnAttr.bFlip = pstSnsCfg->u8Orien & 0x2;
         }
-#else
-        stViChnAttr.stSize.u32Width = g_pstViCtx->stSensorCfg.sns_cfg.u32ImageWigth[i];
-        stViChnAttr.stSize.u32Height = g_pstViCtx->stSensorCfg.sns_cfg.u32ImageHeight[i];
-        stViChnAttr.enDynamicRange = pstChnCfg->enDynamicRange;
-        stViChnAttr.enVideoFormat  = pstChnCfg->enVideoFormat;
-        stViChnAttr.enCompressMode = pstChnCfg->enCompressMode;
-        stViChnAttr.enPixelFormat = pstChnCfg->enPixFormat;
-        stViChnAttr.u32Depth = 1;
-        stViChnAttr.u32BindVbPool = -1;
-
-        /* fill the sensor orientation */
-        stViChnAttr.bMirror = false;
-        stViChnAttr.bFlip = false;
-        if(g_pstViCtx->stSensorCfg.sns_ini_cfg.u8MuxDev[i]) {
-            ViChn = 0;
-            stViChnAttr.bSingleVb = g_pstViCtx->stSensorCfg.sns_ini_cfg.u8MuxDev[i];
-        }
-#endif
 
         s32Ret = CVI_VI_SetChnAttr(ViPipe, ViChn, &stViChnAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetChnAttr(%d) failed!\n", ViPipe);
-#ifndef __CV184X__
+
         ViDev = g_pstViCtx->astDevInfo[i].ViDev;
         s32Ret = CVI_SENSOR_SetVIFlipMirrorCB(ViPipe, ViDev);
         if (s32Ret != CVI_SUCCESS) {
             CVI_TRACE_LOG(CVI_DBG_ERR, "set vi mirror and filp callback failed!\n");
             return s32Ret;
         }
-#else
-        if (CVI_SNS_SetVIFlipMirrorCB(ViPipe, i) != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_SNS_SetVIFlipMirrorCB failed!\n");
-        }
-#endif
 
         s32Ret = CVI_VI_EnableChn(ViPipe, ViChn);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_EnableChn(%d) failed!\n", ViPipe);
-
     }
     return CVI_SUCCESS;
 }
@@ -1269,9 +999,7 @@ int app_ipcam_Vi_DeInit(void)
         }
 
         APP_CHK_RET(app_ipcam_Vi_Isp_Stop(),  "app_ipcam_Vi_Isp_Stop");
-#ifndef __CV184X__
         APP_CHK_RET(app_ipcam_Vi_Isp_DeInit(),  "app_ipcam_Vi_Isp_DeInit");
-#endif
         APP_CHK_RET(app_ipcam_Vi_Chn_Stop(),  "app_ipcam_Vi_Chn_Stop");
         APP_CHK_RET(app_ipcam_Vi_Pipe_Stop(), "app_ipcam_Vi_Pipe_Stop");
         APP_CHK_RET(app_ipcam_Vi_Dev_Stop(),  "app_ipcam_Vi_Dev_Stop");
@@ -1303,22 +1031,11 @@ int app_ipcam_Vi_Init(void)
 #endif
         return s32Ret;
     }else{
-#ifndef __CV184X__
         s32Ret = app_ipcam_Vi_Sensor_Start();
         if(s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vi_Sensor_Start failed with %#x\n", s32Ret);
             goto VI_EXIT0;
         }
-#else
-        s32Ret = CVI_SNS_GetConfigInfo(&g_pstViCtx->stSensorCfg);
-        if (s32Ret != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "get sns cfg failed\n");
-        }
-        s32Ret = CVI_SNS_SetSnsDrvCfg(&g_pstViCtx->stSensorCfg);
-        if (s32Ret != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "set sns_drv failed\n");
-        }
-#endif
 
         s32Ret = app_ipcam_Vi_Mipi_Start();
         if(s32Ret != CVI_SUCCESS) {
@@ -1326,13 +1043,11 @@ int app_ipcam_Vi_Init(void)
             goto VI_EXIT0;
         }
 
-#ifndef __CV184X__
         s32Ret = app_ipcam_Vi_Start_SensorProbe();
         if(s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vi_Start_SensorProbe failed with %#x\n", s32Ret);
             goto VI_EXIT0;
         }
-#endif
 
         s32Ret = app_ipcam_Vi_Dev_Start();
         if(s32Ret != CVI_SUCCESS) {
@@ -1358,14 +1073,6 @@ int app_ipcam_Vi_Init(void)
             goto VI_EXIT3;
         }
 
-#ifdef __CV184X__
-        for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-            if (CVI_SNS_SetSnsInit(i) != CVI_SUCCESS) {
-                APP_PROF_LOG_PRINT(LEVEL_ERROR, "sensor_%d init failed!\n", i);
-                goto VI_EXIT3;
-            }
-        }
-#endif
         s32Ret = app_ipcam_Vi_Chn_Start();
         if(s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Chn_Start failed with %#x\n", s32Ret);
@@ -1379,9 +1086,7 @@ VI_EXIT4:
     app_ipcam_Vi_Isp_Stop();
 
 VI_EXIT3:
-#ifndef __CV184X__
     app_ipcam_Vi_Isp_DeInit();
-#endif
 
 VI_EXIT2:
     app_ipcam_Vi_Pipe_Stop();

@@ -42,11 +42,6 @@ MW_PATH := $(TOP_DIR)/cvi_mpi
 # isp path
 ISP_INC := $(MW_PATH)/modules/isp/include/$(SOC_NICK_NAME_LOWER)
 
-# SensorSupportList path
-ifeq ($(SOC_SEGMENT), CV184X)
-SENSOR_LIST_INC := $(MW_PATH)/../build/media/SensorSupportList/sensor_cfg
-endif
-
 # kernel path
 KERNEL_PATH ?= $(TOP_DIR)/linux_5.10
 

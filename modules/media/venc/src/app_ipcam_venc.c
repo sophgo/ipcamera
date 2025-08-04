@@ -382,25 +382,14 @@ int app_ipcam_Venc_Chn_Attr_Set(VENC_ATTR_S *pstVencAttr, APP_VENC_CHN_CFG_S *ps
     pstVencAttr->bSingleCore = pstVencChnCfg->bSingleCore;
     pstVencAttr->bByFrame = CVI_TRUE;
     pstVencAttr->bEsBufQueueEn = CVI_TRUE;
-#ifndef __CV184X__
     pstVencAttr->bIsoSendFrmEn = CVI_FALSE;
-#else
-    pstVencAttr->bIsoSendFrmEn = CVI_TRUE;
-#endif
+
     pstVencAttr->u32BufSize = pstVencChnCfg->u32StreamBufSize;
     if (pstVencAttr->enType == PT_H264) {
-#ifndef __CV184X__
         pstVencAttr->stAttrH264e.addrRemapEn = CVI_FALSE;
-#else
-        pstVencAttr->stAttrH264e.bRcnRefShareBuf = CVI_FALSE;
-#endif
         pstVencAttr->stAttrH264e.bSingleLumaBuf = CVI_TRUE;
     } else if (pstVencAttr->enType == PT_H265) {
-#ifndef __CV184X__
         pstVencAttr->stAttrH265e.addrRemapEn = CVI_TRUE;
-#else
-        pstVencAttr->stAttrH265e.bRcnRefShareBuf = CVI_TRUE;
-#endif
     }
 
     APP_PROF_LOG_PRINT(LEVEL_TRACE,"enType=%d u32Profile=%d bSingleCore=%d\n",
@@ -1358,15 +1347,6 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
             app_ipcam_Venc_Attr_Check(pstVencChnAttr);
 
             APP_PROF_LOG_PRINT(LEVEL_DEBUG,"u32Profile [%d]\n", pstVencChnAttr->stVencAttr.u32Profile);
-#ifdef __CV184X__
-            if (pstVencChnCfg->enBindMode != VENC_BIND_DISABLE) {
-                s32Ret = CVI_SYS_Bind(&pstVencChnCfg->astChn[0], &pstVencChnCfg->astChn[1]);
-                if (s32Ret != CVI_SUCCESS) {
-                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_SYS_Bind failed with %#x\n", s32Ret);
-                    goto VENC_EXIT1;
-                }
-            }
-#endif
 
             s32Ret = CVI_VENC_CreateChn(VencChn, pstVencChnAttr);
             if (s32Ret != CVI_SUCCESS) {
@@ -1427,7 +1407,6 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
                     goto VENC_EXIT1;
                 }
             }
-#ifndef __CV184X__
             // Check if the current channel is one of the SBM channels
             CVI_BOOL bSbmMode = CVI_FALSE;
             APP_PARAM_SYS_CFG_S * pstSysCfg = app_ipcam_Sys_Param_Get();
@@ -1445,7 +1424,6 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
                     goto VENC_EXIT1;
                 }
             }
-#endif
         }
     }
 
@@ -1573,7 +1551,6 @@ int app_ipcam_Venc_Start(APP_VENC_CHN_E VencIdx)
 
         APP_PARAM_MODULE_CFG_S * pModuleCfg = app_ipcam_Module_Param_Get();
         if(!pModuleCfg->alios_venc_mode){
-#ifndef __CV184X__
             VPSS_GRP VpssGrp = pstVencChnCfg->VpssGrp;
             VPSS_CHN VpssChn = pstVencChnCfg->VpssChn;
             CVI_BOOL bSbmMode = CVI_FALSE;
@@ -1592,7 +1569,6 @@ int app_ipcam_Venc_Start(APP_VENC_CHN_E VencIdx)
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_SYS_Bind (%d %d) failed with %#x\n", VpssGrp, VpssChn, s32Ret);
                 }
             }
-#endif
         }
         pthread_attr_t pthread_attr;
         pthread_attr_init(&pthread_attr);

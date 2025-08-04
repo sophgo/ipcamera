@@ -10,11 +10,6 @@
 #include "cvi_sys.h"
 #include "app_ipcam_mq.h"
 
-#ifdef __CV184X__
-#include "cvi_mipi.h"
-#include "sensor_cfg.h"
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -36,7 +31,6 @@ extern "C"
 
 #define MIPI_RX_MAX_LANE_NUM 5
 
-#ifndef __CV184X__
 typedef enum _SNS_TYPE_E {
 	SNS_TYPE_NONE = 0,
 	/* ------ LINEAR BEGIN ------*/
@@ -113,7 +107,6 @@ typedef enum _SNS_TYPE_E {
 	/* ------ WDR 2TO1 END ------*/
 	SNS_TYPE_WDR_BUTT,
 } SNS_TYPE_E;
-#endif
 
 typedef struct APP_PARAM_VI_PM_DATA_T {
 	VI_PIPE ViPipe;
@@ -131,11 +124,7 @@ typedef enum {
 
 typedef struct APP_PARAM_SNS_CFG_S {
 	CVI_S32 s32SnsId;
-#ifndef __CV184X__
 	SNS_TYPE_E enSnsType;
-#else
-	CVI_SNS_TYPE_E enSnsType;
-#endif
     WDR_MODE_E enWDRMode;
     CVI_S32 s32Framerate;
     CVI_S32 s32BusId;//I2C Dev
@@ -197,11 +186,7 @@ typedef struct APP_PARAM_ISP_CFG_T {
 
 typedef struct APP_PARAM_VI_CFG_T {
     CVI_U32 u32WorkSnsCnt;
-#ifndef __CV184X__
     APP_PARAM_SNS_CFG_T astSensorCfg[VI_MAX_DEV_NUM];
-#else
-	SENSOR_CFG_S stSensorCfg;
-#endif
     APP_PARAM_DEV_CFG_T astDevInfo[VI_MAX_DEV_NUM];
     APP_PARAM_PIPE_CFG_T astPipeInfo[VI_MAX_DEV_NUM];
     APP_PARAM_CHN_CFG_T astChnInfo[VI_MAX_DEV_NUM];

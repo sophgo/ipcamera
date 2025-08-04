@@ -3,6 +3,7 @@ LIBS += -L$(TARGET_OUT_DIR)/lib/
 ifeq ($(CONFIG_MODULE_PARAMPARSE), y)
 LIBS-y += -Wl,--whole-archive
 LIBS-y                                            += -lapp_paramparse
+LIBS-y                                            += -lapp_paramparse_module
 LIBS-$(CONFIG_MODULE_MEDIA_SYS)                   += -lapp_paramparse_sys
 LIBS-$(CONFIG_MODULE_MEDIA_VI)                    += -lapp_paramparse_vi
 LIBS-$(CONFIG_MODULE_MEDIA_VPSS)                  += -lapp_paramparse_vpss
@@ -43,7 +44,6 @@ LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_panel
 
-LIBS-y                                            += -lapp_media_module
 LIBS-$(CONFIG_MODULE_MEDIA_SYS)                   += -lapp_media_sys
 LIBS-$(CONFIG_MODULE_MEDIA_VI)                    += -lapp_media_vi
 LIBS-$(CONFIG_MODULE_MEDIA_VPSS)                  += -lapp_media_vpss
@@ -55,6 +55,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT)               += -lapp_media_vdecsoft
 LIBS-$(CONFIG_MODULE_MEDIA_MSG)                   += -lapp_media_msg
 LIBS-$(CONFIG_MODULE_CVIUAC)                      += -lapp_cvi_uac
 LIBS-$(CONFIG_MODULE_CVIUVC)                      += -lapp_cvi_uvc
+LIBS-y                                            += -lapp_media_module
 
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_recorder
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_file_recover
@@ -70,11 +71,7 @@ else
 endif
 
 ## MEDIA
-ifeq ($(SOC_SEGMENT), CV184X)
-LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lawb -lae -laf -lsensor -lmipi -lini
-else
 LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lcvi_bin_isp -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lawb -lae -laf
-endif
 LIBS-$(CONFIG_SUPPORT_ATOMIC) += -latomic
 LIBS-y += -L$(MW_PATH)/lib/3rd
 
@@ -100,11 +97,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_MSG) += -lmsg -lcvilink -lipcm
 LIBS-$(CONFIG_MODULE_MEDIA_EFUSE) += -lmisc
 
 ## AUDIO
-ifeq ($(SOC_SEGMENT), CV184X)
-LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_dnvqe -lcvi_vqe -lcvi_ssp -lcvi_ssp2 -lcvi_RES1 -lcvi_VoiceEngine
-else
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine -ldnvqe -lsbc
-endif
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -laacdec2 -laacenc2 -laacsbrdec2 -laacsbrenc2 -laaccomm2
 LIBS-$(CONFIG_MODULE_AUDIO_MP3)  += -lcvi_mp3 -lmad
 LIBS-$(CONFIG_MODULE_CVIUAC)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine

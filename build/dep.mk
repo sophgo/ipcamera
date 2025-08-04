@@ -1,19 +1,9 @@
 # MEDIA
-ifeq ($(SOC_SEGMENT), CV184X)
-INCS-y += -I$(MW_PATH)/include -I$(ISP_INC) -I$(MW_PATH)/include/isp/$(SOC_NICK_NAME_LOWER) -I$(MW_PATH)/modules/isp/$(SOC_NICK_NAME_LOWER)/isp-daemon2/inc/
-else
 INCS-y += -I$(MW_PATH)/include -I$(ISP_INC) -I$(MW_PATH)/include/isp/$(SOC_NICK_NAME_LOWER)
-endif
 
 # DISPLAY
 ifneq ($(SOC_SEGMENT), CV180X)
   INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel/$(SOC_NICK_NAME_LOWER)
-  DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
-  DEFS-$(CONFIG_MODULE_MEDIA_VO) +=-DVO_SUPPORT
-endif
-
-ifeq ($(SOC_SEGMENT), CV184X)
-  INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel
   DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
   DEFS-$(CONFIG_MODULE_MEDIA_VO) +=-DVO_SUPPORT
 endif
@@ -98,11 +88,6 @@ DEFS-$(CONFIG_MODULE_NETWORK) += -DWEB_SOCKET
 # OPENSSL
 INCS-$(CONFIG_MODULE_NETWORK) += -I$(APP_PREBUILT_DIR)/openssl/include
 
-# SENSOR
-ifeq ($(SOC_SEGMENT), CV184X)
-INCS-y += -I$(SENSOR_LIST_INC)
-endif
-
 GDB_DEBUG = 0
 ifeq ($(GDB_DEBUG), 1)
   CFLAGS += -g -O0
@@ -158,9 +143,6 @@ ifeq ("$(SOC_SEGMENT)", "CV181X")
 endif
 ifeq ("$(SOC_SEGMENT)", "CV180X")
   CFLAGS += -D__CV180X__
-endif
-ifeq ("$(SOC_SEGMENT)", "CV184X")
-  CFLAGS += -D__CV184X__
 endif
 
 CFLAGS += -std=gnu11 -g -Wall -Wextra -Werror -fPIC -ffunction-sections -fdata-sections -Wl,--gc-sections

@@ -10,9 +10,7 @@
 #include "app_ipcam_osd.h"
 #include "app_ipcam_venc.h"
 #include "app_ipcam_mq.h"
-#ifndef __CV184X__
 #include "app_ipcam_msg.h"
-#endif
 #include "app_ipcam_ircut.h"
 #include "app_ipcam_module.h"
 

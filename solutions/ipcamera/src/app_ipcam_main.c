@@ -180,9 +180,8 @@ static int app_ipcam_Exit(void)
     #ifdef ANONMSG_ENABLE
     APP_CHK_RET(app_ipcam_MsgAnonDeInit(), "MsgAnon DeInit");
     #endif
-#ifndef __CV184X__
+
     APP_CHK_RET(app_ipcam_Msg_Deinit(), "Msg Stop");
-#endif
 
     APP_CHK_RET(app_ipcam_Mbuf_UnInit(), "UnInit Mbuf");
 
@@ -192,13 +191,11 @@ static int app_ipcam_Exit(void)
 
 static int app_ipcam_Init(void)
 {
-#ifndef __CV184X__
     APP_CHK_RET(app_ipcam_Msg_Init(), "init Msg failed");
 
     #ifdef ANONMSG_ENABLE
     APP_CHK_RET(app_ipcam_MsgAnonInit(), "init MsgAnon");
     #endif
-#endif
 
     APP_CHK_RET(app_ipcam_Peripheral_Init(), "Init Peripheral");
 

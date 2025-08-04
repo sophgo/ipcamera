@@ -732,12 +732,7 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
             pstObjAttr[OsdcObjsNum].stBitmap.stRect.s32Y = g_pstOsdcCfg->osdcObj[iOsdcIndex][i].y1 * s32Ratio;;
             pstObjAttr[OsdcObjsNum].stBitmap.stRect.u32Width = stBitmap.u32Width;
             pstObjAttr[OsdcObjsNum].stBitmap.stRect.u32Height = stBitmap.u32Height;
-#ifndef __CV184X__
             pstObjAttr[OsdcObjsNum].stBitmap.u32BitmapPAddr = (CVI_U32)g_pstOsdcCfg->osdcObj[iOsdcIndex][i].u64BitmapPhyAddr;
-#else
-            pstObjAttr[OsdcObjsNum].stBitmap.u64BitmapPAddr = (CVI_U32)g_pstOsdcCfg->osdcObj[iOsdcIndex][i].u64BitmapPhyAddr;
-#endif
-
             free(stBitmap.pData);
         } else {
             pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = g_pstOsdcCfg->osdcObj[iOsdcIndex][i].x1 * s32Ratio;;

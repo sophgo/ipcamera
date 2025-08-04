@@ -35,24 +35,18 @@ const char *panel_type[PANEL_MAX] = {
 };
 
 const char *vo_intf_type[VO_INTF_TYPE_MAX] = {
-#ifndef __CV184X__
     [VO_INTF_CVBS] = "VO_INTF_CVBS",
     [VO_INTF_YPBPR] = "VO_INTF_YPBPR",
     [VO_INTF_VGA] = "VO_INTF_VGA",
-#endif
     [VO_INTF_BT656] = "VO_INTF_BT656",
     [VO_INTF_BT1120] = "VO_INTF_BT1120",
-#ifndef __CV184X__
     [VO_INTF_LCD] = "VO_INTF_LCD",
     [VO_INTF_LCD_18BIT] = "VO_INTF_LCD_18BIT",
     [VO_INTF_LCD_24BIT] = "VO_INTF_LCD_24BIT",
     [VO_INTF_LCD_30BIT] = "VO_INTF_LCD_30BIT",
-#endif
     [VO_INTF_MIPI] = "VO_INTF_MIPI",
-#ifndef __CV184X__
     [VO_INTF_MIPI_SLAVE] = "VO_INTF_MIPI_SLAVE",
     [VO_INTF_HDMI] = "VO_INTF_HDMI",
-#endif
 };
 
 const char *vo_intf_sync[VO_OUTPUT_BUTT] = {

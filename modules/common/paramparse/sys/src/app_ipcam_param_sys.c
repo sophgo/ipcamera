@@ -8,7 +8,6 @@
 #include "app_ipcam_comm.h"
 #include "app_ipcam_paramparse.h"
 
-#ifndef __CV184X__
 //private attribute
 const char *vpss_mode[VPSS_MODE_BUTT] = {
     [VPSS_MODE_SINGLE] = "VPSS_MODE_SINGLE",
@@ -20,7 +19,6 @@ const char *vpss_input[VPSS_INPUT_BUTT] = {
     [VPSS_INPUT_MEM] = "VPSS_INPUT_MEM",
     [VPSS_INPUT_ISP] = "VPSS_INPUT_ISP"
 };
-#endif
 
 int Load_Param_Sys(const char *file)
 {
@@ -114,7 +112,7 @@ int Load_Param_Sys(const char *file)
             Sys->stVIVPSSMode.aenMode[i] = enum_num;
         }
     }
-#ifndef __CV184X__
+
     memset(tmp_section, 0, sizeof(tmp_section));
     snprintf(tmp_section, sizeof(tmp_section), "vpss_mode");
 
@@ -141,7 +139,7 @@ int Load_Param_Sys(const char *file)
         }
         Sys->stVPSSMode.ViPipe[i] = ini_getl(tmp_section, "ViPipe", 0, file);
     }
-#endif
+
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading systerm config ------------------>done \n\n");
 
     return CVI_SUCCESS;

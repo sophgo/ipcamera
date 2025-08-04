@@ -3,6 +3,7 @@ include $(SRCTREE)/build/rule.mk
 TOPTARGETS := all clean install clean_all
 
 module-y									+= paramparse_common
+module-y									+= module
 module-$(CONFIG_MODULE_MEDIA_SYS)			+= sys
 module-$(CONFIG_MODULE_MEDIA_VI)			+= vi
 module-$(CONFIG_MODULE_MEDIA_VPSS)			+= vpss

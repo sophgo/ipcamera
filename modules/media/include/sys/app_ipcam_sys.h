@@ -31,15 +31,13 @@ typedef struct APP_PARAM_VB_CFG_T {
 } APP_PARAM_VB_CFG_S;
 
 #define APP_IPCAM_VB_POOL_MAX_NUM (16)
-#define APP_IPCAM_SBM_MAX_NUM (2)
+#define APP_IPCAM_SBM_MAX_NUM (3)
 
 typedef struct APP_PARAM_SYS_CFG_T {
     APP_PARAM_VB_CFG_S vb_pool[APP_IPCAM_VB_POOL_MAX_NUM];
     uint32_t vb_pool_num;
     VI_VPSS_MODE_S stVIVPSSMode;
-#ifndef __CV184X__
     VPSS_MODE_S stVPSSMode;
-#endif
     CVI_U8 u8SbmCnt;
     APP_PARAM_SBM_CFG_S stSbmCfg[APP_IPCAM_SBM_MAX_NUM];
 } APP_PARAM_SYS_CFG_S;
