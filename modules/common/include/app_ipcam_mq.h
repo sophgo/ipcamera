@@ -4,7 +4,7 @@
 #include "stdint.h"
 #include "stdbool.h"
 #include "stddef.h"
-#include "cvi_osal.h"
+#include "osal.h"
 
 #ifdef __cplusplus
 extern "C"

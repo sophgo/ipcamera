@@ -252,7 +252,7 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
         }
         image_det = TDL_WrapFrame((void*)&stVencFrame_det, false);
 
-        TDL_MotionDetection(g_MDHandle, image_back, image_det, &roi, g_MDThreshold, miniArea, &obj_meta);
+        TDL_MotionDetection(g_MDHandle, image_back, image_det, &roi, g_MDThreshold, miniArea, &obj_meta, 0);
         // for(uint32_t i = 0; i < obj_meta.size; i++)
         // {
         //     printf( "++++++++++++++ MD obj: %d, box: (%f, %f, %f, %f)\n", 

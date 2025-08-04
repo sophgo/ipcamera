@@ -19,8 +19,8 @@
 struct CVI_MQ_ENDPOINT_s {
     CVI_MQ_ENDPOINT_CONFIG_t       config;
 
-    cvi_osal_mutex_handle_t        lock;
-    cvi_osal_task_handle_t         recv_task;
+    OSAL_MUTEX_HANDLE_S        lock;
+    OSAL_TASK_HANDLE_S         recv_task;
     volatile bool                  exit;
 
     int                            fd_max;
@@ -124,7 +124,7 @@ static void mq_recv_worker(void *arg)
         } else if (ret < 0) {
             APP_PROF_LOG_PRINT(LEVEL_DEBUG,"[MQ[ Select fail!\n");
         } else {
-            cvi_osal_task_resched();
+            OSAL_TASK_Resched();
         }
     }
 
@@ -136,8 +136,8 @@ int app_ipcam_MqEndpoint_Create(
     CVI_MQ_ENDPOINT_HANDLE_t      *pEpHdl)
 {
     CVI_MQ_ENDPOINT_HANDLE_t pEpHandle;
-    cvi_osal_mutex_attr_t m_attr;
-    cvi_osal_task_attr_t t_attr;
+    OSAL_MUTEX_ATTR_S m_attr;
+    OSAL_TASK_ATTR_S t_attr;
     int rc;
 
     APP_PROF_LOG_PRINT(LEVEL_DEBUG,"[MQ] create pEpHdl id=0x%x\n", config->id);
@@ -152,8 +152,8 @@ int app_ipcam_MqEndpoint_Create(
 
     // Create mutex
     m_attr.name = "MQ_Mutex";
-    rc = cvi_osal_mutex_create(&m_attr, &pEpHandle->lock);
-    if (rc != CVI_OSAL_SUCCESS) {
+    rc = OSAL_MUTEX_Create(&m_attr, &pEpHandle->lock);
+    if (rc != OSAL_SUCCESS) {
         APP_PROF_LOG_PRINT(LEVEL_DEBUG,"[MQ]: create pEpHdl create mutex fail, rc = %d\n", rc);
         rc = CVI_MQ_ERR_FAILURE;
         goto err_mutex;
@@ -161,7 +161,7 @@ int app_ipcam_MqEndpoint_Create(
 
     // create socket
     rc = app_ipcam_MqSocket_Create(pEpHandle);
-    if (rc != CVI_OSAL_SUCCESS) {
+    if (rc != OSAL_SUCCESS) {
         APP_PROF_LOG_PRINT(LEVEL_DEBUG,"[MQ]: create pEpHdl create socket fail, rc = %d\n", rc);
         rc = CVI_MQ_ERR_FAILURE;
         goto err_socket;
@@ -173,10 +173,10 @@ int app_ipcam_MqEndpoint_Create(
         t_attr.name = "MQ Task";
         t_attr.entry = mq_recv_worker;
         t_attr.param = pEpHandle;
-        t_attr.priority = CVI_OSAL_PRI_NORMAL;
+        t_attr.priority = OSAL_TASK_PRI_NORMAL;
         t_attr.detached = false;
-        rc = cvi_osal_task_create(&t_attr, &pEpHandle->recv_task);
-        if (rc != CVI_OSAL_SUCCESS) {
+        rc = OSAL_TASK_Create(&t_attr, &pEpHandle->recv_task);
+        if (rc != OSAL_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_DEBUG,"[MQ]: create pEpHdl create task fail, rc = %d\n", rc);
             rc = CVI_MQ_ERR_FAILURE;
             goto err_task;
@@ -191,7 +191,7 @@ int app_ipcam_MqEndpoint_Create(
 err_task:
     app_ipcam_MqSocket_Destroy(pEpHandle);
 err_socket:
-    cvi_osal_mutex_destroy(pEpHandle->lock);
+    OSAL_MUTEX_Destroy(pEpHandle->lock);
 err_mutex:
     free(pEpHandle);
 
@@ -201,12 +201,12 @@ err_mutex:
 int app_ipcam_MqEndpoint_Destroy(
     CVI_MQ_ENDPOINT_HANDLE_t       pEpHdl)
 {
-    cvi_osal_mutex_lock(pEpHdl->lock);
+    OSAL_MUTEX_Lock(pEpHdl->lock);
     pEpHdl->exit = true;
-    cvi_osal_task_join(pEpHdl->recv_task);
-    cvi_osal_task_destroy(&pEpHdl->recv_task);
+    OSAL_TASK_Join(pEpHdl->recv_task);
+    OSAL_TASK_Destroy(&pEpHdl->recv_task);
     app_ipcam_MqSocket_Destroy(pEpHdl);
-    cvi_osal_mutex_destroy(pEpHdl->lock);
+    OSAL_MUTEX_Destroy(pEpHdl->lock);
     free(pEpHdl);
     return CVI_MQ_SUCCESS;
 }
@@ -271,7 +271,7 @@ int CVI_MQ_Send(
     msg.len = CVI_MQ_MSG_HEADER_LEN + payload_len;
     msg.needack = 0;
     uint64_t boot_time;
-    cvi_osal_get_boot_time_us(&boot_time);
+    OSAL_TIME_GetBootTimeUs(&boot_time);
     msg.crete_time = boot_time;
     memcpy(msg.payload, payload, payload_len);
 
@@ -402,7 +402,7 @@ int CVI_MQ_Send_NeedAck(
     msg.len = CVI_MQ_MSG_HEADER_LEN + payload_len;
     msg.needack = 1;
     uint64_t boot_time;
-    cvi_osal_get_boot_time_us(&boot_time);
+    OSAL_TIME_GetBootTimeUs(&boot_time);
     msg.crete_time = boot_time;
     memcpy(msg.payload, payload, payload_len);
 

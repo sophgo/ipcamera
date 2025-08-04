@@ -641,7 +641,7 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowHumanKeypointRect[iOsdcIndex]) {
         app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(&g_objMetaHumanKeypoint);
         if (g_objMetaHumanKeypoint.size > 0 && g_objMetaHumanKeypoint.info != NULL) {
-            printf("obj_meta.size:%d\n", g_objMetaHumanKeypoint.size);
+            // printf("obj_meta.size:%d\n", g_objMetaHumanKeypoint.size);
             for (i = 0; i < g_objMetaHumanKeypoint.size; i++) {
                 for (int j = 0; j < 17; j++) {
                     if (OsdcObjsNum >= OSDC_OBJS_MAX) {
@@ -649,7 +649,7 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
                         break;
                     }
                     pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].landmark_properity[j].x) - 8;
-                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stHumanKeypointRectRatio.ScaleY * (g_objMetaHumanKeypoint.info[i].landmark_properity[j].y-12)) - 8;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stHumanKeypointRectRatio.ScaleY * (g_objMetaHumanKeypoint.info[i].landmark_properity[j].y-4)) - 8;
                     pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = 16 ;
                     pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = 16 ;
                     pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 8;

@@ -21,6 +21,7 @@ module-$(CONFIG_MODULE_AI_PD)				+= ai_pd
 module-$(CONFIG_MODULE_AI_FD_FACE)			+= ai_face
 module-$(CONFIG_MODULE_AI_IRFAECE)			+= ai_ir_face
 module-$(CONFIG_MODULE_AI_BABYCRY)			+= ai_babycry
+module-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)	+= ai_human_keypoint_detect
 module-$(CONFIG_MODULE_RECORD)				+= record
 
 

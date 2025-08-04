@@ -17,6 +17,7 @@ LIBS-$(CONFIG_MODULE_AI_PD)                       += -lapp_paramparse_ai_pd
 LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_paramparse_ai_face
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_paramparse_ai_ir_face
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_paramparse_ai_babycry
+LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_paramparse_ai_human_keypoint_detect
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_paramparse_pwm
@@ -39,6 +40,7 @@ LIBS-$(CONFIG_MODULE_AI_PD)                       += -lapp_ai_pd
 LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_ai_fd_cace
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_ai_irface
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_ai_babycry
+LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_ai_human_keypoint_detect
 
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_panel
@@ -71,7 +73,7 @@ endif
 
 ## MEDIA
 # 双系统
-ifeq ($(DUAL_OS), y) 
+ifeq ($(DUAL_OS), y)
 LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lawb -lae -laf -lsensor -lmipi -lini
 # 单系统
 else
@@ -123,17 +125,18 @@ JPEG-TUBRO = -lturbojpeg
 ## AI
 LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/install/CV184X/lib
 LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/libsophon/install/libsophon-0.4.9/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/install/CV184X/sample/3rd/opencv/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/zlib-src/lib/
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/opencv-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/opencv-src/lib/opencv4/3rdparty
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/zlib-src/lib
 
 ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
-AISDK := -ltdl-static
+AISDK := -ltdl_core-static
 TPU =  -lbmrt -lbmlib -lbmodel
 else
-AISDK := -Wl,-Bdynamic -ltdl
+AISDK := -Wl,-Bdynamic -ltdl_core
 TPU =  -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
 endif
-OPENCV += -lz -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lIlmImf -llibjasper -llibjpeg -llibpng -llibtiff -llibwebp
+OPENCV += -lz -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
 LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
 LIBS-$(CONFIG_MODULE_AI) += -lvi -lvpss -lvo -lrgn -lgdc
 
@@ -142,13 +145,13 @@ LIBS-$(CONFIG_MODULE_AI) += -lvi -lvpss -lvo -lrgn -lgdc
 LIBS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -lnanomsg
 
 ## RTSP
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_RTSP_DIR)/lib -lcvi_comp_rtsp
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcvi_comp_ringbuffer
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_OSAL_DIR)/lib -lcvi_comp_osal
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(RTSP_DIR)/lib -lcomp_rtsp
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(OSAL_DIR)/lib -lcomp_osal
 
 ## RECORD
 LIBS-$(CONFIG_MODULE_RECORD) += -L$(FFMPEG_LIB_DIR) -lavformat -lavcodec -lavutil -lswresample
-LIBS-$(CONFIG_MODULE_RECORD) += -L$(RINGBUFFER_DIR)/lib -lcvi_comp_ringbuffer
+LIBS-$(CONFIG_MODULE_RECORD) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
 
 ## NETWORK
 LIBS-$(CONFIG_MODULE_NETWORK) += -L$(THTTPD_LIB_DIR) -lthttpd

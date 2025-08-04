@@ -146,6 +146,9 @@ static int app_ipcam_Exit(void)
     #ifdef FACE_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_FD_Stop(), "FD Stop");
     #endif
+    #ifdef HUMAN_KEYPOINT_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Stop(), "Human Keypoint Detection Stop");
+    #endif
     #endif
 
     #ifdef OSDC_SUPPORT
@@ -288,6 +291,10 @@ int main(int argc, char *argv[])
     #ifdef CRY_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Cry_Start(), "running AI CRY");
     #endif
+    #endif
+
+    #ifdef HUMAN_KEYPOINT_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Start(), "Human Keypoint Detection Start");
     #endif
 
     #endif

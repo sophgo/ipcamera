@@ -182,6 +182,13 @@ config MODULE_AI_BABYCRY
 	help
 		enable ai babycry in applicant
 
+config MODULE_AI_HUMAN_KEYPOINT
+	bool "enable module ai human keypoint detect"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai human keypoint detect in applicant
+
 config MODULE_PERIPHERAL
 	bool "enable module peripheral"
 	default n

@@ -23,10 +23,20 @@ APP_MODULES_PATH  := $(SRCTREE)/modules
 APP_PREBUILT_DIR := $(SRCTREE)/prebuilt
 APP_RESOURCE_DIR := $(SRCTREE)/resource
 APP_INSTALL_DIR  := $(SRCTREE)/install
-APP_COMPONENTS_DIR := $(SRCTREE)/components
-CVI_OSAL_DIR = $(APP_COMPONENTS_DIR)/cvi_osal
-RINGBUFFER_DIR = $(APP_COMPONENTS_DIR)/ringbuffer
-CVI_RTSP_DIR = $(APP_COMPONENTS_DIR)/cvi_rtsp
+# COMPONENTS
+ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
+  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/riscv64-unknown-linux-musl
+else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
+  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/riscv64-unknown-linux-gnu
+else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/aarch64-linux-gnu
+else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
+  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/arm-linux-gnueabihf
+else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/arm-none-linux-musleabihf
+else
+  $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
+endif
 
 #default set CONFIG_SDK_DIR = TOP_DIR
 ifeq ($(CONFIG_SDK_DIR), )
@@ -86,13 +96,13 @@ else
 endif
 
 #OSAL
-CVI_OSAL_DIR = $(APP_COMPONENTS_DIR)/cvi_osal
+OSAL_DIR = $(APP_COMPONENTS_INSTALL_DIR)/osal
 
 #RINGBUFFER
-RINGBUFFER_DIR = $(APP_COMPONENTS_DIR)/ringbuffer
+RINGBUFFER_DIR = $(APP_COMPONENTS_INSTALL_DIR)/ringbuffer
 
 #RTSP
-CVI_RTSP_DIR = $(APP_COMPONENTS_DIR)/cvi_rtsp
+RTSP_DIR = $(APP_COMPONENTS_INSTALL_DIR)/rtsp
 
 #OPENSSL
 ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)

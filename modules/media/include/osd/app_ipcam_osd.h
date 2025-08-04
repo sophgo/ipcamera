@@ -101,6 +101,7 @@ typedef struct APP_PARAM_OSDC_CFG_T {
     CVI_BOOL bShowPdRect[OSDC_NUM_MAX];
     CVI_BOOL bShowMdRect[OSDC_NUM_MAX];
     CVI_BOOL bShowFdRect[OSDC_NUM_MAX];
+    CVI_BOOL bShowHumanKeypointRect[OSDC_NUM_MAX];
     CVI_U32 osdcObjNum[OSDC_NUM_MAX];
     APP_OSDC_OBJS_INFO_S osdcObj[OSDC_NUM_MAX][OSDC_OBJS_MAX];
 } APP_PARAM_OSDC_CFG_S;
