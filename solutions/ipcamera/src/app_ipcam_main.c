@@ -189,39 +189,22 @@ static int app_ipcam_Exit(void)
 
     APP_CHK_RET(app_ipcam_Osdc_DeInit(), "OSDC DeInit");
 
-    #ifdef AI_SUPPORT
-
-    #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_Cry_Stop(), "AI Cry Stop");
+    #ifdef TDL_SUPPORT
+    #ifdef TDL_CAPTURE_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Capture_Stop(), "Capture Stop");
     #endif
 
-    #ifdef CONSUMER_COUNTING_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_Consumer_Counting_Stop(), "Consumer Counting Stop");
+    #ifdef TDL_FD_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_FD_Stop(), "Stop FD");
     #endif
 
-    #ifdef HAND_DETECT_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_HD_Stop(), "HD Stop");
+    #ifdef  TDL_MD_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_MD_Stop(), "Stop MD");
     #endif
 
-    #ifdef PD_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_PD_Stop(), "PD Stop");
+    #ifdef  TDL_PD_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_PD_Stop(), "Stop PD");
     #endif
-
-    #ifdef HUMAN_KEYPOINT_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Stop(), "Human Keypoint Detection Stop");
-    #endif
-
-    #ifdef FACE_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_FD_Stop(), "FD Stop");
-    #endif
-    #endif
-
-    #ifdef MD_SUPPORT
-    APP_CHK_RET(app_ipcam_MD_Stop(), "MD Stop");
-    #endif
-
-    #ifdef OCCLUSION_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_Occlusion_Stop(), "Occlusion Detection Stop");
     #endif
 
     #ifdef AUDIO_SUPPORT
@@ -378,46 +361,23 @@ int main(int argc, char *argv[])
     APP_CHK_RET(app_ipcam_FrmBuf_Disp_Start(), "Start DISP FRMBUF");
     #endif
 
-    #ifdef MD_SUPPORT
-    /* start MD (Motion Detection)*/
-    APP_CHK_RET(app_ipcam_MD_Start(), "running MD");
+    #ifdef TDL_SUPPORT
+    #ifdef TDL_CAPTURE_SUPPORT
+    /* start AI Capture */
+    APP_CHK_RET(app_ipcam_Ai_Capture_Start(), "Start AI Capture");
     #endif
 
-    #ifdef OCCLUSION_SUPPORT
-    /* start Occlusion Detection*/
-    APP_CHK_RET(app_ipcam_Ai_Occlusion_Start(), "running Occlusion Detection");
+    #ifdef TDL_FD_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_FD_Start(), "Start AI Capture");
     #endif
 
-    #ifdef PD_SUPPORT
-    /* start AI PD (Pedestrian Detection) */
-    APP_CHK_RET(app_ipcam_Ai_PD_Start(), "Start AI PD");
+    #ifdef  TDL_MD_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_MD_Start(), "Start MD");
     #endif
 
-    #ifdef HUMAN_KEYPOINT_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Start(), "Human Keypoint Detection Start");
+    #ifdef  TDL_PD_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_PD_Start(), "Start PD");
     #endif
-
-    #ifdef HAND_DETECT_SUPPORT
-    /* start AI HD (Hand Detection)*/
-    APP_CHK_RET(app_ipcam_Ai_HD_Start(), "running AI HD");
-    #endif
-
-    #ifdef CONSUMER_COUNTING_SUPPORT
-    /* start AI COUNT (Consumer Counting)*/
-    APP_CHK_RET(app_ipcam_Ai_Consumer_Counting_Start(), "running AI Consumer Counting");
-    #endif
-
-    /* start AI FD (Face Detection)*/
-    #ifdef FACE_SUPPORT
-    #ifdef IR_FACE_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_IR_FD_Start(), "Start AI IR FD");
-    #else
-    APP_CHK_RET(app_ipcam_Ai_FD_Start(), "Start AI FD");
-    #endif
-    #endif
-
-    #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_Cry_Start(), "Start AI Cry");
     #endif
 
     #ifdef RECORD_SUPPORT

@@ -19,16 +19,11 @@ module-$(CONFIG_MODULE_GPIO)				+= gpio
 module-$(CONFIG_MODULE_PWM)					+= pwm
 module-$(CONFIG_MODULE_FRMBUF)				+= frmbuf
 module-$(CONFIG_MODULE_MEDIA_AUDIO)			+= audio
-module-$(CONFIG_MODULE_AI)					+= ai
-module-$(CONFIG_MODULE_AI_MD)				+= ai_md
-module-$(CONFIG_MODULE_AI_PD)				+= ai_pd
-module-$(CONFIG_MODULE_AI_HAND_DETECT)		+= ai_hd
-module-$(CONFIG_MODULE_AI_FD_FACE)			+= ai_face
-module-$(CONFIG_MODULE_AI_IRFAECE)			+= ai_ir_face
-module-$(CONFIG_MODULE_AI_BABYCRY)			+= ai_babycry
-module-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)+= ai_consumer_counting
-module-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)	+= ai_human_keypoint_detect
-module-$(CONFIG_MODULE_AI_OCCLUSION)		+= ai_occlusion_detect
+module-$(CONFIG_MODULE_TDL)			        += ai
+module-$(CONFIG_MODULE_TDL_CAPTURE)		    += ai_capture
+module-$(CONFIG_MODULE_TDL_FD_FACE)		    += ai_face
+module-$(CONFIG_MODULE_TDL_PD)		        += ai_pd
+module-$(CONFIG_MODULE_TDL_MD)		        += ai_md
 module-$(CONFIG_MODULE_RECORD)				+= record
 
 

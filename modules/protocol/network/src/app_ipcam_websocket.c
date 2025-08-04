@@ -8,11 +8,7 @@
 #include "libwebsockets.h"
 #include "cvi_mbuf.h"
 
-#ifdef MD_SUPPORT
-#include "app_ipcam_md.h"
-#endif
-
-#ifdef AI_SUPPORT
+#ifdef TDL_SUPPORT
 #include "app_ipcam_ai.h"
 #endif
 
@@ -301,7 +297,7 @@ int app_ipcam_WebSocket_AiFps_Send(void)
         return 0;
     }
     char AiFps[10] = {0};
-    #if defined AI_SUPPORT && defined MD_SUPPORT && defined PD_SUPPORT
+    #if defined TDL_SUPPORT && defined MD_SUPPORT && defined PD_SUPPORT
     snprintf(AiFps, sizeof(AiFps), "%d %d %d", app_ipcam_Ai_PD_ProcFps_Get(), app_ipcam_MD_ProcFps_Get(), app_ipcam_Ai_PD_ProcIntrusion_Num_Get());
     #else
     snprintf(AiFps, sizeof(AiFps), "N N N");

@@ -24,7 +24,7 @@
 #include "app_ipcam_md.h"
 #endif
 
-#ifdef AI_SUPPORT
+#ifdef TDL_SUPPORT
 #include "app_ipcam_ai.h"
 #endif
 
@@ -1895,7 +1895,7 @@ int app_ipcam_VencResize_Stop(APP_VENC_CHN_E enVencChn, CVI_S32 bSubSizeReset)
     app_ipcam_MD_Pause_Set(CVI_TRUE);
     #endif
 
-    #ifdef AI_SUPPORT
+    #ifdef TDL_SUPPORT
     #ifdef PD_SUPPORT
     app_ipcam_Ai_PD_Pause_Set(CVI_TRUE);
     #endif
@@ -1942,7 +1942,7 @@ int app_ipcam_VencResize_Stop(APP_VENC_CHN_E enVencChn, CVI_S32 bSubSizeReset)
     }
     #endif
 
-    #ifdef AI_SUPPORT
+    #ifdef TDL_SUPPORT
     #ifdef CONSUMER_COUNTING_SUPPORT
     APP_PARAM_AI_CONSUMER_COUNTING_CFG_S *pstAiCountCfg = app_ipcam_Ai_Consumer_Counting_Param_Get();
     VPSS_GRP VpssGrp_COUNT = pstAiCountCfg->VpssGrp;
@@ -2015,7 +2015,7 @@ int app_ipcam_VencResize_Start(APP_VENC_CHN_E enVencChn, CVI_S32 bSubSizeReset)
     }
     #endif
 
-    #ifdef AI_SUPPORT
+    #ifdef TDL_SUPPORT
     #ifdef HAND_DETECT_SUPPORT
     APP_PARAM_AI_HD_CFG_S *pstAiHdCfg = app_ipcam_Ai_HD_Param_Get();
     VPSS_GRP VpssGrp_HD = pstAiHdCfg->VpssGrp;
@@ -2066,7 +2066,7 @@ int app_ipcam_VencResize_Start(APP_VENC_CHN_E enVencChn, CVI_S32 bSubSizeReset)
     app_ipcam_MD_Pause_Set(CVI_FALSE);
     #endif
 
-    #ifdef AI_SUPPORT
+    #ifdef TDL_SUPPORT
     #ifdef PD_SUPPORT
     app_ipcam_Ai_PD_Pause_Set(CVI_FALSE);
     #endif

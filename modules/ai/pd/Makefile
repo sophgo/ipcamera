@@ -1,6 +1,6 @@
 include $(SRCTREE)/build/rule.mk
 TARGET_DIR := $(TARGET_OUT_DIR)/lib
-TARGET_A := $(TARGET_DIR)/libapp_ai_pd.a
+TARGET_A := $(TARGET_DIR)/libapp_tdl_pd.a
 
 SEXT	:= c
 SDIR	+= $(CURDIR)/src

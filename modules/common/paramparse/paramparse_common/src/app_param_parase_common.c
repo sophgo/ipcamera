@@ -132,43 +132,13 @@ __attribute__((weak)) int Load_Param_Pwm(const char *file)
     return 0;
 }
 
-__attribute__((weak)) int Load_Param_MD(const char *file)
+__attribute__((weak)) int Load_Param_Record(const char *file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
     return 0;
 }
 
-__attribute__((weak)) int Load_Param_Ai_Occlusion(const char *file)
-{
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
-    return 0;
-}
-
-__attribute__((weak)) int Load_Param_Ai_PD(const char *file)
-{
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
-    return 0;
-}
-
-__attribute__((weak)) int Load_Param_Ai_IRFD(const char *file)
-{
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
-    return 0;
-}
-
-__attribute__((weak)) int Load_Param_Ai_HD(const char *file)
-{
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
-    return 0;
-}
-
-__attribute__((weak)) int Load_Param_Ai_Consumer_Counting(const char *file)
-{
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
-    return 0;
-}
-
-__attribute__((weak)) int Load_Param_Ai_HumanKeypoint(const char *file)
+__attribute__((weak)) int Load_Param_Ai_CAPTURE(const char *file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
     return 0;
@@ -180,13 +150,13 @@ __attribute__((weak)) int Load_Param_Ai_FD(const char *file)
     return 0;
 }
 
-__attribute__((weak)) int Load_Param_Ai_CRY(const char *file)
+__attribute__((weak)) int Load_Param_Ai_PD(const char *file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
     return 0;
 }
 
-__attribute__((weak)) int Load_Param_Record(const char *file)
+__attribute__((weak)) int Load_Param_Ai_MD(const char *file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
     return 0;
@@ -481,15 +451,10 @@ int app_ipcam_Param_Load(void)
     APP_CHK_RET(Load_Param_Rtsp(ParamCfgFile), "Load RTSP Param");
     APP_CHK_RET(Load_Param_Gpio(ParamCfgFile), "Load GPIO Param");
     APP_CHK_RET(Load_Param_Pwm(ParamCfgFile), "Load PWM Param");
-    APP_CHK_RET(Load_Param_MD(ParamCfgFile), "load MD Param");
-    APP_CHK_RET(Load_Param_Ai_Occlusion(ParamCfgFile), "load Occlusion Param");
-    APP_CHK_RET(Load_Param_Ai_PD(ParamCfgFile), "Load AI PD Param");
-    APP_CHK_RET(Load_Param_Ai_HD(ParamCfgFile), "Load Ai HD Param");
-    APP_CHK_RET(Load_Param_Ai_Consumer_Counting(ParamCfgFile), "Load Ai Comsumer Counting Param");
-    APP_CHK_RET(Load_Param_Ai_HumanKeypoint(ParamCfgFile), "Load AI Human Keypoint Param");
-    APP_CHK_RET(Load_Param_Ai_FD(ParamCfgFile), "Load AI FD Param");
-    APP_CHK_RET(Load_Param_Ai_IRFD(ParamCfgFile), "Load AI IR FD Param");
-    APP_CHK_RET(Load_Param_Ai_CRY(ParamCfgFile), "Load AI Cry Param");
     APP_CHK_RET(Load_Param_Record(ParamCfgFile), "Load Record Param");
+    APP_CHK_RET(Load_Param_Ai_CAPTURE(ParamCfgFile), "Load_Param_Ai_CAPTURE");
+    APP_CHK_RET(Load_Param_Ai_FD(ParamCfgFile), "Load_Param_Ai_FD");
+    APP_CHK_RET(Load_Param_Ai_MD(ParamCfgFile), "Load_Param_Ai_MD");
+    APP_CHK_RET(Load_Param_Ai_PD(ParamCfgFile), "Load_Param_Ai_PD");
     return CVI_SUCCESS;
 }

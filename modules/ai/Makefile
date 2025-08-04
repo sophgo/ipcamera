@@ -2,15 +2,10 @@ include $(SRCTREE)/build/rule.mk
 
 TOPTARGETS := all clean install clean_all
 
-module-$(CONFIG_MODULE_AI_MD)					+= md
-module-$(CONFIG_MODULE_AI_PD)					+= pd
-module-$(CONFIG_MODULE_AI_HAND_DETECT)			+= hand_detect
-module-$(CONFIG_MODULE_AI_FD_FACE)				+= face
-module-$(CONFIG_MODULE_AI_IRFAECE)				+= ir_face
-module-$(CONFIG_MODULE_AI_BABYCRY)				+= baby_cry
-module-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)	+= consumer_counting
-module-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)		+= human_keypoint_detect
-module-$(CONFIG_MODULE_AI_OCCLUSION)			+= occlusion_detect
+module-$(CONFIG_MODULE_TDL_CAPTURE)			    += capture
+module-$(CONFIG_MODULE_TDL_MD)					+= md
+module-$(CONFIG_MODULE_TDL_PD)					+= pd
+module-$(CONFIG_MODULE_TDL_FD_FACE)				+= face
 
 SUBDIRS += $(module-y)
 

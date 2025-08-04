@@ -16,123 +16,57 @@ menu "ai models resource"
 
 menu "CV180X"
 
-config RESOURCE_INSTALL_AI_CV180X_MOBILEDETV2_PEDESTRIAN_D0_LS_384
-	bool "install mobiledetv2-pedestrian-d0-ls-384"
-	default n
-	help
-		"support install 180x mobiledetv2-pedestrian-d0-ls-384"
-
-config RESOURCE_INSTALL_AI_CV180X_MOBILEDETV2_PEDESTRIAN_D0_LS_448
-	bool "install mobiledetv2-pedestrian-d0-ls-448"
-	default n
-	help
-		"support install 180x mobiledetv2-pedestrian-d0-ls-448"
-
 endmenu
 
 menu "CV181X"
 
-config RESOURCE_INSTALL_AI_CV181X_CVIFACE_V5
-	bool "install cviface-v5-s"
+config RESOURCE_INSTALL_TDL_CV181X_APP_CJSON
+	bool "install face_pet_cap_app.cjson"
 	default n
 	help
-		"support install 181x cviface-v5-s"
+		"support install 181x face_pet_cap_app.cjson"
 
-config RESOURCE_INSTALL_AI_CV181X_HAND_DET_QAT_640X360
-	bool "install hand_det_qat_640x384"
+config RESOURCE_INSTALL_TDL_CV181X_FEATURE_CVIFACE
+	bool "install feature_cviface"
 	default n
 	help
-		"support install 181x hand_det_qat_640x384"
+		"support install 181x feature_cviface"
 
-config RESOURCE_INSTALL_AI_CV181X_HAND_KPT_128X128
-	bool "install hand_kpt_128x128"
+config RESOURCE_INSTALL_TDL_CV181X_KEYPOINT_FACE_V2
+	bool "install keypoint_face_v2"
 	default n
 	help
-		"support install 181x hand_kpt_128x128"
+		"support install 181x keypoint_face_v2"
 
-config RESOURCE_INSTALL_AI_CV181X_HAND_KPT_CLS9
-	bool "install hand_kpt_cls9"
+config RESOURCE_INSTALL_TDL_CV181X_YOLOV8N_DET_FACE_HAND_PERSON_PET
+	bool "install yolov8n_det_face_hand_person_pet"
 	default n
 	help
-		"support install 181x hand_kpt_cls9"
+		"support install 181x yolov8n_det_face_hand_person_pet"
 
-config RESOURCE_INSTALL_AI_CV181X_HARDHAT_720_1280
-	bool "install hardhat_720_1280"
+config RESOURCE_INSTALL_TDL_CV181X_CLS_ATTRIBUTE_GENDER_AGE_GLASS_EMOTION
+	bool "install cls_attribute_gender_age_glass_emotion"
 	default n
 	help
-		"support install 181x hardhat_720_1280"
+		"support install 181x cls_attribute_gender_age_glass_emotion"
 
-config RESOURCE_INSTALL_AI_CV181X_IR_RECOGITION
-	bool "install ir_recogition"
+config RESOURCE_INSTALL_TDL_CV181X_YOLOV8N_DET_MONITOR_PERSON
+	bool "install yolov8n_det_monitor_person"
 	default n
 	help
-		"support install 181x ir_recogition"
+		"support install 181x yolov8n_det_monitor_person"
 
-config RESOURCE_INSTALL_AI_CV181X_LIVENESS
-	bool "install liveness"
+config RESOURCE_INSTALL_TDL_CV181X_SCRFD_DET_FACE
+	bool "install scrfd_det_face"
 	default n
 	help
-		"support install 181x liveness"
+		"support install 181x scrfd_det_face"
 
-config RESOURCE_INSTALL_AI_CV181X_MOBILEDETV2_PEDESTRIAN_D0_LS_384
-	bool "install mobiledetv2-pedestrian-d0-ls-384"
+config RESOURCE_INSTALL_TDL_CV181X_FEATURE_CVIFACE
+	bool "install feature cviface"
 	default n
 	help
-		"support install 181x mobiledetv2-pedestrian-d0-ls-384"
-
-config RESOURCE_INSTALL_AI_CV181X_MOBILEDETV2_PEDESTRIAN_D0_LS_448
-	bool "install mobiledetv2-pedestrian-d0-ls-448"
-	default n
-	help
-		"support install 181x mobiledetv2-pedestrian-d0-ls-448"
-
-config RESOURCE_INSTALL_AI_CV181X_MOBILEDETV2_PEDESTRIAN_D1_LS
-	bool "install mobiledetv2-pedestrian-d1-ls"
-	default n
-	help
-		"support install 181x mobiledetv2-pedestrian-d1-ls"
-
-config RESOURCE_INSTALL_AI_CV181X_PIPNET_MBV3_64_V5_2
-	bool "install pipnet_mbv3_64_v5_cv181x_2"
-	default n
-	help
-		"support install 181x pipnet_mbv3_64_v5_cv181x_2"
-
-config RESOURCE_INSTALL_AI_CV181X_RETINAFACE_MASK
-	bool "install retinaface_mask"
-	default n
-	help
-		"support install 181x retinaface_mask"
-
-config RESOURCE_INSTALL_AI_CV181X_SCRFD_320X256
-	bool "install scrfd_320_256"
-	default n
-	help
-		"support install 181x scrfd_320_256"
-
-config RESOURCE_INSTALL_AI_CV181X_SCRFD_500M_BNKPS_432X768
-	bool "install scrfd_500m_bnkps_432_768"
-	default n
-	help
-		"support install 181x scrfd_500m_bnkps_432_768"
-
-config RESOURCE_INSTALL_AI_CV181X_SOUND_IPC_SR8K_V14
-	bool "install sound_ipc_sr8k_v14_cv181x"
-	default n
-	help
-		"support install 181x sound_ipc_sr8k_v14_cv181x"
-
-config RESOURCE_INSTALL_AI_CV181X_SOUND_IPC_SR8K_V17
-	bool "install sound_ipc_sr8k_v17_cv181x"
-	default n
-	help
-		"support install 181x sound_ipc_sr8k_v17_cv181x"
-
-config RESOURCE_INSTALL_AI_CV181X_YOLOV8N_HEADPERSON_KPT
-	bool "install yolov8n_headperson_kpt_cv181x"
-	default n
-	help
-		"support install 181x yolov8n_headperson_kpt_cv181x"
+		"support install 181x feature cviface"
 
 endmenu
 

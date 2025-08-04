@@ -13,16 +13,11 @@ LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)                 += -lapp_paramparse_audio
 LIBS-$(CONFIG_MODULE_MEDIA_STITCH)                += -lapp_paramparse_stitch
 LIBS-$(CONFIG_MODULE_MEDIA_GDC)                   += -lapp_paramparse_gdc
 LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT)            += -lapp_paramparse_blacklight
-LIBS-$(CONFIG_MODULE_AI)                          += -lapp_paramparse_ai
-LIBS-$(CONFIG_MODULE_AI_MD)                       += -lapp_paramparse_ai_md
-LIBS-$(CONFIG_MODULE_AI_PD)                       += -lapp_paramparse_ai_pd
-LIBS-$(CONFIG_MODULE_AI_HAND_DETECT)              += -lapp_paramparse_ai_hd
-LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_paramparse_ai_face
-LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_paramparse_ai_ir_face
-LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_paramparse_ai_babycry
-LIBS-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)        += -lapp_paramparse_ai_consumer_counting
-LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_paramparse_ai_human_keypoint_detect
-LIBS-$(CONFIG_MODULE_AI_OCCLUSION)                += -lapp_paramparse_ai_occlusion_detect
+LIBS-$(CONFIG_MODULE_TDL_MD)                      += -lapp_paramparse_ai_md
+LIBS-$(CONFIG_MODULE_TDL_PD)                      += -lapp_paramparse_ai_pd
+LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_paramparse_ai_capture
+LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_paramparse_ai_face
+LIBS-$(CONFIG_MODULE_TDL)                         += -lapp_paramparse_ai
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_paramparse_frmbuf
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
@@ -42,15 +37,10 @@ LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_pwm
 LIBS-$(CONFIG_MODULE_SDCARD)                      += -lapp_sdcard
 
-LIBS-$(CONFIG_MODULE_AI_MD)                       += -lapp_md
-LIBS-$(CONFIG_MODULE_AI_PD)                       += -lapp_ai_pd
-LIBS-$(CONFIG_MODULE_AI_HAND_DETECT)              += -lapp_ai_hand_detect
-LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_ai_fd_cace
-LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_ai_irface
-LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_ai_babycry
-LIBS-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)        += -lapp_ai_consumer_counting
-LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_ai_human_keypoint_detect
-LIBS-$(CONFIG_MODULE_AI_OCCLUSION)                += -lapp_ai_occlusion_detect
+LIBS-$(CONFIG_MODULE_TDL_MD)                      += -lapp_tdl_md
+LIBS-$(CONFIG_MODULE_TDL_PD)                      += -lapp_tdl_pd
+LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_tdl_capture
+LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_tdl_fd_face
 
 LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
@@ -119,63 +109,50 @@ LIBS-$(CONFIG_MODULE_CVIUAC)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcv
 LIBS-$(CONFIG_MODULE_CVIUAC) += -lcvi_dnvqe -lcvi_ssp2
 LIBS-$(CONFIG_MODULE_CVIUAC)  += -laacdec2 -laacenc2 -laacsbrdec2 -laacsbrenc2 -laaccomm2
 LIBS-$(CONFIG_MODULE_MEDIA_STITCH)  += -lstitch
-LIBS-$(CONFIG_MODULE_AI_MD) += -L$(TDL_PATH)/install/lib/
-LIBS-$(CONFIG_MODULE_AI_MD) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib/
-
-ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # MD libs static link
-  MDSDK := -lcvi_md
-  ifeq ($(SOC_SEGMENT), CV180X)
-    IVE := -lcvi_ive_tpu-static
-    TPU := -lcvikernel-static -lcviruntime-static -lcnpy -lcvimath-static -lz
-  else
-    IVE := -lcvi_ive
-  endif
-  LIBS-$(CONFIG_MODULE_AI_MD) += -Wl,--start-group $(MDSDK) $(IVE) $(TPU) -Wl,--end-group
-else # MD libs dynamic link
-  MDSDK := -lcvi_md
-  IVE := -lcvi_ive
-  TPU := -lcnpy -lcvikernel -lcvimath -lcviruntime -lz
-  LIBS-$(CONFIG_MODULE_AI_MD) += $(MDSDK) $(TPU) $(IVE)
-endif # MD libs static link end
 
 ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_riscv64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_riscv64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_riscv64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_riscv64_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_riscv64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_riscv64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_riscv64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_riscv64_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm32_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm32_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm32_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm32_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_arm32_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_arm32_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_arm32_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_arm32_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
-  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm64_lib
+  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm64_lib/opencv4/3rdparty
 else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
 JPEG-TUBRO = -lturbojpeg
 
-LIBS-$(CONFIG_MODULE_AI) += -L$(TDL_PATH)/install/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TDL_PATH)/install/sample/3rd/opencv/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/libsophon-0.4.9/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/lib
+LIBS-$(CONFIG_MODULE_TDL) += -L$(TDL_PATH)/install/$(SOC_SEGMENT)/lib
+LIBS-$(CONFIG_MODULE_TDL) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib
+LIBS-$(CONFIG_MODULE_TDL) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/libsophon-0.4.9/lib
+LIBS-$(CONFIG_MODULE_TDL) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/lib
 ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # AI libs static link
-  AISDK := -lcvi_tdl -lcvi_tdl_app -lcvi_kit
+  AISDK := -ltdl_core-static
   TPU := -lcvikernel-static -lcviruntime-static -lcnpy -lcvimath-static -lz
-  ifeq ($(SOC_SEGMENT), CV180X)
-    IVE := -lcvi_ive_tpu-static
-  else
-    IVE := -lcvi_ive
-    ifeq ($(TARGET_MACHINE),$(filter $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu))
-      OPENCV += -ltegra_hal
-    endif
-    OPENCV += -lopencv_imgproc -lopencv_core
-  endif
-  LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(IVE) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
-else
   IVE := -lcvi_ive
-  AISDK := -lcvi_tdl -lcvi_tdl_app -lcvi_kit
+  ifeq ($(TARGET_MACHINE),$(filter $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu))
+    OPENCV += -ltegra_hal -littnotify
+  endif
+  OPENCV +=  -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibjpeg-turbo -llibwebp -llibpng -llibtiff -llibopenjp2 -lzlib -latomic
+  LIBS-$(CONFIG_MODULE_TDL) += -Wl,--start-group -Wl,--allow-multiple-definition $(AISDK) $(IVE) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
+else
+  AISDK := -ltdl_core
+  IVE := -lcvi_ive
   TPU := -lcnpy  -lcvikernel  -lcvimath  -lcviruntime  -lz
-  LIBS-$(CONFIG_MODULE_AI) += $(AISDK) $(TPU) $(IVE) $(JPEG-TUBRO)
+  LIBS-$(CONFIG_MODULE_TDL) += $(AISDK) $(TPU) $(IVE) $(JPEG-TUBRO)
 endif
 
 # MULTI_PROCESS_SUPPORT

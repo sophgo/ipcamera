@@ -48,12 +48,8 @@
 #include "app_ipcam_audio.h"
 #endif
 
-#ifdef AI_SUPPORT
+#ifdef TDL_SUPPORT
 #include "app_ipcam_ai.h"
-#endif
-
-#ifdef MD_SUPPORT
-#include "app_ipcam_md.h"
 #endif
 
 #ifdef RECORD_SUPPORT
@@ -95,13 +91,14 @@ const char ** app_ipcam_Param_get_vi_vpss_mode();
 const char ** app_ipcam_Param_get_mode_id();
 const char ** app_ipcam_Param_get_video_format();
 const char ** app_ipcam_Param_get_payload_type();
-#ifdef AI_SUPPORT
-const char ** app_ipcam_Param_get_ai_supported_model();
-#endif
 
 int app_ipcam_Param_Load(void);
 
 int app_ipcam_Opts_Parse(int argc, char *argv[]);
+
+#ifdef TDL_SUPPORT
+const char ** app_ipcam_Param_get_ai_supported_model();
+#endif
 
 #ifdef __cplusplus
 }

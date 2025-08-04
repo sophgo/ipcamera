@@ -155,74 +155,39 @@ config MODULE_AKYCLOUD
 	help
 		enable aky cloud sdk in applicant
 
-config MODULE_AI
+config MODULE_TDL
 	bool "enable module ai"
 	default n
 	help
 		enable ai in applicant
 
-config MODULE_AI_MD
+config MODULE_TDL_CAPTURE
+	bool "enable module ai capture"
+	default n
+	depends on MODULE_TDL
+	help
+		enable ai capture in applicant
+
+config MODULE_TDL_MD
 	bool "enable module ai md"
 	default n
-	depends on MODULE_AI
+	depends on MODULE_TDL
 	help
-		enable ai motion detect in applicant
+		enable ai capture in applicant
 
-config MODULE_AI_PD
+config MODULE_TDL_PD
 	bool "enable module ai pd"
 	default n
-	depends on MODULE_AI
+	depends on MODULE_TDL
 	help
-		enable ai people detect in applicant
+		enable ai capture in applicant
 
-config MODULE_AI_HAND_DETECT
-	bool "enable module ai hand detect"
+config MODULE_TDL_FD_FACE
+	bool "enable module ai face"
 	default n
-	depends on MODULE_AI
+	depends on MODULE_TDL
 	help
-		enable ai hand detect in applicant
-
-config MODULE_AI_FD_FACE
-	bool "enable module ai fd face"
-	default n
-	depends on MODULE_AI
-	help
-		enable ai face detect in applicant
-
-config MODULE_AI_IRFAECE
-	bool "enable module ai ir face detect"
-	default n
-	depends on MODULE_AI
-	help
-		enable ai ir face detect in applicant
-
-config MODULE_AI_BABYCRY
-	bool "enable module ai babycry"
-	default n
-	depends on MODULE_AI
-	help
-		enable ai babycry in applicant
-
-config MODULE_AI_CONSUMER_COUNTING
-	bool "enable module ai consumer counting"
-	default n
-	depends on MODULE_AI
-	help
-		enable ai consumer counting in applicant
-
-config MODULE_AI_HUMAN_KEYPOINT
-	bool "enable module ai human keypoint detect"
-	default n
-	depends on MODULE_AI
-	help
-		enable ai human keypoint detect in applicant
-
-config MODULE_AI_OCCLUSION
-	bool "enable module ai occlusion detection"
-	default n
-	depends on MODULE_AI
-	help
-		enable ai occlusion detection in applicant
+		enable ai capture in applicant
 
 menuconfig MODULE_ENABLE_FRAMEBUFFER
 	bool "enable module eanble framebuffer"

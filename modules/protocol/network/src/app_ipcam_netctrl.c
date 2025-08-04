@@ -34,7 +34,7 @@
 #ifdef MD_SUPPORT
 #include "app_ipcam_md.h"
 #endif
-#ifdef AI_SUPPORT
+#ifdef TDL_SUPPORT
 #include "app_ipcam_ai.h"
 #endif
 #include "app_ipcam_osd.h"
@@ -1720,7 +1720,7 @@ static int app_ipcam_VencAttr_Set(APP_VENC_ATTR_INFO_S info[])
                 pstMdVpssGrpCfg->stVpssGrpAttr.u32MaxW = pstVencChnCfg->u32Width;
                 pstMdVpssGrpCfg->stVpssGrpAttr.u32MaxH = pstVencChnCfg->u32Height;
                 #endif
-                #ifdef AI_SUPPORT
+                #ifdef TDL_SUPPORT
                 APP_PARAM_AI_PD_CFG_S *pstAiPdCfg = app_ipcam_Ai_PD_Param_Get();
                 VPSS_GRP VpssGrp_PD = pstAiPdCfg->VpssGrp;
                 APP_VPSS_GRP_CFG_T *pstVpssGrpCfg = &app_ipcam_Vpss_Param_Get()->astVpssGrpCfg[VpssGrp_PD];
@@ -2033,7 +2033,7 @@ int CVI_IPC_NetCtrlSetMd(APP_MD_INFO_S psmdinfo)
 }
 #endif
 
-#ifdef AI_SUPPORT
+#ifdef TDL_SUPPORT
 #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
 int CVI_IPC_NetCtrlSetCry(APP_CRY_INFO_S pscryinfo)
 {
@@ -2833,7 +2833,7 @@ static int app_ipcam_IcgiRegister_Audio(void)
 /*
 *  AI page get/set CB list
 */
-#ifdef AI_SUPPORT
+#ifdef TDL_SUPPORT
 static int app_ipcam_IcgiRegister_Ai(void)
 {
     printf("enter: %s\n", __func__);
@@ -2878,7 +2878,7 @@ int app_ipcam_NetCtrl_Init()
 #ifdef AUDIO_SUPPORT
     app_ipcam_IcgiRegister_Audio();
 #endif
-#ifdef AI_SUPPORT
+#ifdef TDL_SUPPORT
     app_ipcam_IcgiRegister_Ai();
 #endif
     app_ipcam_IcgiRegister_OTA();
