@@ -120,6 +120,18 @@ typedef struct APP_PARAM_AI_PD_CFG_T {
     char model_path[MODEL_PATH_LEN];
 } APP_PARAM_AI_PD_CFG_S;
 
+typedef struct APP_PARAM_AI_HUMAN_KEYPOINT_CFG_T {
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+    CVI_U32 u32GrpHeight;
+    CVI_BOOL bVpssPreProcSkip;
+    float threshold;
+    TDLModel model_id;
+    char model_path[MODEL_PATH_LEN];
+} APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S;
+
 #ifdef TDL_CAPTURE_SUPPORT
 APP_PARAM_AI_CAPTURE_CFG_S *app_ipcam_Ai_Capture_Param_Get(void);
 CVI_BOOL app_ipcam_Ai_Capture_Pause_Get(void);
@@ -182,6 +194,20 @@ CVI_S32 app_ipcam_Pd_threshold_Set(float threshold);
 CVI_S32 app_ipcam_Ai_Pd_Intrusion_Init(void);
 CVI_U32 app_ipcam_Ai_PD_ProcIntrusion_Num_Get(void);
 CVI_S32 app_ipcam_Ai_PD_StatusGet(void);
+#endif
+
+#ifdef TDL_HUMAN_KEYPOINT_SUPPORT
+/* Human Keypoint Detection function */
+APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S *app_ipcam_Ai_Human_Keypoint_Param_Get(void);
+CVI_VOID app_ipcam_Ai_Human_Keypoint_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Human_Keypoint_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Human_Keypoint_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Human_Keypoint_Pause_Get(void);
+int app_ipcam_Ai_Human_Keypoint_Start(void);
+int app_ipcam_Ai_Human_Keypoint_Stop(void);
+int app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(TDLObject *pstAiObj);
+CVI_S32 app_ipcam_Human_Keypoint_threshold_Set(float threshold);
+CVI_S32 app_ipcam_Ai_Human_Keypoint_StatusGet(void);
 #endif
 
 #ifdef __cplusplus

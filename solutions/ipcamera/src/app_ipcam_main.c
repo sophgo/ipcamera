@@ -198,12 +198,16 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_Ai_FD_Stop(), "Stop FD");
     #endif
 
-    #ifdef  TDL_MD_SUPPORT
+    #ifdef TDL_MD_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_MD_Stop(), "Stop MD");
     #endif
 
-    #ifdef  TDL_PD_SUPPORT
+    #ifdef TDL_PD_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_PD_Stop(), "Stop PD");
+    #endif
+
+    #ifdef TDL_HUMAN_KEYPOINT_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Stop(), "Stop Human Keypoint Detection");
     #endif
     #endif
 
@@ -377,6 +381,10 @@ int main(int argc, char *argv[])
 
     #ifdef  TDL_PD_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_PD_Start(), "Start PD");
+    #endif
+
+    #ifdef TDL_HUMAN_KEYPOINT_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Start(), "Start Human Keypoint Detection");
     #endif
     #endif
 

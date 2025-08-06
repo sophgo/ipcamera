@@ -162,6 +162,13 @@ __attribute__((weak)) int Load_Param_Ai_MD(const char *file)
     return 0;
 }
 
+__attribute__((weak)) int Load_Param_Ai_HumanKeypoint(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
+
+
 //common attribute
 const char *pixel_format[PIXEL_FORMAT_MAX] = {
     [PIXEL_FORMAT_RGB_888] = "PIXEL_FORMAT_RGB_888",
@@ -456,5 +463,6 @@ int app_ipcam_Param_Load(void)
     APP_CHK_RET(Load_Param_Ai_FD(ParamCfgFile), "Load_Param_Ai_FD");
     APP_CHK_RET(Load_Param_Ai_MD(ParamCfgFile), "Load_Param_Ai_MD");
     APP_CHK_RET(Load_Param_Ai_PD(ParamCfgFile), "Load_Param_Ai_PD");
+    APP_CHK_RET(Load_Param_Ai_HumanKeypoint(ParamCfgFile), "Load_Param_Ai_HumanKeypoint");
     return CVI_SUCCESS;
 }

@@ -13,6 +13,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)                 += -lapp_paramparse_audio
 LIBS-$(CONFIG_MODULE_MEDIA_STITCH)                += -lapp_paramparse_stitch
 LIBS-$(CONFIG_MODULE_MEDIA_GDC)                   += -lapp_paramparse_gdc
 LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT)            += -lapp_paramparse_blacklight
+LIBS-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)          += -lapp_paramparse_ai_human_keypoint_detect
 LIBS-$(CONFIG_MODULE_TDL_MD)                      += -lapp_paramparse_ai_md
 LIBS-$(CONFIG_MODULE_TDL_PD)                      += -lapp_paramparse_ai_pd
 LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_paramparse_ai_capture
@@ -41,6 +42,7 @@ LIBS-$(CONFIG_MODULE_TDL_MD)                      += -lapp_tdl_md
 LIBS-$(CONFIG_MODULE_TDL_PD)                      += -lapp_tdl_pd
 LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_tdl_capture
 LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_tdl_fd_face
+LIBS-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)          += -lapp_tdl_human_keypoint_detect
 
 LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display

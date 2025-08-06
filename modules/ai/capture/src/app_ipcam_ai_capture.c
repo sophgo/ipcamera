@@ -32,7 +32,6 @@ static char **channel_names = NULL;
 static uint8_t channel_size = 0;
 static TDLFeatureInfo gallery_feature = {0};
 static pthread_t g_CaptureThreadHandle;
-static pthread_t g_SendThreadHandle;
 static TDLHandle g_CaptureTDLHandle;
 static TDLObject g_stObjDraw = {0};
 SMT_MUTEXAUTOLOCK_INIT(g_Mutex);
@@ -79,7 +78,7 @@ CVI_VOID app_ipcam_Ai_Cap_ObjDrawInfo_Get(TDLObject *pstAiObj)
 {
     if (pstAiObj == NULL) return;
     SMT_MutexAutoLock(g_Mutex, lock);
-    if (g_stObjDraw.size == 0 || 
+    if (g_stObjDraw.size == 0 ||
         g_stObjDraw.info == NULL ||
         pstAiObj->info == NULL) {
         pstAiObj->size = 0;
@@ -88,10 +87,10 @@ CVI_VOID app_ipcam_Ai_Cap_ObjDrawInfo_Get(TDLObject *pstAiObj)
 
     pstAiObj->size = g_stObjDraw.size <= 100 ? g_stObjDraw.size : 100;
     memcpy(pstAiObj->info, g_stObjDraw.info, pstAiObj->size * sizeof(TDLObjectInfo));
-    printf("enter pstAiObj->info.x1 = %f\n", pstAiObj->info->box.x1);
+
 }
 
-static CVI_VOID *Thread_SendFrame_PROC(CVI_VOID *pArgs)
+static CVI_VOID *Thread_Capture_PROC(CVI_VOID *pArgs)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
 
@@ -102,8 +101,8 @@ static CVI_VOID *Thread_SendFrame_PROC(CVI_VOID *pArgs)
     if (channel_frame_id) {
         memset(channel_frame_id, 0, channel_size * sizeof(uint64_t));
     }
-
-    VIDEO_FRAME_INFO_S stfdFrame = {0};
+    TDLCaptureInfo capture_info = {0};
+    VIDEO_FRAME_INFO_S stCaptureFrame = {0};
     while (app_ipcam_Ai_Capture_ProcStatus_Get()) {
         if (app_ipcam_Ai_Capture_Pause_Get()) {
             usleep(1000*1000);
@@ -113,17 +112,16 @@ static CVI_VOID *Thread_SendFrame_PROC(CVI_VOID *pArgs)
         for (size_t i = 0; i < channel_size; i++) {
             channel_frame_id[i] += 1;
 
-            s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stfdFrame, 3000);
+            s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stCaptureFrame, 3000);
             if (s32Ret != 0){
-                
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to CVI_VPSS_GetChnFrame with %x\n", s32Ret);
                 continue;
             }
 
-            TDLImage image = TDL_WrapFrame(&stfdFrame, true);
+            TDLImage image = TDL_WrapFrame(&stCaptureFrame, true);
             if (image == NULL) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to wrap frame for channel %s\n", channel_names[i]);
-                CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stfdFrame);
+                CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stCaptureFrame);
                 continue;
             }
 
@@ -133,7 +131,26 @@ static CVI_VOID *Thread_SendFrame_PROC(CVI_VOID *pArgs)
                 continue;
             }
 
-            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stfdFrame);
+            memset(&capture_info, 0, sizeof(TDLCaptureInfo));
+
+            s32Ret = TDL_APP_Capture(g_CaptureTDLHandle, channel_names[i], &capture_info);
+            if (s32Ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_APP_Capture failed for channel %s with error code %#x\n", channel_names[i], s32Ret);
+                continue;
+            }
+
+            SMT_MutexAutoLock(g_Mutex, lock);
+            g_stObjDraw.size = 0;
+            if (capture_info.person_meta.size > 0 &&
+                capture_info.person_meta.info != NULL &&
+                g_stObjDraw.info != NULL) {
+                g_stObjDraw.size = capture_info.person_meta.size <= 100 ? capture_info.person_meta.size : 100;
+                memcpy(g_stObjDraw.info, capture_info.person_meta.info, g_stObjDraw.size * sizeof(TDLObjectInfo));
+            }
+
+            TDL_ReleaseCaptureInfo(&capture_info);
+
+            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stCaptureFrame);
             if (s32Ret != CVI_SUCCESS)
             {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
@@ -144,44 +161,6 @@ static CVI_VOID *Thread_SendFrame_PROC(CVI_VOID *pArgs)
 
     if (channel_frame_id) {
         free(channel_frame_id);
-    }
-
-    pthread_exit(NULL);
-
-    return NULL;
-}
-
-static CVI_VOID *Thread_Capture_PROC(CVI_VOID *pArgs)
-{
-    CVI_S32 s32Ret = CVI_SUCCESS;
-    TDLCaptureInfo capture_info = {0};
-
-    while (app_ipcam_Ai_Capture_ProcStatus_Get()) {
-        if (app_ipcam_Ai_Capture_Pause_Get()) {
-            usleep(1000*1000);
-            continue;
-        }
-
-        for (size_t i = 0; i < channel_size; i++) {
-            memset(&capture_info, 0, sizeof(TDLCaptureInfo));
-
-            s32Ret = TDL_APP_Capture(g_CaptureTDLHandle, channel_names[i], &capture_info);
-            if (s32Ret != CVI_SUCCESS) {
-                APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_APP_Capture failed for channel %s with error code %#x\n", channel_names[i], s32Ret);
-                continue;
-            }
-            
-            SMT_MutexAutoLock(g_Mutex, lock);
-            g_stObjDraw.size = 0;
-            if (capture_info.person_meta.size > 0 && 
-                capture_info.person_meta.info != NULL &&
-                g_stObjDraw.info != NULL) {
-                g_stObjDraw.size = capture_info.person_meta.size <= 100 ? capture_info.person_meta.size : 100;
-                memcpy(g_stObjDraw.info, capture_info.person_meta.info, g_stObjDraw.size * sizeof(TDLObjectInfo));
-            }
-
-            TDL_ReleaseCaptureInfo(&capture_info);
-        }
     }
 
     pthread_exit(NULL);
@@ -237,8 +216,6 @@ int app_ipcam_Ai_Capture_Stop(void)
     }
 
     app_ipcam_Ai_Capture_ProcStatus_Set(CVI_FALSE);
-    pthread_join(g_SendThreadHandle, NULL);
-    g_SendThreadHandle = 0;
     pthread_join(g_CaptureThreadHandle, NULL);
     g_CaptureThreadHandle = 0;
 
@@ -292,13 +269,6 @@ int app_ipcam_Ai_Capture_Start(void){
     }
 
     app_ipcam_Ai_Capture_ProcStatus_Set(CVI_TRUE);
-
-    s32Ret = pthread_create(&g_SendThreadHandle, NULL, Thread_SendFrame_PROC, NULL);
-    if (s32Ret != CVI_SUCCESS)
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "AI send_frame_pthread_create failed!\n");
-        return s32Ret;
-    }
 
     s32Ret = pthread_create(&g_CaptureThreadHandle, NULL, Thread_Capture_PROC, NULL);
     if (s32Ret != CVI_SUCCESS)

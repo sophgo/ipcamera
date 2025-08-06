@@ -189,6 +189,13 @@ config MODULE_TDL_FD_FACE
 	help
 		enable ai capture in applicant
 
+config MODULE_TDL_HUMAN_KEYPOINT
+	bool "enable module ai human keypoint detect"
+	default n
+	depends on MODULE_TDL
+	help
+		enable ai human keypoint detect in applicant
+
 menuconfig MODULE_ENABLE_FRAMEBUFFER
 	bool "enable module eanble framebuffer"
 	default n
