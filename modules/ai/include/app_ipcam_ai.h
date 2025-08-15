@@ -132,6 +132,14 @@ typedef struct APP_PARAM_AI_HUMAN_KEYPOINT_CFG_T {
     char model_path[MODEL_PATH_LEN];
 } APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S;
 
+typedef struct APP_PARAM_AI_Motion_CFG_T {
+    CVI_BOOL bEnable;
+    VI_PIPE ViPipe;
+    CVI_U32 dev_num;
+    CVI_S32 iso;
+    char model_path[MODEL_PATH_LEN];
+} APP_PARAM_AI_Motion_CFG_S;
+
 #ifdef TDL_CAPTURE_SUPPORT
 APP_PARAM_AI_CAPTURE_CFG_S *app_ipcam_Ai_Capture_Param_Get(void);
 CVI_BOOL app_ipcam_Ai_Capture_Pause_Get(void);
@@ -208,6 +216,13 @@ int app_ipcam_Ai_Human_Keypoint_Stop(void);
 int app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(TDLObject *pstAiObj);
 CVI_S32 app_ipcam_Human_Keypoint_threshold_Set(float threshold);
 CVI_S32 app_ipcam_Ai_Human_Keypoint_StatusGet(void);
+#endif
+
+#ifdef TDL_MOTION_SUPPORT
+/*Ai motion*/
+APP_PARAM_AI_Motion_CFG_S *app_ipcam_Ai_Motion_Param_Get(void);
+int app_ipcam_Ai_Motion_Start(void);
+int app_ipcam_Ai_Motion_Stop(void);
 #endif
 
 #ifdef __cplusplus

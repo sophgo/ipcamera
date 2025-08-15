@@ -209,6 +209,10 @@ static int app_ipcam_Exit(void)
     #ifdef TDL_HUMAN_KEYPOINT_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Stop(), "Stop Human Keypoint Detection");
     #endif
+
+    #ifdef TDL_MOTION_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Motion_Stop(), "Stop Ai Motion");
+    #endif
     #endif
 
     #ifdef AUDIO_SUPPORT
@@ -386,6 +390,10 @@ int main(int argc, char *argv[])
     #ifdef TDL_HUMAN_KEYPOINT_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Start(), "Start Human Keypoint Detection");
     #endif
+
+    #ifdef TDL_MOTION_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Motion_Start(), "Start AI Motion");
+    #endif
     #endif
 
     #ifdef RECORD_SUPPORT
@@ -398,6 +406,7 @@ int main(int argc, char *argv[])
     APP_CHK_RET(app_ipcam_FrmBuf_LVGL_Start(), "Start LVGL.");
     #endif
 
+    
     /* enable receive a command form another progress for test ipcam */
     // APP_CHK_RET(app_ipcam_CmdTask_Create(), "Create CMD Test");
 

@@ -15,6 +15,11 @@ ifeq ($(CONFIG_MODULE_TDL),y)
 	@cp -f $(TDL_PATH)/install/$(SOC_SEGMENT)/configs/model/model_factory.json $(APP_INSTALL_DIR)
 endif
 
+ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV180X_YOLOV8N_DET_MONITOR_PERSON),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv180x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/180x/yolov8n_det_monitor_person_256_448_INT8_cv180x.cvimodel $(APP_INSTALL_DIR)/cv180x/
+endif
+
 ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_APP_CJSON),y)
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/face_pet_cap_app.json $(APP_INSTALL_DIR)
 endif

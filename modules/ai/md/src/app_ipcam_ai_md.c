@@ -296,17 +296,19 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
             count = (count == u32BgUpPeriod) ? (1) : (count+1); // 计数+1
             continue;
         }
-        SMT_MutexAutoLock(g_MDMutex, lock);
-        if (g_stMDObjDraw.info != NULL) {
-            TDL_ReleaseObjectMeta(&g_stMDObjDraw);
+        {
+            SMT_MutexAutoLock(g_MDMutex, lock);
+            if (g_stMDObjDraw.info != NULL) {
+                TDL_ReleaseObjectMeta(&g_stMDObjDraw);
+            }
+            memset(&g_stMDObjDraw, 0, sizeof(TDLObject));
+            deep_copy_tdl_object(&g_stMDObjDraw, &obj_meta);
         }
-        memset(&g_stMDObjDraw, 0, sizeof(TDLObject));
-        deep_copy_tdl_object(&g_stMDObjDraw, &obj_meta);
         TDL_ReleaseObjectMeta(&obj_meta);
 
         if ((count % u32BgUpPeriod) == (u32BgUpPeriod - 1) )
         {
-            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_back);     
+            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_back);
             if (s32Ret != CVI_SUCCESS)
             {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);

@@ -1,0 +1,69 @@
+project_name: recorder
+commit_id: ca94acc8d112e6c9128d4b81690b2e59f8d87e15 [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: cvi_sysutils
+commit_id: 12cc43bc45bbdfe51bdd792fe758d634ea96d7e8 [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: exif
+commit_id: df4b07ea35765038abd76d0b419b3cc2aa46cc8f [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: player
+commit_id: 6117e4c6fc3af1ab46478a13b3e2c09604f5dbb9 [fix]fix compile error for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: ringbuffer
+commit_id: c3c8cdfe16224a8b3dd40d9ea33071b2b93dae7f [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: mapi
+commit_id: bfb8b2454be2d621931d064efe16eeb6e796a512 [feat]v410
+
+project_name: cvi_osal
+commit_id: c5a3f349a251dd186c25408c3071a33b14eee824 [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: file_recover
+commit_id: f4dea9c1ebc67aa47627fd075d150123be8a0553 [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: cvi_hal
+commit_id: d059989acddb1dc590280fdc69481b5ce797b928 [feat]add sample
+
+project_name: dtcf
+commit_id: da3e9198b7b49ee96d4bd316275c997361d41510 [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: cvi_flash_tool
+commit_id: 34b3302d8a3d0e2b4b86637ef31825a9cf72a9c8 Desensitization of component content and removal of CVI field content
+
+project_name: oss
+commit_id: 75a87f3518fc7243e6a99916978b96e67193349b [feat]add install
+
+project_name: ffmpeg
+commit_id: a45854861fd10cda0df39c1d21c3f166ba9b2dd4 [feat] add flush moov box for mp4 files
+
+project_name: demuxer
+commit_id: 582e4660d4c56fb890dc1eadef65351da6146b4b [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: upgrade
+commit_id: 56362acc0b6a53013c6b2b5f5aa1306b702339ed [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: thumbnail_extractor
+commit_id: 05781d8e98ac65ef2338c0ba2ff31b090158cafb [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: ini
+commit_id: 7f3ca4a885144a49ec3fe2ad75c76055d62cd3df [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: muxer
+commit_id: cc7832da078ad9b8010450f3c976a6fdf4bf2706 [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: perf
+commit_id: af74ff3ff55138e6556f0f9b477429267fa4f44c [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: storage
+commit_id: 0c00d19067ad3c5a9b76514a8b724eacbe998d5b [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: cvi_mem_manage
+commit_id: bf0e42074388234dc708ac966a145fc2d73a7439 [fix]dailybuild for arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+
+project_name: common
+commit_id: 60d2a9a2f016d01670105f2ea618205354736b50 [feat]modify for static
+
+project_name: cvi_rtsp
+commit_id: 44c8c9cb6a13f9897cd9e6e26386de4ee397f18f [feat]Audio and video synchronization
+

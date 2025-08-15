@@ -25,6 +25,7 @@ module-$(CONFIG_MODULE_TDL_FD_FACE)		    += ai_face
 module-$(CONFIG_MODULE_TDL_PD)		        += ai_pd
 module-$(CONFIG_MODULE_TDL_MD)		        += ai_md
 module-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)	+= ai_human_keypoint_detect
+module-$(CONFIG_MODULE_TDL_MOTION)		    += ai_motion
 module-$(CONFIG_MODULE_RECORD)				+= record
 
 

@@ -270,26 +270,19 @@ static CVI_VOID *Thread_PD_PROC(CVI_VOID *arg)
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
         }
         TDL_DestroyImage(image_handle);
-        // if (obj_meta.size == 0 || obj_meta.info == NULL) {
-        //     TDL_ReleaseObjectMeta(&obj_meta);
-        //     TDL_DestroyImage(image_handle);
-        //     if (g_stPDObjDraw.info != NULL) { 
-        //         TDL_ReleaseObjectMeta(&g_stPDObjDraw);
-                
-        //     }
-        //     continue;
-        // }
+
         if (obj_meta.size == 0) {
             continue;
         }
-        
-        SMT_MutexAutoLock(g_PDMutex, lock);
-        if (g_stPDObjDraw.info != NULL) { 
-            TDL_ReleaseObjectMeta(&g_stPDObjDraw);
-        }
+        {
+            SMT_MutexAutoLock(g_PDMutex, lock);
+            if (g_stPDObjDraw.info != NULL) {
+                TDL_ReleaseObjectMeta(&g_stPDObjDraw);
+            }
 
-        memset(&g_stPDObjDraw, 0, sizeof(TDLObject));
-        deep_copy_tdl_object(&g_stPDObjDraw, &obj_meta);
+            memset(&g_stPDObjDraw, 0, sizeof(TDLObject));
+            deep_copy_tdl_object(&g_stPDObjDraw, &obj_meta);
+        }
         TDL_ReleaseObjectMeta(&obj_meta);
     }
 

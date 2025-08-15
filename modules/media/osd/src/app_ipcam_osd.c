@@ -640,7 +640,7 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
             TDL_ReleaseObjectMeta(&g_objMetaPd);
         }
     }
-    #endif
+#endif
 #ifdef TDL_MD_SUPPORT
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowMdRect[iOsdcIndex]) {
         app_ipcam_Ai_MD_ObjDrawInfo_Get(&g_objMetaMd);
@@ -665,7 +665,7 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
             TDL_ReleaseObjectMeta(&g_objMetaMd);
         }
     }
-    #endif
+#endif
 
 #ifdef TDL_FD_SUPPORT
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowFdRect[iOsdcIndex]) {

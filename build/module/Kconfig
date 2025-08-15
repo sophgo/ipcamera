@@ -196,6 +196,13 @@ config MODULE_TDL_HUMAN_KEYPOINT
 	help
 		enable ai human keypoint detect in applicant
 
+config MODULE_TDL_MOTION
+	bool "enable module ai motion"
+	default n
+	depends on MODULE_TDL
+	help
+		enable ai motion in applicant
+
 menuconfig MODULE_ENABLE_FRAMEBUFFER
 	bool "enable module eanble framebuffer"
 	default n

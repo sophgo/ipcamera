@@ -369,12 +369,15 @@ static CVI_VOID *Thread_FD_PROC(CVI_VOID *arg)
             continue;
         }
 
-        SMT_MutexAutoLock(g_FDMutex, lock);
-        if (g_stFDObjDraw.info != NULL) {
-            TDL_ReleaseFaceMeta(&g_stFDObjDraw);
+        {
+            SMT_MutexAutoLock(g_FDMutex, lock);
+            if (g_stFDObjDraw.info != NULL) {
+                TDL_ReleaseFaceMeta(&g_stFDObjDraw);
+            }
+            memset(&g_stFDObjDraw, 0, sizeof(TDLFace));
+            DeepCopy_TDLFace(&g_stFDObjDraw, &face);
         }
-        memset(&g_stFDObjDraw, 0, sizeof(TDLFace));
-        DeepCopy_TDLFace(&g_stFDObjDraw, &face);
+
         TDL_ReleaseFaceMeta(&face);
     }
 

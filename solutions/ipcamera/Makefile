@@ -33,7 +33,6 @@ else
 endif
 #
 SUBDIRS := \
-	$(SRCTREE)/components \
 	$(SRCTREE)/modules \
 #
 all : $(SUBDIRS) $(TARGET)
@@ -52,7 +51,6 @@ $(TARGET) : $(OBJS)
 
 clean:
 	$(MAKE) -C $(SRCTREE)/modules clean
-	$(MAKE) -C $(SRCTREE)/components clean
 	$(Q)rm -rf $(TARGET)
 	$(Q)rm -rf $(TARGET_OUT_DIR)
 	$(Q)rm -rf $(SRCTREE)/install

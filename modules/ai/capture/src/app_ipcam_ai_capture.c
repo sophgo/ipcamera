@@ -77,16 +77,19 @@ CVI_BOOL app_ipcam_Ai_Capture_Pause_Get(void)
 CVI_VOID app_ipcam_Ai_Cap_ObjDrawInfo_Get(TDLObject *pstAiObj)
 {
     if (pstAiObj == NULL) return;
-    SMT_MutexAutoLock(g_Mutex, lock);
-    if (g_stObjDraw.size == 0 ||
+    if (pstAiObj == NULL ||
+        g_stObjDraw.size == 0 ||
         g_stObjDraw.info == NULL ||
         pstAiObj->info == NULL) {
         pstAiObj->size = 0;
         return;
     }
 
-    pstAiObj->size = g_stObjDraw.size <= 100 ? g_stObjDraw.size : 100;
-    memcpy(pstAiObj->info, g_stObjDraw.info, pstAiObj->size * sizeof(TDLObjectInfo));
+    {
+        SMT_MutexAutoLock(g_Mutex, lock);
+        pstAiObj->size = g_stObjDraw.size <= 100 ? g_stObjDraw.size : 100;
+        memcpy(pstAiObj->info, g_stObjDraw.info, pstAiObj->size * sizeof(TDLObjectInfo));
+    }
 
 }
 
@@ -139,13 +142,15 @@ static CVI_VOID *Thread_Capture_PROC(CVI_VOID *pArgs)
                 continue;
             }
 
-            SMT_MutexAutoLock(g_Mutex, lock);
-            g_stObjDraw.size = 0;
-            if (capture_info.person_meta.size > 0 &&
-                capture_info.person_meta.info != NULL &&
-                g_stObjDraw.info != NULL) {
-                g_stObjDraw.size = capture_info.person_meta.size <= 100 ? capture_info.person_meta.size : 100;
-                memcpy(g_stObjDraw.info, capture_info.person_meta.info, g_stObjDraw.size * sizeof(TDLObjectInfo));
+            {
+                SMT_MutexAutoLock(g_Mutex, lock);
+                g_stObjDraw.size = 0;
+                if (capture_info.person_meta.size > 0 &&
+                    capture_info.person_meta.info != NULL &&
+                    g_stObjDraw.info != NULL) {
+                    g_stObjDraw.size = capture_info.person_meta.size <= 100 ? capture_info.person_meta.size : 100;
+                    memcpy(g_stObjDraw.info, capture_info.person_meta.info, g_stObjDraw.size * sizeof(TDLObjectInfo));
+                }
             }
 
             TDL_ReleaseCaptureInfo(&capture_info);

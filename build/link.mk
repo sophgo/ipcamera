@@ -18,6 +18,7 @@ LIBS-$(CONFIG_MODULE_TDL_MD)                      += -lapp_paramparse_ai_md
 LIBS-$(CONFIG_MODULE_TDL_PD)                      += -lapp_paramparse_ai_pd
 LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_paramparse_ai_capture
 LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_paramparse_ai_face
+LIBS-$(CONFIG_MODULE_TDL_MOTION)                  += -lapp_paramparse_ai_motion
 LIBS-$(CONFIG_MODULE_TDL)                         += -lapp_paramparse_ai
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_paramparse_frmbuf
@@ -43,6 +44,7 @@ LIBS-$(CONFIG_MODULE_TDL_PD)                      += -lapp_tdl_pd
 LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_tdl_capture
 LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_tdl_fd_face
 LIBS-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)          += -lapp_tdl_human_keypoint_detect
+LIBS-$(CONFIG_MODULE_TDL_MOTION)                  += -lapp_tdl_motion
 
 LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
@@ -145,29 +147,31 @@ ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # AI libs static link
   AISDK := -ltdl_core-static
   TPU := -lcvikernel-static -lcviruntime-static -lcnpy -lcvimath-static -lz
   IVE := -lcvi_ive
+  TEAISP := -lteaisp
   ifeq ($(TARGET_MACHINE),$(filter $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu))
     OPENCV += -ltegra_hal -littnotify
   endif
   OPENCV +=  -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibjpeg-turbo -llibwebp -llibpng -llibtiff -llibopenjp2 -lzlib -latomic
-  LIBS-$(CONFIG_MODULE_TDL) += -Wl,--start-group -Wl,--allow-multiple-definition $(AISDK) $(IVE) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
+  LIBS-$(CONFIG_MODULE_TDL) += -Wl,--start-group -Wl,--allow-multiple-definition $(AISDK) $(IVE) $(TPU) $(OPENCV) $(JPEG-TUBRO) $(TEAISP) -Wl,--end-group
 else
   AISDK := -ltdl_core
-  IVE := -lcvi_ive
   TPU := -lcnpy  -lcvikernel  -lcvimath  -lcviruntime  -lz
-  LIBS-$(CONFIG_MODULE_TDL) += $(AISDK) $(TPU) $(IVE) $(JPEG-TUBRO)
+  IVE := -lcvi_ive
+  TEAISP := -lteaisp
+  LIBS-$(CONFIG_MODULE_TDL) += $(AISDK) $(TPU) $(IVE) $(JPEG-TUBRO) $(TEAISP)
 endif
 
 # MULTI_PROCESS_SUPPORT
 LIBS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -lnanomsg
 
 # RTSP
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_RTSP_DIR)/lib -lcvi_comp_rtsp
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcvi_comp_ringbuffer
-LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_OSAL_DIR)/lib -lcvi_comp_osal
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_RTSP_DIR)/lib -lcomp_rtsp
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
+LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_OSAL_DIR)/lib -lcomp_osal
 
 #RECORD
 LIBS-$(CONFIG_MODULE_RECORD) += -L$(FFMPEG_LIB_DIR) -lavformat -lavcodec -lavutil -lswresample
-LIBS-$(CONFIG_MODULE_RECORD) += -L$(RINGBUFFER_DIR)/lib -lcvi_comp_ringbuffer
+LIBS-$(CONFIG_MODULE_RECORD) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
 
 #NETWORK
 LIBS-$(CONFIG_MODULE_NETWORK) += -L$(THTTPD_LIB_DIR) -lthttpd
