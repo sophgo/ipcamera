@@ -16,7 +16,6 @@
 #include "app_ipcam_ircut.h"
 #ifdef SUPPORT_ISP_PQTOOL
 #include <dlfcn.h>
-#include "raw_dump.h"
 #endif
 
 
@@ -26,7 +25,6 @@
 #ifdef SUPPORT_ISP_PQTOOL
 #define ISPD_LIBNAME "libcvi_ispd2.so"
 #define ISPD_CONNECT_PORT 5566
-#define RAW_DUMP_LIBNAME "libraw_dump.so"
 #endif
 
 /**************************************************************************
@@ -49,7 +47,6 @@ static pthread_t g_IspPid[VI_MAX_DEV_NUM];
 
 #ifdef SUPPORT_ISP_PQTOOL
 static CVI_BOOL bISPDaemon = CVI_FALSE;
-static CVI_BOOL bRawDump = CVI_FALSE;
 #endif
 
 APP_PARAM_VI_PM_DATA_S ViPmData[VI_MAX_DEV_NUM] = { 0 };
@@ -387,21 +384,6 @@ static CVI_VOID app_ipcam_Ispd_Unload(CVI_VOID)
     }
 }
 
-static CVI_VOID app_ipcam_RawDump_Load(void)
-{
-    if (!bRawDump) {
-        cvi_raw_dump_init();
-    } else {
-        APP_PROF_LOG_PRINT(LEVEL_WARN, "%s already loaded\n", RAW_DUMP_LIBNAME);
-    }
-}
-
-static CVI_VOID app_ipcam_RawDump_Unload(CVI_VOID)
-{
-    if (bRawDump) {
-        cvi_raw_dump_uninit();
-    }
-}
 #endif
 
 int app_ipcam_Vi_framerate_Set(VI_PIPE ViPipe, CVI_S32 framerate)
@@ -846,7 +828,6 @@ int app_ipcam_Vi_Isp_Init(void)
 
 #ifdef SUPPORT_ISP_PQTOOL
     app_ipcam_Ispd_Load();
-    app_ipcam_RawDump_Load();
 #endif
 
     return CVI_SUCCESS;
@@ -968,7 +949,6 @@ int app_ipcam_Vi_Isp_Start(void)
 
 #ifdef SUPPORT_ISP_PQTOOL
     app_ipcam_Ispd_Load();
-    app_ipcam_RawDump_Load();
 #endif
 
     return CVI_SUCCESS;
@@ -987,7 +967,6 @@ int app_ipcam_Vi_Isp_Stop(void)
 
         #ifdef SUPPORT_ISP_PQTOOL
         app_ipcam_Ispd_Unload();
-        app_ipcam_RawDump_Unload();
         #endif
 
         if (g_IspPid[ViPipe]) {
@@ -1119,7 +1098,6 @@ int app_ipcam_Vi_Init(void)
         }
 #ifdef SUPPORT_ISP_PQTOOL
         app_ipcam_Ispd_Load();
-        app_ipcam_RawDump_Load();
 #endif
         return s32Ret;
     }
