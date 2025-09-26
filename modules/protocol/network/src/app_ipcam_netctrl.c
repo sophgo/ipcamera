@@ -1776,6 +1776,27 @@ static int SetRoiCfgCallBack(void *param, const char *cmd, const char *val)
 }
 
 #ifdef AI_SUPPORT
+
+#if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
+int CVI_IPC_NetCtrlSetCry(APP_CRY_INFO_S pscryinfo)
+{
+    if(app_ipcam_Ai_Cry_ProcStatus_Get() != pscryinfo.enabled)
+    {
+        if (pscryinfo.enabled)
+        {
+            app_ipcam_Ai_Cry_Start();
+            return 0;
+        }
+        else
+        {
+            app_ipcam_Ai_Cry_Stop();
+            return 0;
+        }
+    }
+    return 0;
+}
+#endif
+
 #ifdef MD_SUPPORT
 int CVI_IPC_NetCtrlSetMd(APP_MD_INFO_S psmdinfo)
 {
@@ -1804,6 +1825,7 @@ int CVI_IPC_NetCtrlSetMd(APP_MD_INFO_S psmdinfo)
 }
 #endif
 
+#ifdef PD_SUPPORT
 int CVI_IPC_NetCtrlSetPd(APP_PD_INFO_S pspdinfo)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
@@ -1872,6 +1894,7 @@ int CVI_IPC_NetCtrlSetPd(APP_PD_INFO_S pspdinfo)
     }
     return 0;
 }
+#endif
 
 static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
 {
@@ -1934,7 +1957,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     APP_PROF_LOG_PRINT(LEVEL_DEBUG,"enter: %s, %s %s\n", __func__, cmd, val);
     char decode[1024] = {0};
     cJSON *cjsonParser = NULL;
-    cJSON *cjsonObj = NULL;
+    // cJSON *cjsonObj = NULL;
     int ret = 0;
     #ifdef PD_SUPPORT
     APP_PD_INFO_S PdInfo = {0};
@@ -1942,7 +1965,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     #ifdef MD_SUPPORT
     APP_MD_INFO_S MdInfo = {0};
     #endif
-    #if defined AUDIO_SUPPORT && defined CRY_SUPPORT
+    #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     APP_CRY_INFO_S CryInfo = {0};
     #endif
     UrlDecode(val, decode);
@@ -1963,7 +1986,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
     MdInfo.threshold = atoi(cjsonObj->valuestring);
     #endif
-    #if defined AUDIO_SUPPORT && defined CRY_SUPPORT
+    #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     //cry
     cjsonObj = cJSON_GetObjectItem(cjsonParser, "cry_enable");
     _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
@@ -2034,7 +2057,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     #ifdef MD_SUPPORT
     ret = CVI_IPC_NetCtrlSetMd(MdInfo);
     #endif
-    #if defined AUDIO_SUPPORT && defined CRY_SUPPORT
+    #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     ret = CVI_IPC_NetCtrlSetCry(CryInfo);
     #endif
     #ifdef PD_SUPPORT

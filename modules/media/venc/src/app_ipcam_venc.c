@@ -390,6 +390,10 @@ int app_ipcam_Venc_Chn_Attr_Set(VENC_ATTR_S *pstVencAttr, APP_VENC_CHN_CFG_S *ps
     } else if (pstVencAttr->enType == PT_H265) {
         pstVencAttr->stAttrH265e.bRcnRefShareBuf = CVI_TRUE;
     }
+    if (pstVencAttr->enType == PT_MJPEG) {
+        pstVencAttr->bEsBufQueueEn = CVI_FALSE;
+        pstVencAttr->bIsoSendFrmEn = CVI_FALSE;
+    }
 
     APP_PROF_LOG_PRINT(LEVEL_TRACE,"enType=%d u32Profile=%d bSingleCore=%d\n",
         pstVencAttr->enType, pstVencAttr->u32Profile, pstVencAttr->bSingleCore);
@@ -629,6 +633,7 @@ int app_ipcam_Venc_Rc_Attr_Set(VENC_RC_ATTR_S *pstRCAttr, APP_VENC_CHN_CFG_S *ps
             pstMjpegeCbr->u32SrcFrameRate = SrcFrmRate;
             pstMjpegeCbr->fr32DstFrameRate = DstFrmRate;
             pstMjpegeCbr->u32BitRate = BitRate;
+            pstMjpegeCbr->bVariFpsEn = 0;
         } else if (pstVencChnCfg->enRcMode == VENC_RC_MODE_MJPEGVBR) {
             VENC_MJPEG_VBR_S *pstMjpegeVbr = &pstRCAttr->stMjpegVbr;
 
@@ -807,6 +812,10 @@ int app_ipcam_Venc_Rc_Param_Set(
             APP_PROF_LOG_PRINT(LEVEL_ERROR,"enRcMode(%d) not support\n", enRcMode);
             return CVI_FAILURE;
         }
+    }
+    break;
+    case PT_MJPEG: {
+        APP_PROF_LOG_PRINT(LEVEL_INFO,"enType (%d) set RC param!\n", enCodecType);
     }
     break;
     default:
@@ -1359,7 +1368,7 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
                 goto VENC_EXIT1;
             }
 
-            if ((enCodecType == PT_H265) || (enCodecType == PT_H264)) {
+            if ((enCodecType == PT_H265) || (enCodecType == PT_H264) || (enCodecType == PT_MJPEG)) {
                 if (enCodecType == PT_H264)
                 {
                     s32Ret = app_ipcam_Venc_H264Entropy_Set(VencChn);
@@ -1382,7 +1391,9 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
                         APP_PROF_LOG_PRINT(LEVEL_ERROR,"app_ipcam_Venc_Roi_Set [%d] failed with 0x%x\n", VencChn, s32Ret);
                         goto VENC_EXIT1;
                     }
-                } else {
+                }
+                else if (enCodecType == PT_H265)
+                {
                     s32Ret = app_ipcam_Venc_H265Trans_Set(VencChn);
                     if (s32Ret != CVI_SUCCESS) {
                         APP_PROF_LOG_PRINT(LEVEL_ERROR,"app_ipcam_Venc_H265Trans_Set [%d] failed with 0x%x\n", VencChn, s32Ret);

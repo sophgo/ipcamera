@@ -6,6 +6,8 @@
 #include <getopt.h>
 #include "minIni.h"
 #include "app_ipcam_paramparse.h"
+#include "tdl_model_def.h"
+#include "app_ipcam_ai.h"
 
 int Load_Param_Ai_CRY(const char * file)
 {
@@ -29,7 +31,7 @@ int Load_Param_Ai_CRY(const char * file)
     strncpy(Ai->model_path, tmp_buff, 128);
 
     ini_gets(tmp_section, "model_id", " ", str_name, PARAM_STRING_NAME_LEN, file);
-    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, ai_supported_model, CVI_TDL_SUPPORTED_MODEL_END, &enum_num);
+    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, ai_supported_model, TDL_MODEL_MAX, &enum_num);
     if (ret != CVI_SUCCESS) {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][model_id] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
     } else {

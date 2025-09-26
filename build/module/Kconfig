@@ -189,6 +189,27 @@ config MODULE_AI_HUMAN_KEYPOINT
 	help
 		enable ai human keypoint detect in applicant
 
+config MODULE_AI_OBJECT_TRACK
+	bool "enable module ai object tracking"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai object tracking in applicant
+		
+config MODULE_AI_KEYPOINT_HAND_GESTURE
+	bool "enable module ai keypoint hand gesture detect"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai keypoint hand gesture detect in applicant
+
+config MODULE_AI_IMG_TXT_CLIP
+	bool "enable module ai img txt clip"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai img txt clip in applicant
+
 config MODULE_PERIPHERAL
 	bool "enable module peripheral"
 	default n

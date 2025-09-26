@@ -149,6 +149,15 @@ static int app_ipcam_Exit(void)
     #ifdef HUMAN_KEYPOINT_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Stop(), "Human Keypoint Detection Stop");
     #endif
+    #ifdef OBJECT_TRACK_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Object_Track_Stop(), "ObjectTrack Stop");
+    #endif
+    #ifdef KEYPOINT_HAND_GESTURE_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Keypoint_Hand_Gesture_Stop(), "Keypoint Hand Gesture Detection Stop");
+    #endif
+    #ifdef IMG_TXT_CLIP_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Img_Txt_Clip_Stop(), "Img Txt Clip Stop");
+    #endif
     #endif
 
     #ifdef OSDC_SUPPORT
@@ -288,7 +297,7 @@ int main(int argc, char *argv[])
     #endif
 
     #ifdef AUDIO_SUPPORT
-    #ifdef CRY_SUPPORT
+    #ifdef AI_BABYCRY_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Cry_Start(), "running AI CRY");
     #endif
     #endif
@@ -297,6 +306,17 @@ int main(int argc, char *argv[])
     APP_CHK_RET(app_ipcam_Ai_Human_Keypoint_Start(), "Human Keypoint Detection Start");
     #endif
 
+    #ifdef OBJECT_TRACK_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Object_Track_Start(), "ObjectTrack Start");
+    #endif
+
+    #ifdef KEYPOINT_HAND_GESTURE_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Keypoint_Hand_Gesture_Start(), "Keypoint Hand Gesture Detection Start");
+    #endif
+
+    #ifdef IMG_TXT_CLIP_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_Img_Txt_Clip_Start(), "Img Txt Clip Stop");
+    #endif
     #endif
 
     #ifdef RECORD_SUPPORT

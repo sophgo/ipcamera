@@ -23,6 +23,7 @@ extern "C"
 #define APP_OSD_STR_LEN_MAX     64
 #define OSDC_OBJS_MAX 128
 #define OSDC_NUM_MAX 3
+#define OSDC_AI_STR_MAX 20
 
 #define COLOR_WHITE(FORMATE)  ((FORMATE) ? 0xFFFFFFFF : 0xFFFF)
 #define COLOR_BLACK(FORMATE)  ((FORMATE) ? 0xFF000000 : 0x8000)
@@ -65,7 +66,13 @@ typedef enum OSD_TYPE_T {
     TYPE_END
 } OSD_TYPE_E;
 
-
+typedef struct APP_OSDC_OBJS_AI_STR_INFO_T
+{
+    CVI_U64 u64BitmapPhyAddr[OSDC_AI_STR_MAX];
+    CVI_VOID *pBitmapVirAddr[OSDC_AI_STR_MAX];
+    CVI_S32 maxlen[OSDC_AI_STR_MAX];
+    CVI_U32 ai_str_num;
+}APP_OSDC_OBJS_AI_STR_INFO_S;
 
 typedef struct APP_OSDC_OBJS_INFO_T {
     CVI_BOOL bShow;
@@ -101,6 +108,7 @@ typedef struct APP_PARAM_OSDC_CFG_T {
     CVI_BOOL bShowPdRect[OSDC_NUM_MAX];
     CVI_BOOL bShowMdRect[OSDC_NUM_MAX];
     CVI_BOOL bShowFdRect[OSDC_NUM_MAX];
+    CVI_BOOL bShowTrackRect[OSDC_NUM_MAX];
     CVI_BOOL bShowHumanKeypointRect[OSDC_NUM_MAX];
     CVI_U32 osdcObjNum[OSDC_NUM_MAX];
     APP_OSDC_OBJS_INFO_S osdcObj[OSDC_NUM_MAX][OSDC_OBJS_MAX];

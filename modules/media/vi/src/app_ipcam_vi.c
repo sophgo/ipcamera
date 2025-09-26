@@ -478,6 +478,10 @@ int app_ipcam_Vi_Dev_Start(void)
         stViDevAttr.enWorkMode			= (VI_WORK_MODE_E)g_pstViCtx->stSensorCfg.sns_cfg.enChnMode[i];
         stViDevAttr.enScanMode          = VI_SCAN_PROGRESSIVE;
 
+        if(pstChnCfg->enPixFormat == PIXEL_FORMAT_YUYV||pstChnCfg->enPixFormat == PIXEL_FORMAT_YVYU
+            ||pstChnCfg->enPixFormat == PIXEL_FORMAT_UYVY||pstChnCfg->enPixFormat == PIXEL_FORMAT_VYUY) {
+                stViDevAttr.enYuvSceneMode = VI_ISP_YUV_SCENE_BYPASS;
+        }
         CVI_S32             s32PipeCnt = 0;
 
         APP_PROF_LOG_PRINT(LEVEL_INFO, "videv %d, snrFps %d, size %dx%d, intfMode %d, inputDataType %d, dataSeq %d, wdrMode %d, workMode %d\n",

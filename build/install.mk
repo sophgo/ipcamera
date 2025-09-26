@@ -35,6 +35,26 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES), y)
 endif
 # AI
 #ADD CV184X MODEL
+ifeq ($(CONFIG_MODULE_AI),y)
+	@cp -f $(TDL_PATH)/install/$(SOC_SEGMENT)/configs/model/model_factory.json $(APP_INSTALL_DIR)
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_TRACKING_FEARTACK),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_model/tracking_feartrack_128_128_256_256_INT8_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_YOLOV8N_DET_PERSON_VEHICLE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_model/yolov8n_det_person_vehicle_384_640_INT8_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_CLIP_IMG),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_model/feature_clip_image_224_224_W4BF16_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_CLIP_TXT),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_model/feature_clip_text_1_77_W4BF16_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
+	@cp -rf $(APP_RESOURCE_DIR)/clip_txt_dir $(APP_INSTALL_DIR)/
+endif
 # FILE  RECOVRY
 ifeq ($(CONFIG_RESOURCE_INSTALL_H264_PCM_TEMPLATE),y)
 	@cp -f $(APP_RESOURCE_DIR)/file_recover/h264_pcm_template.bin $(APP_INSTALL_DIR)

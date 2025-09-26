@@ -133,8 +133,7 @@ typedef struct APP_PARAM_AI_IR_FD_CFG_T {
     char model_path_fd[MODEL_PATH_LEN];
     char model_path_ln[MODEL_PATH_LEN];
     char model_path_fr[MODEL_PATH_LEN];
-    
-}APP_PARAM_AI_IR_FD_CFG_S;
+} APP_PARAM_AI_IR_FD_CFG_S;
 
 typedef struct APP_PARAM_AI_HUMAN_KEYPOINT_CFG_T {
     CVI_BOOL bEnable;
@@ -148,6 +147,54 @@ typedef struct APP_PARAM_AI_HUMAN_KEYPOINT_CFG_T {
     char model_path[MODEL_PATH_LEN];
     // cvtdl_service_brush_t rect_brush;
 } APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S;
+
+typedef struct APP_PARAM_AI_OBJECT_TRACK_CFG_T
+{
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+    CVI_U32 u32GrpHeight;
+    TDLModel model_id_det;
+    TDLModel model_id_sot;
+    char model_path_det[MODEL_PATH_LEN];
+    char model_path_sot[MODEL_PATH_LEN];
+    char model_path_cfg[MODEL_PATH_LEN];
+    float threshold_occluded;
+    float threshold_reappear;
+} APP_PARAM_AI_OBJECT_TRACK_CFG_S;
+
+typedef struct APP_PARAM_AI_IMG_TXT_CLIP_CFG_T
+{
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+    CVI_U32 u32GrpHeight;
+    TDLModel model_id_img;
+    TDLModel model_id_txt;
+    char model_path_img[MODEL_PATH_LEN];
+    char model_path_txt[MODEL_PATH_LEN];
+    char model_path_cfg[MODEL_PATH_LEN];
+    char txt_dir[MODEL_PATH_LEN];
+} APP_PARAM_AI_IMG_TXT_CLIP_S;
+
+typedef enum { DETECTION = 0, TRACKING = 1 } APP_PARAM_OBJECT_TRACK_MODE;
+
+typedef struct APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S {
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    float threshold;
+    TDLModel detect_model_id;
+    char detect_model_path[MODEL_PATH_LEN];
+    TDLModel keypoint_model_id;
+    char keypoint_model_path[MODEL_PATH_LEN];
+    TDLModel classify_model_id;
+    char classify_model_path[MODEL_PATH_LEN];
+    char model_path_cfg[MODEL_PATH_LEN];
+    CVI_BOOL bEnableClassification;  // 是否启用手势分类
+} APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S;
 
 /* Personnel detection function */
 APP_PARAM_AI_PD_CFG_S *app_ipcam_Ai_PD_Param_Get(void);
@@ -245,6 +292,43 @@ int app_ipcam_Ai_Human_Keypoint_Stop(void);
 int app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(TDLObject *pstAiObj);
 CVI_S32 app_ipcam_Human_Keypoint_threshold_Set(float threshold);
 CVI_S32 app_ipcam_Ai_Human_Keypoint_StatusGet(void);
+#endif
+
+#ifdef OBJECT_TRACK_SUPPORT
+APP_PARAM_AI_OBJECT_TRACK_CFG_S *app_ipcam_Ai_Object_Track_Param_Get(void);
+CVI_BOOL app_ipcam_Ai_Object_Track_Pause_Get(void);
+CVI_VOID app_ipcam_Ai_Object_Track_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Object_Track_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Object_Track_ProcStatus_Set(CVI_BOOL flag);
+int app_ipcam_Ai_Object_Track_Start(void);
+int app_ipcam_Ai_Object_Track_Stop(void);
+CVI_VOID app_ipcam_Ai_Object_Track_ObjDrawInfo_Get(TDLObject *pstAiObj);
+APP_PARAM_OBJECT_TRACK_MODE app_ipcam_Ai_Object_Track_Mode_Get(void);
+#endif
+
+#ifdef KEYPOINT_HAND_GESTURE_SUPPORT
+/* Keypoint Hand Gesture Detection function */
+APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S *app_ipcam_Ai_Keypoint_Hand_Gesture_Param_Get(void);
+CVI_VOID app_ipcam_Ai_Keypoint_Hand_Gesture_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Keypoint_Hand_Gesture_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Keypoint_Hand_Gesture_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Keypoint_Hand_Gesture_Pause_Get(void);
+int app_ipcam_Ai_Keypoint_Hand_Gesture_Start(void);
+int app_ipcam_Ai_Keypoint_Hand_Gesture_Stop(void);
+int app_ipcam_Ai_Keypoint_Hand_Gesture_ObjDrawInfo_Get(TDLObject *pstAiObj);
+CVI_S32 app_ipcam_Keypoint_Hand_Gesture_threshold_Set(float threshold);
+CVI_S32 app_ipcam_Ai_Keypoint_Hand_Gesture_StatusGet(void);
+#endif
+
+#ifdef IMG_TXT_CLIP_SUPPORT
+APP_PARAM_AI_IMG_TXT_CLIP_S *app_ipcam_Ai_Img_Txt_Clip_Param_Get(void);
+CVI_BOOL app_ipcam_Ai_Img_Txt_Clip_Pause_Get(void);
+CVI_VOID app_ipcam_Ai_Img_Txt_Clip_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Img_Txt_Clip_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Img_Txt_Clip_ProcStatus_Set(CVI_BOOL flag);
+int app_ipcam_Ai_Img_Txt_Clip_Start(void);
+int app_ipcam_Ai_Img_Txt_Clip_Stop(void);
+CVI_VOID app_ipcam_Ai_Img_Txt_Clip_ObjDrawInfo_Get(TDLObject *pstAiObj);
 #endif
 
 /*****************************************************************

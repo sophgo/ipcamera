@@ -62,8 +62,8 @@ static struct sockaddr_in gst_TargetAddr;
 static pthread_mutex_t RsAudioMutex = PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef AI_BABYCRY_SUPPORT
-#define AI_BUFFER_SECOND 2  //If use baby cry, plaease set 3
-static CVI_U8 *g_pCryBuffer;
+#define AI_BUFFER_SECOND 3  //If use baby cry, plaease set 3
+static CVI_U8 *g_pCryBuffer = NULL;
 static pthread_mutex_t g_CryMutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 

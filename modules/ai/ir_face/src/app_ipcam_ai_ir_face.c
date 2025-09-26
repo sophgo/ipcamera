@@ -266,19 +266,19 @@ static CVI_S32 app_ipcam_Ai_FD_init()
         return s32Ret;
     }
     //打开模型FD : scrfd_320_256.cvimodel
-    s32Ret = CVI_TDL_OpenModel(g_AI_Handle, CVI_TDL_SUPPORTED_MODEL_SCRFDFACE, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fd);
+    s32Ret = TDL_OpenModel(g_AI_Handle, CVI_TDL_SUPPORTED_MODEL_SCRFDFACE, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fd);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, " CVI_TDL_OpenModel err ret %d module_path: %s \r\n", s32Ret, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fd);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, " TDL_OpenModel err ret %d module_path: %s \r\n", s32Ret, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fd);
     }
     //打开模型LN : liveness.cvimodel
-    s32Ret = CVI_TDL_OpenModel(g_AI_Handle, CVI_TDL_SUPPORTED_MODEL_IRLIVENESS, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
+    s32Ret = TDL_OpenModel(g_AI_Handle, TDL_SUPPORTED_MODEL_IRLIVENESS, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, " CVI_TDL_OpenModel err ret %d module_path: %s \r\n", s32Ret, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, " TDL_OpenModel err ret %d module_path: %s \r\n", s32Ret, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
     }
     //打开模型IRFR : ir_recogition.cvimodel
-    s32Ret = CVI_TDL_OpenModel(g_AI_Handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
+    s32Ret = TDL_OpenModel(g_AI_Handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, " CVI_TDL_OpenModel err ret %d module_path: %s \r\n", s32Ret, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, " TDL_OpenModel err ret %d module_path: %s \r\n", s32Ret, app_ipcam_Ai_IR_FD_Param_Get()->model_path_fr);
     }
     if (app_ipcam_Ai_IR_FD_Param_Get()->bVpssPreProcSkip) {
         //预处理

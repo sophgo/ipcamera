@@ -30,7 +30,7 @@ static APP_PARAM_AI_CRY_CFG_S *g_pstCryCfg = &g_stCryCfg;
 static volatile bool g_bCryRunning = CVI_FALSE;
 static volatile bool g_bCryPause = CVI_FALSE;
 static pthread_t g_CryThreadHandle;
-static cvitdl_handle_t g_CryAiHandle = NULL;
+static TDLHandle g_CryAiHandle = NULL;
 
 /**************************************************************************
  *                 E X T E R N A L    R E F E R E N C E S                 *
@@ -111,7 +111,7 @@ static CVI_VOID *Thread_Cry_PROC(CVI_VOID *pArgs)
     CVI_S32 s32Ret = CVI_SUCCESS;
     CVI_U32 u32BufferSize = u32SampleRate * (CVI_U32)(pstAudioCfg->astAudioCfg.enBitwidth + 1) * second;
     // classify the sound result
-    CVI_S32 index = -1;
+    TDLClassInfo obj_info = {0};
     // Set audio buffer, 3 or 2 seconds
     CVI_U8 buffer[u32BufferSize];
     memset(buffer, 0, u32BufferSize);
@@ -120,6 +120,7 @@ static CVI_VOID *Thread_Cry_PROC(CVI_VOID *pArgs)
     Frame.stVFrame.pu8VirAddr[0] = buffer;  // Global buffer
     Frame.stVFrame.u32Height = 1;
     Frame.stVFrame.u32Width = u32BufferSize;
+    TDLImage image_handle;
 
     while (app_ipcam_Ai_Cry_ProcStatus_Get()) {
         if (app_ipcam_Ai_Cry_Pause_Get()) {
@@ -134,13 +135,20 @@ static CVI_VOID *Thread_Cry_PROC(CVI_VOID *pArgs)
             continue;
         }
 
-        s32Ret = CVI_TDL_SoundClassification(g_CryAiHandle, &Frame, &index);  // Detect the audio
+        image_handle = TDL_WrapFrame((void*)&Frame, false);
+        if (image_handle == NULL) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "image is NULL\n");
+            continue;
+        }
+
+        s32Ret = TDL_Classification(g_CryAiHandle, g_pstCryCfg->model_id, image_handle, &obj_info);  // Detect the audio
+        
         if((g_pstCryCfg->application_scene))  //AUDIO ORDER
         {
             if (s32Ret == CVI_SUCCESS)
-                APP_PROF_LOG_PRINT(LEVEL_DEBUG,"esc class: %s\n", g_stEnumOrderStr[index]);
+                APP_PROF_LOG_PRINT(LEVEL_DEBUG,"esc class: %s\n", g_stEnumOrderStr[obj_info.class_id]);
 
-            if(index > 0)
+            if(obj_info.class_id > 0)
                 //If it's key word, sleep more time
                 usleep(AI_ORDER_PAUSE_TIME_MS);
             else
@@ -148,11 +156,11 @@ static CVI_VOID *Thread_Cry_PROC(CVI_VOID *pArgs)
         }
         else  //BABY CRY
         {
-            if (s32Ret == CVI_SUCCESS)
-                APP_PROF_LOG_PRINT(LEVEL_DEBUG,"esc class: %s\n", g_stEnumCryStr[index]);
+            if (s32Ret == CVI_SUCCESS && obj_info.class_id == 1)
+                APP_PROF_LOG_PRINT(LEVEL_INFO,"esc class: %s\n", g_stEnumCryStr[obj_info.class_id]);
             usleep(AI_NO_ORDER_PAUSE_TIME_MS);
         }
-
+        TDL_DestroyImage(image_handle);  // 释放TDLImage
     }
     pthread_exit(NULL);
 
@@ -167,30 +175,23 @@ static CVI_S32 app_ipcam_Ai_Cry_Proc_Init(CVI_VOID)
 
     if (g_CryAiHandle == NULL)
     {
-        s32Ret = CVI_TDL_CreateHandle(&g_CryAiHandle);
-        if (s32Ret != CVI_SUCCESS)
+        g_CryAiHandle = TDL_CreateHandle(0);
+        if (g_CryAiHandle == NULL)
         {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_CreateHandle failed with %#x!\n", s32Ret);
-            return s32Ret;
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_CreateHandle failed!\n");
+            return CVI_FAILURE;
         }
     }
     else
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_CreateHandle has created\n");
-        return s32Ret;
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_CreateHandle has created\n");
+        return CVI_SUCCESS;
     }
 
-    s32Ret = CVI_TDL_SetPerfEvalInterval(g_CryAiHandle, CVI_TDL_SUPPORTED_MODEL_SOUNDCLASSIFICATION, 10);
+    s32Ret = TDL_OpenModel(g_CryAiHandle, g_pstCryCfg->model_id, g_pstCryCfg->model_path, NULL);
     if (s32Ret != CVI_SUCCESS)
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_SetPerfEvalInterval failed with %#x!\n", s32Ret);
-        return s32Ret;
-    }
-
-    s32Ret = CVI_TDL_OpenModel(g_CryAiHandle, CVI_TDL_SUPPORTED_MODEL_SOUNDCLASSIFICATION, g_pstCryCfg->model_path);
-    if (s32Ret != CVI_SUCCESS)
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_SetModelPath failed with %#x! maybe reset model path\n", s32Ret);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_OpenModel failed with %#x! maybe reset model path\n", s32Ret);
         return s32Ret;
     }
 
@@ -225,10 +226,10 @@ int app_ipcam_Ai_Cry_Stop(void)
         g_CryThreadHandle = 0;
     }
 
-    s32Ret = CVI_TDL_DestroyHandle(g_CryAiHandle);
+    s32Ret = TDL_DestroyHandle(g_CryAiHandle);
     if (s32Ret != CVI_SUCCESS)
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_DestroyHandle failed with 0x%x!\n", s32Ret);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_DestroyHandle failed with 0x%x!\n", s32Ret);
         return s32Ret;
     }
     else

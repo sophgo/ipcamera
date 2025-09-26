@@ -18,6 +18,9 @@ LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_paramparse_ai_face
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_paramparse_ai_ir_face
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_paramparse_ai_babycry
 LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_paramparse_ai_human_keypoint_detect
+LIBS-$(CONFIG_MODULE_AI_OBJECT_TRACK)             += -lapp_paramparse_ai_object_track
+LIBS-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)    += -lapp_paramparse_ai_keypoint_hand_gesture
+LIBS-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)             += -lapp_paramparse_ai_img_txt_clip
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_paramparse_pwm
@@ -41,6 +44,9 @@ LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_ai_fd_cace
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_ai_irface
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_ai_babycry
 LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_ai_human_keypoint_detect
+LIBS-$(CONFIG_MODULE_AI_OBJECT_TRACK)             += -lapp_ai_object_track
+LIBS-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)    += -lapp_ai_keypoint_hand_gesture
+LIBS-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)             += -lapp_ai_img_txt_clip
 
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_panel
@@ -139,8 +145,6 @@ TPU =  -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
 endif
 OPENCV += -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
 LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
-LIBS-$(CONFIG_MODULE_AI) += -lvi -lvpss -lvo -lrgn -lgdc
-
 
 ## MULTI_PROCESS_SUPPORT
 LIBS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -lnanomsg
@@ -162,7 +166,6 @@ LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR) -L$(OPENSSL_LIB_DIR) -l
 LIBS-$(CONFIG_MODULE_OTA) += -lapp_ota
 LIBS += $(LIBS-y)
 
-
 ifeq ($(CONFIG_MODULE_AI), y)
   LIBS += -Wl,-Bdynamic -ldl -pthread
 else
@@ -175,5 +178,6 @@ else
     LIBS += -Wl,-Bdynamic -ldl -pthread
   endif
 endif
+
 
 

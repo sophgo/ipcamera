@@ -194,6 +194,24 @@ __attribute__((weak)) int Load_Param_Ai_HumanKeypoint(const char *file)
     return 0;
 }
 
+__attribute__((weak)) int Load_Param_Ai_KeypointHandGesture(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
+
+__attribute__((weak)) int Load_Param_Ai_OBJECT_TRACK(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
+
+__attribute__((weak)) int Load_Param_Ai_Img_Txt_Clip(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
+
 __attribute__((weak)) int Load_Param_Record(const char *file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
@@ -483,6 +501,10 @@ int app_ipcam_Param_Load(void)
     APP_CHK_RET(Load_Param_Ai_IRFD(ParamCfgFile), "Load AI IR FD Param");
     APP_CHK_RET(Load_Param_Ai_CRY(ParamCfgFile), "Load AI Cry Param");
     APP_CHK_RET(Load_Param_Ai_HumanKeypoint(ParamCfgFile), "Load AI Human Keypoint Param");
+    APP_CHK_RET(Load_Param_Ai_OBJECT_TRACK(ParamCfgFile), "Load AI OBJECT TRACK Param");
+    APP_CHK_RET(Load_Param_Ai_KeypointHandGesture(ParamCfgFile), "Load AI Keypoint Hand Gesture Param");
+    APP_CHK_RET(Load_Param_Ai_OBJECT_TRACK(ParamCfgFile), "Load AI Object Track Param");
+    APP_CHK_RET(Load_Param_Ai_Img_Txt_Clip(ParamCfgFile), "Load AI Image Txt Clip Param");
     APP_CHK_RET(Load_Param_Record(ParamCfgFile), "Load Record Param");
     return CVI_SUCCESS;
 }

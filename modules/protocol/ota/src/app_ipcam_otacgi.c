@@ -831,9 +831,13 @@ int app_ipcam_OTA_CloseThreadBeforeUpgrade(void)
     APP_CHK_RET(app_ipcam_Osdc_DeInit(), "OsdC DeInit");
 
     #ifdef AI_SUPPORT
+    #ifdef PD_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_PD_Stop(), "PD Stop");
+    #endif
 
+    #ifdef MD_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_MD_Stop(), "MD Stop");
+    #endif
 
     #ifdef FACE_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_FD_Stop(), "FD Stop");
