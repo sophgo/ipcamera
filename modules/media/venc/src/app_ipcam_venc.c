@@ -1083,6 +1083,8 @@ static void *Thread_StreamTask_Proc(void *pArgs)
 
 static void *Thread_Streaming_Proc(void *pArgs)
 {
+    CVI_BOOL bVencSuccessFlag = CVI_FALSE;
+    CVI_S32 s32VencCount = 0;
     CVI_S32 s32Ret = CVI_SUCCESS;
     APP_VENC_CHN_CFG_S *pastVencChnCfg = (APP_VENC_CHN_CFG_S *)pArgs;
     VENC_CHN VencChn = pastVencChnCfg->VencChn;
@@ -1145,6 +1147,18 @@ static void *Thread_Streaming_Proc(void *pArgs)
         if ((1 == stStream.u32PackCount) && (stStream.pstPack[0].u32Len > P_MAX_SIZE)) {
             APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VENC_GetStream, VencChn(%d) p oversize:%d\n", VencChn, stStream.pstPack[0].u32Len);
         } else {
+            // auto test venc success flag
+            s32VencCount ++ ;
+            if(bVencSuccessFlag == CVI_FALSE && s32VencCount > 10){
+                bVencSuccessFlag = CVI_TRUE;
+                int fd = open("/tmp/auto_test_success", O_RDWR | O_CREAT | O_TRUNC, 0644);
+                if (fd == -1) {
+                    perror("open");
+                }
+                close(fd);
+                printf("[auto_test] CVI_VENC_GetStream success.\n");
+            }
+
             stFrameInfo.frameParam.frameLen = 0;
             int iLen = 0;
             for (CVI_U32 i= 0; i < stStream.u32PackCount; i++)

@@ -88,7 +88,7 @@ endif
 
 ## PQTOOL
 LIBS-$(CONFIG_MODULE_PQTOOL) += -L$(TOP_DIR)/libsophon/install/libsophon-0.4.9/lib
-LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -laf -lisp -lcvi_json-c -lbmlib
+LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -laf -lisp -lbmlib
 
 LIBS-$(CONFIG_SUPPORT_ATOMIC) += -latomic
 LIBS-y += -L$(MW_PATH)/lib/3rd
@@ -135,6 +135,8 @@ LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/opencv-src/l
 LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/opencv-src/lib/opencv4/3rdparty
 LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/CV184X/_deps/zlib-src/lib
 LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk//build/CV184X/_deps/curl-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk//build/CV184X/_deps/kaldi-native-fbank-build
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk//build/CV184X/_deps/kissfft-build
 
 ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
 AISDK := -ltdl_core-static
@@ -143,7 +145,7 @@ else
 AISDK := -Wl,-Bdynamic -ltdl_core
 TPU =  -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
 endif
-OPENCV += -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
+OPENCV += -lkaldi-native-fbank-core -lkissfft-float -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
 LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
 
 ## MULTI_PROCESS_SUPPORT
