@@ -132,21 +132,21 @@ CVI_S32 app_ipcam_Vdec_Soft_Start(APP_VDEC_SOFT_CHN_E VencSoftIdx)
                 , pstVdecSoftChnCfg->decode_file_name);
             goto FREE_MEM;
         }
-        
+
         pstVdecSoftChnCfg->pstAVPacket  = av_packet_alloc();
         if (!pstVdecSoftChnCfg->pstAVPacket) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "pstAVPacket malloc failed.\n");
             goto FREE_MEM;
         }
         memset(pstVdecSoftChnCfg->pstAVPacket->data, 0, bufSize);
-        
+
         bufSize = (pstVdecSoftChnCfg->u32Width * pstVdecSoftChnCfg->u32Height * 3) >> 1;
         pstVdecSoftChnCfg->pstAVPacket->data = (CVI_U8 *)malloc(bufSize);
         if (!pstVdecSoftChnCfg->pstAVPacket) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "pstAVPacket malloc failed.\n");
             goto FREE_MEM;
         }
-        
+
         pstVdecSoftChnCfg->pstDecFrame = av_frame_alloc();
         if (!pstVdecSoftChnCfg->pstDecFrame) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "pstDecFrame malloc failed.\n");
@@ -162,7 +162,7 @@ CVI_S32 app_ipcam_Vdec_Soft_Start(APP_VDEC_SOFT_CHN_E VencSoftIdx)
         pstVdecSoftChnCfg->pstResultFrame->width       = pstVdecSoftChnCfg->u32Width;
         pstVdecSoftChnCfg->pstResultFrame->height      = pstVdecSoftChnCfg->u32Height;
         pstVdecSoftChnCfg->pstResultFrame->linesize[0] = pstVdecSoftChnCfg->u32Width * 2;
-        
+
         s32Ret = av_image_alloc(pstVdecSoftChnCfg->pstResultFrame->data
                             , pstVdecSoftChnCfg->pstResultFrame->linesize
                             , pstVdecSoftChnCfg->pstResultFrame->width
@@ -293,13 +293,13 @@ CVI_S32 app_ipcam_Vdec_Soft_Init(CVI_VOID)
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Can not find codec:%d\n", pstVdecSoftChnCfg->de_type);
             goto INIT_EXIT;
         }
-        
+
         pstVdecSoftChnCfg->pAVCodecCtx = avcodec_alloc_context3(pstVdecSoftChnCfg->pAVCodec);
         if (!pstVdecSoftChnCfg->pAVCodecCtx) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to alloc codec context.");
             goto INIT_EXIT;
         }
-            
+
         if (avcodec_open2(pstVdecSoftChnCfg->pAVCodecCtx, pstVdecSoftChnCfg->pAVCodec, NULL) < 0){
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to open decoder");
             goto INIT_EXIT;
@@ -336,7 +336,7 @@ CVI_S32 app_ipcam_Vdec_Soft_Init(CVI_VOID)
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "Vdec soft init ------------------> done \n");
-    
+
     return CVI_SUCCESS;
 }
 

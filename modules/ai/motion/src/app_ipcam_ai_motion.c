@@ -19,6 +19,11 @@ APP_PARAM_AI_Motion_CFG_S *app_ipcam_Ai_Motion_Param_Get(void)
 
 int app_ipcam_Ai_Motion_Start(void)
 {
+    if (g_pstMotionCfg->bEnable == false) {
+        APP_PROF_LOG_PRINT(LEVEL_WARN, "ai motion not enable\n");
+        return CVI_SUCCESS;
+    }
+    
     VI_PIPE ViPipe = 0;
     CVI_S32 dev = 0;
     CVI_S32 iso = 0;
@@ -27,7 +32,9 @@ int app_ipcam_Ai_Motion_Start(void)
 
     ViPipe = g_pstMotionCfg->ViPipe;
     dev = g_pstMotionCfg->dev_num;//according to ISP init settings
-    
+    iso = g_pstMotionCfg->iso;
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "ai motion enable, ViPipe=%d, dev=%d, iso=%d\n", ViPipe, dev, iso);
+
     s32Ret = CVI_TEAISP_Init(ViPipe, dev);
     if (s32Ret != CVI_SUCCESS) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TEAISP_Init failed with %#x!\n", s32Ret);

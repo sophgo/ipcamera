@@ -26,6 +26,7 @@ int Load_Param_Ai_FD(const char * file)
 
     Ai->FD_bEnable       = ini_getl(tmp_section, "fd_enable", 0, file);
     Ai->FEA_bEnable      = ini_getl(tmp_section, "fea_enable", 0, file);
+    Ai->FD_ATTR_bEnable  = ini_getl(tmp_section, "fd_attr_enable", 0, file);
     Ai->VpssGrp          = ini_getl(tmp_section, "vpss_grp", 0, file);
     Ai->VpssChn          = ini_getl(tmp_section, "vpss_chn", 0, file);
     Ai->u32GrpWidth      = ini_getl(tmp_section, "grp_width", 0, file);
@@ -37,6 +38,10 @@ int Load_Param_Ai_FD(const char * file)
     strncpy(Ai->model_path_fd, tmp_buff, 128);
     ini_gets(tmp_section, "model_path_fea", " ", tmp_buff, 128, file);
     strncpy(Ai->model_path_fea, tmp_buff, 128);
+    ini_gets(tmp_section, "model_path_landmark", " ", tmp_buff, 128, file);
+    strncpy(Ai->model_path_landmark, tmp_buff, 128);
+    ini_gets(tmp_section, "model_path_fd_attr", " ", tmp_buff, 128, file);
+    strncpy(Ai->model_path_fd_attr, tmp_buff, 128);
     ini_gets(tmp_section, "gallery_dir", " ", tmp_buff, 128, file);
     strncpy(Ai->gallery_dir_path, tmp_buff, 128);
     ini_gets(tmp_section, "model_cfg_path", " ", tmp_buff, 128, file);
@@ -58,6 +63,25 @@ int Load_Param_Ai_FD(const char * file)
     } else {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][model_id_fea] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
         Ai->model_id_fea = enum_num;
+    }
+
+    ini_gets(tmp_section, "model_id_landmark", " ", str_name, PARAM_STRING_NAME_LEN, file);
+    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, ai_supported_model, TDL_MODEL_MAX, &enum_num);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][model_id_fea] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
+    } else {
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][model_id_fea] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
+        Ai->model_id_landmark = enum_num;
+    }
+
+
+    ini_gets(tmp_section, "model_id_fd_attr", " ", str_name, PARAM_STRING_NAME_LEN, file);
+    ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, ai_supported_model, TDL_MODEL_MAX, &enum_num);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][model_id_fd_attr] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
+    } else {
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][model_id_fd_attr] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
+        Ai->model_id_fd_attr = enum_num;
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "bEnable=%d Grp=%d Chn=%d GrpW=%d GrpH=%d threshold=%f\n",

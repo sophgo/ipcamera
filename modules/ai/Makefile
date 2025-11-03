@@ -8,6 +8,7 @@ module-$(CONFIG_MODULE_TDL_MD)					+= md
 module-$(CONFIG_MODULE_TDL_PD)					+= pd
 module-$(CONFIG_MODULE_TDL_FD_FACE)				+= face
 module-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)		+= human_keypoint_detect
+module-$(CONFIG_MODULE_TDL_SOUND_CLS)		    += baby_cry
 
 SUBDIRS += $(module-y)
 

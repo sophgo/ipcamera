@@ -6,12 +6,8 @@
 #include "app_ipcam_venc.h"
 #include "cvi_mbuf.h"
 
-#ifdef AUDIO_SUPPORT
+#ifdef MPI_AUDIO_MODULE_SUPPORT
 #include "app_ipcam_audio.h"
-#endif
-
-#ifdef __CV184X__
-#include <string.h>
 #endif
 /**************************************************************************
  *                              M A C R O S                               *
@@ -73,7 +69,7 @@ static CVI_S32 app_ipcam_RtspAttr_Init(VENC_CHN vencChn, CVI_S32 session_id
 
     pstAttr->framerate = pstVencChnCfg->u32DstFrameRate;
 
-#ifdef AUDIO_SUPPORT
+#ifdef MPI_AUDIO_MODULE_SUPPORT
     pstAttr->audio_en = CVI_TRUE;
     APP_PARAM_AUDIO_CFG_T *pstAudioCfg = app_ipcam_Audio_Param_Get();
     if (pstAudioCfg == NULL) {
@@ -140,7 +136,7 @@ static void rtsp_service_media_task(void *arg)
         return ;
     }
 
-#ifndef AUDIO_SUPPORT
+#ifndef MPI_AUDIO_MODULE_SUPPORT
     CVI_S32 audio_null_data_len = 64;
     CVI_U8 *audio_null_data = (CVI_U8 *)malloc(64);
     if (audio_null_data == NULL){
@@ -181,7 +177,7 @@ static void rtsp_service_media_task(void *arg)
                 if (s32Ret != CVI_SUCCESS) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "RTSP_WriteFrame failed\n");
                 }
-#ifndef AUDIO_SUPPORT
+#ifndef MPI_AUDIO_MODULE_SUPPORT
                 // send audio null data
                 frame.type = FRAME_TYPE_AUDIO;
                 frame.data[0] = audio_null_data;
@@ -206,7 +202,7 @@ static void rtsp_service_media_task(void *arg)
         }
     }
 
-#ifndef AUDIO_SUPPORT
+#ifndef MPI_AUDIO_MODULE_SUPPORT
     if (audio_null_data) {
         free(audio_null_data);
     }

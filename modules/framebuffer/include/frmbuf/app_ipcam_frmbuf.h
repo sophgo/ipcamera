@@ -12,11 +12,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include <linux/cvi_common.h>
 
 #ifdef __cplusplus
@@ -55,7 +51,7 @@ typedef struct APP_PARAM_FRMBUF_CTX_T {
     CVI_S32 fbfd;
     CVI_VOID *fbp;
     struct fb_var_screeninfo vinfo;
-    struct fb_fix_screeninfo finfo; 
+    struct fb_fix_screeninfo finfo;
     CVI_S32 thread_enable_flag;
     CVI_S32 screensize;
     pthread_t show_thread;

@@ -2,11 +2,7 @@
 #define __APP_IPCAM_AUDIO_H__
 
 #include <stdbool.h>
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include "cvi_comm_aio.h"
 
 #ifdef __cplusplus

@@ -7,7 +7,8 @@ LIBS-$(CONFIG_MODULE_MEDIA_VI)                    += -lapp_paramparse_vi
 LIBS-$(CONFIG_MODULE_MEDIA_VPSS)                  += -lapp_paramparse_vpss
 LIBS-$(CONFIG_MODULE_MEDIA_VENC)                  += -lapp_paramparse_venc
 LIBS-$(CONFIG_MODULE_MEDIA_OSD)                   += -lapp_paramparse_osd
-LIBS-$(CONFIG_MODULE_MEDIA_DEC)                   += -lapp_paramparse_vdec
+LIBS-$(CONFIG_MODULE_MEDIA_VDEC)                  += -lapp_paramparse_vdec
+LIBS-$(CONFIG_MODULE_MEDIA_VO)                    += -lapp_paramparse_vo
 LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT)               += -lapp_paramparse_vdecsoft
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)                 += -lapp_paramparse_audio
 LIBS-$(CONFIG_MODULE_MEDIA_STITCH)                += -lapp_paramparse_stitch
@@ -19,8 +20,9 @@ LIBS-$(CONFIG_MODULE_TDL_PD)                      += -lapp_paramparse_ai_pd
 LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_paramparse_ai_capture
 LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_paramparse_ai_face
 LIBS-$(CONFIG_MODULE_TDL_MOTION)                  += -lapp_paramparse_ai_motion
+LIBS-$(CONFIG_MODULE_TDL_SOUND_CLS)               += -lapp_paramparse_ai_babycry
 LIBS-$(CONFIG_MODULE_TDL)                         += -lapp_paramparse_ai
-LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
+LIBS-$(CONFIG_MODULE_PANEL)                       += -lapp_paramparse_panel
 LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_paramparse_frmbuf
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_paramparse_pwm
@@ -45,10 +47,11 @@ LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_tdl_capture
 LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_tdl_fd_face
 LIBS-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)          += -lapp_tdl_human_keypoint_detect
 LIBS-$(CONFIG_MODULE_TDL_MOTION)                  += -lapp_tdl_motion
+LIBS-$(CONFIG_MODULE_TDL_SOUND_CLS)               += -lapp_tdl_sound_cls
 
 LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
-LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
-LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_panel
+LIBS-$(CONFIG_MODULE_PANEL)                       += -lapp_panel
+
 
 LIBS-$(CONFIG_MODULE_CLOUD)                       += -lapp_hal_plat
 LIBS-$(CONFIG_MODULE_AKYCLOUD)                    += -lapp_akysmart
@@ -59,7 +62,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_VPSS)                  += -lapp_media_vpss
 LIBS-$(CONFIG_MODULE_MEDIA_VENC)                  += -lapp_media_venc
 LIBS-$(CONFIG_MODULE_MEDIA_OSD)                   += -lapp_media_osd
 LIBS-$(CONFIG_MODULE_MEDIA_VO)                    += -lapp_media_vo
-LIBS-$(CONFIG_MODULE_MEDIA_DEC)                   += -lapp_media_vdec
+LIBS-$(CONFIG_MODULE_MEDIA_VDEC)                  += -lapp_media_vdec
 LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT)               += -lapp_media_vdecsoft
 LIBS-$(CONFIG_MODULE_CVIUAC)                      += -lapp_cvi_uac
 LIBS-$(CONFIG_MODULE_CVIUVC)                      += -lapp_cvi_uvc
@@ -89,23 +92,15 @@ endif
 LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR)
 LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -lisp -lraw_dump -lcvi_json-c
 LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -L$(FFMPEG_6_0_LIB_DIR) -lavcodec -lavutil -lswresample -lswscale
-ifeq ($(SOC_SEGMENT), CV184X)
-LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvenc -lvdec -lisp -lawb -lae -laf -lisp_algo -lsensor -lmipi -lsensor_cfg -lini -lsns_full
-else
 LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lcvi_bin_isp -lvenc -lvdec -lsns_full -lisp -lawb -lae -laf -lisp_algo
-endif
 LIBS-y += -L$(MW_PATH)/lib -lvi -lvo -lvpss -lrgn -lgdc -lsys -lrt
 LIBS-$(CONFIG_SUPPORT_ATOMIC) += -latomic
 LIBS-y += -L$(MW_PATH)/lib/3rd
 
 ifneq ($(SOC_SEGMENT), CV180X)
-  LIBS-$(CONFIG_MODULE_DISPLAY) += -L$(MW_PATH)/lib -lmipi_tx
+  LIBS-$(CONFIG_MODULE_PANEL) += -L$(MW_PATH)/lib -lmipi_tx
 endif
-ifeq ($(SOC_SEGMENT), CV184X)
-LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine
-else
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine -lsbc
-endif
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO) += -lcvi_dnvqe -lcvi_ssp2
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -laacdec2 -laacenc2 -laacsbrdec2 -laacsbrenc2 -laaccomm2
 LIBS-$(CONFIG_MODULE_AUDIO_MP3)  += -lcvi_mp3 -lmad
@@ -182,7 +177,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT) += -L$(MW_PATH)/lib -lcvi_ive
 LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/ex_lib -lcvi_ive_tpu_ex
 LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib -lcvimath-static -lcviruntime-static -lcvikernel-static
 
-# FRMBUF_LVGL
+# FRMBUF_LVGL_SUPPORT
 LIBS-$(CONFIG_MODULE_FRMBUF_LVGL) += -L$(LVGL_LIB_DIR) -llvgl -llvgl_demos -llvgl_examples -llvgl_thorvg
 
 # CLOUD

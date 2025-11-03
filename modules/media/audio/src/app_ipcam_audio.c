@@ -44,8 +44,8 @@ static CVI_BOOL MP3_RUNNING = CVI_FALSE;
 
 APP_PARAM_AUDIO_CFG_T g_stAudioCfg, *g_pstAudioCfg = &g_stAudioCfg;
 
-#ifdef AI_BABYCRY_SUPPORT
-#define AI_BUFFER_SECOND 2  //If use baby cry, plaease set 3
+#ifdef TDL_SOUND_CLS
+#define AI_BUFFER_SECOND 3  //If use baby cry, plaease set 3
 static CVI_U8 *g_pCryBuffer;
 static pthread_mutex_t g_CryMutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
@@ -486,7 +486,7 @@ static CVI_VOID *Thread_AudioAenc_Proc(CVI_VOID *pArgs)
     return NULL;
 }
 
-#ifdef AI_BABYCRY_SUPPORT
+#ifdef TDL_SOUND_CLS
 
 static CVI_S32 ai_cry_queue_push(CVI_U8 *pQueueBuffer, CVI_U32 u32BufferLen, CVI_U32 u32DataLen, CVI_U8 *pData)
 {
@@ -564,7 +564,7 @@ static CVI_VOID *Thread_AudioAi_Proc(CVI_VOID *pArgs)
     }
 
 
-    #ifdef AI_BABYCRY_SUPPORT
+    #ifdef TDL_SOUND_CLS
     CVI_U32 ai_buffer_len = pastAudioCfg->enSamplerate * (CVI_U32)(pastAudioCfg->enBitwidth + 1) * AI_BUFFER_SECOND;
     #endif
 
@@ -618,7 +618,7 @@ static CVI_VOID *Thread_AudioAi_Proc(CVI_VOID *pArgs)
                 app_ipcam_Audio_Stereo2Mono((short *)stFrame.u64VirAddr[0], (short *)stNewFrame.u64VirAddr[0], stFrame.u32Len);
             }
 
-            #ifdef AI_BABYCRY_SUPPORT
+            #ifdef TDL_SOUND_CLS
             {
                 pthread_mutex_lock(&g_CryMutex);
                 ai_cry_queue_pop(g_pCryBuffer, ai_buffer_len, stNewFrame.u32Len);
@@ -1308,7 +1308,7 @@ static CVI_S32 app_ipcam_Audio_AiStop(APP_AUDIO_CFG_S *pstAudioCfg, APP_AUDIO_VQ
         }
 
         {
-            #ifdef AI_BABYCRY_SUPPORT
+            #ifdef TDL_SOUND_CLS
             free(g_pCryBuffer);
             g_pCryBuffer = NULL;
             #endif
@@ -1486,7 +1486,7 @@ static CVI_S32 app_ipcam_Audio_AiStart(APP_AUDIO_CFG_S *pstAudioCfg, APP_AUDIO_V
 
     //malloc g_pCryBuffer
     {
-        #ifdef AI_BABYCRY_SUPPORT
+        #ifdef TDL_SOUND_CLS
         g_pCryBuffer = malloc(pstAudioCfg->enSamplerate * (CVI_U32)(pstAudioCfg->enBitwidth + 1) * AI_BUFFER_SECOND) ;
         if (NULL == g_pCryBuffer)
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "g_pCryBuffer malloc failed!\n");

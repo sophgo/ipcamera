@@ -1,16 +1,8 @@
 #ifndef __APP_IPCAM_AI_H__
 #define __APP_IPCAM_AI_H__
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
-#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
-#else
-#include "cvi_comm_video.h"
-#endif
 #include "cvi_vpss.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_vi.h"
@@ -67,6 +59,7 @@ typedef struct APP_PARAM_AI_CAPTURE_CFG_T
 typedef struct APP_PARAM_AI_FD_CFG_T {
     CVI_BOOL FD_bEnable;
     CVI_BOOL FEA_bEnable;
+    CVI_BOOL FD_ATTR_bEnable;
     VPSS_GRP VpssGrp;
     VPSS_CHN VpssChn;
     CVI_U32 u32GrpWidth;
@@ -74,8 +67,12 @@ typedef struct APP_PARAM_AI_FD_CFG_T {
     float threshold_fd;
     TDLModel model_id_fd;
     TDLModel model_id_fea;
+    TDLModel model_id_landmark;
+    TDLModel model_id_fd_attr;
     char model_path_fd[MODEL_PATH_LEN];
     char model_path_fea[MODEL_PATH_LEN];
+    char model_path_landmark[MODEL_PATH_LEN];
+    char model_path_fd_attr[MODEL_PATH_LEN];
     char gallery_dir_path[MODEL_PATH_LEN];
     char model_cfg_path[MODEL_PATH_LEN];
 } APP_PARAM_AI_FD_CFG_S;
@@ -93,28 +90,10 @@ typedef struct APP_PARAM_AI_MD_CFG_T {
 
 typedef struct APP_PARAM_AI_PD_CFG_T {
     CVI_BOOL bEnable;
-    // CVI_BOOL Intrusion_bEnable;
-    // CVI_BOOL capture_enable;
-    // CVI_S32 capture_frames;
     VPSS_GRP VpssGrp;
     VPSS_CHN VpssChn;
     CVI_U32 u32GrpWidth;
 	CVI_U32 u32GrpHeight;
-    // CVI_U32 model_size_w;
-    // CVI_U32 model_size_h;
-    // CVI_U32 region_stRect_x1;
-    // CVI_U32 region_stRect_y1;
-    // CVI_U32 region_stRect_x2;
-    // CVI_U32 region_stRect_y2;
-    // CVI_U32 region_stRect_x3;
-    // CVI_U32 region_stRect_y3;
-    // CVI_U32 region_stRect_x4;
-    // CVI_U32 region_stRect_y4;
-    // CVI_U32 region_stRect_x5;
-    // CVI_U32 region_stRect_y5;
-    // CVI_U32 region_stRect_x6;
-    // CVI_U32 region_stRect_y6;
-    // CVI_BOOL bVpssPreProcSkip;
     float threshold;
     TDLModel model_id;
     char model_path[MODEL_PATH_LEN];
@@ -139,6 +118,29 @@ typedef struct APP_PARAM_AI_Motion_CFG_T {
     CVI_S32 iso;
     char model_path[MODEL_PATH_LEN];
 } APP_PARAM_AI_Motion_CFG_S;
+
+typedef struct APP_PARAM_AI_CRY_CFG_T {
+    CVI_BOOL bEnable;
+    TDLModel model_id;
+    CVI_U32 application_scene;
+    char model_path[MODEL_PATH_LEN];
+} APP_PARAM_AI_CRY_CFG_S;
+
+#if defined(MPI_AUDIO_MODULE_SUPPORT) && defined(TDL_SOUND_CLS)
+typedef enum {
+    BABY_CRY = 0,
+    AUDIO_ORDER = 1,
+}AI_AUDIO_APPLACATION_SCENE;
+
+APP_PARAM_AI_CRY_CFG_S *app_ipcam_Ai_Cry_Param_Get(void);
+CVI_VOID app_ipcam_Ai_Cry_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Cry_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Cry_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Cry_Pause_Get(void);
+int app_ipcam_Ai_Cry_Stop(void);
+int app_ipcam_Ai_Cry_Start(void);
+CVI_S32 app_ipcam_Ai_Cry_StatusGet(void);
+#endif
 
 #ifdef TDL_CAPTURE_SUPPORT
 APP_PARAM_AI_CAPTURE_CFG_S *app_ipcam_Ai_Capture_Param_Get(void);

@@ -7,7 +7,7 @@ module-$(CONFIG_MODULE_GPIO)				+= gpio
 module-$(CONFIG_MODULE_ADC)					+= adc
 module-$(CONFIG_MODULE_IRCUT)				+= ircut
 module-$(CONFIG_MODULE_PWM)					+= pwm
-module-$(CONFIG_MODULE_DISPLAY)				+= panel
+module-$(CONFIG_MODULE_PANEL)				+= panel
 module-$(CONFIG_MODULE_SDCARD)				+= sdcard
 
 SUBDIRS += $(module-y)

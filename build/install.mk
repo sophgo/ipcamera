@@ -59,6 +59,11 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_FEATURE_CVIFACE),y)
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/feature_cviface_112_112_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
 endif
 
+ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_SOUND_BABAY_CRY),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv181x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/cls_sound_babay_cry_188_40_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
+endif
+
 #FILE  RECOVRY
 ifeq ($(CONFIG_RESOURCE_INSTALL_H264_PCM_TEMPLATE),y)
 	@cp -f $(APP_RESOURCE_DIR)/file_recover/h264_pcm_template.bin $(APP_INSTALL_DIR)

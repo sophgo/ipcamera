@@ -5,16 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
-#else
-#include "cvi_comm_video.h"
-#endif
-#ifndef __CV184X__
 #include "linux/cvi_comm_sys.h"
-#else
-#include "cvi_comm_sys.h"
-#endif
 #include "cvi_venc.h"
 
 
@@ -94,10 +86,10 @@ typedef struct APP_CU_PREDI_PARAM_T {
 } APP_CU_PREDI_PARAM_S;
 
 typedef struct APP_FRAMELOST_PARAM_T {
-    CVI_BOOL bframeLosten;  
-    CVI_U32  u32frameLostGap;       
+    CVI_BOOL bframeLosten;
+    CVI_U32  u32frameLostGap;
     CVI_U32  u32frameLostBspThr;
-    VENC_FRAMELOST_MODE_E enFrmLostMode;   
+    VENC_FRAMELOST_MODE_E enFrmLostMode;
 } APP_FRAMELOST_PARAM_S;
 
 typedef struct APP_SVC_PARAM_T {

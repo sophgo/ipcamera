@@ -13,7 +13,6 @@ ipcamera是一款网络摄像机管理软件，是网络视频服务器和摄像
 | configs     | configs              |选择需要进行编译的模块|
 | modules     | ai                   |算法相关模块，包括有人脸识别，手势识别和行人检测等|
 |             | common               |通用模块，包括有ini解析和cjson|
-|             | display              |显示模块，用于显示屏的输出|
 |             | framebuffer          |提供framebuffer功能的API|
 |             | media                |多媒体模块，包括有vi，vpss和venc等模块|
 |             | peripheral           |外设模块，包括有adc，dma和gpio等模块|
@@ -31,45 +30,48 @@ ipcamera是一款网络摄像机管理软件，是网络视频服务器和摄像
 
 ipcamera软件基于端侧sdk，需要将ipcamera软件放置于sophpi同级目录下，并事先完成sophpi的拉取和编译工作。步骤如下所示：
 
-1. 安装依赖的工具库
+1. 安装依赖的工具库<br>
 ubuntu推荐安装20.04或者22.04，并需要安装依赖的工具。
 ```bash
-    sudo apt-get update
-    sudo apt-get install -y build-essential ninja-build automake autoconf libtool wget curl git gcc libssl-dev bc slib squashfs-tools android-sdk-libsparse-utils android-sdk-ext4-utils jq cmake python3-distutils tcl scons parallel openssh-client tree python3-dev python3-pip ssh libncurses5 pkg-config lzop bison flex rsync kmod cpio sudo fakeroot dpkg-dev device-tree-compiler u-boot-tools uuid-dev libxml2-dev debootstrap qemu qemu-user-static kpartx binfmt-support git-lfs libisl-dev texlive-xetex libgflags-dev
+sudo apt-get update
+sudo apt-get install -y build-essential ninja-build automake autoconf libtool wget curl git gcc libssl-dev bc slib squashfs-tools android-sdk-libsparse-utils android-sdk-ext4-utils jq cmake python3-distutils tcl scons parallel openssh-client tree python3-dev python3-pip ssh libncurses5 pkg-config lzop bison flex rsync kmod cpio sudo fakeroot dpkg-dev device-tree-compiler u-boot-tools uuid-dev libxml2-dev debootstrap qemu qemu-user-static kpartx binfmt-support git-lfs libisl-dev texlive-xetex libgflags-dev python-is-python3
+sudo pip3 install -U yoctools
+sudo python3 -m pip install -U pip setuptools wheel
+sudo python3 -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple jinja2
 ```
 
-2. 配置git账号
+2. 配置git账号<br>
 在github建立个人账号，并配置好ssh key,下载代码需要用到个人github账号。
 ```bash
-    git config --global user.name "your_name"
-    git config --global user.email "your_email@example.com"     #这个必须是github账号
-    ssh-keygen -t ed25519 -C "your_email@example.com"
-    cat ~/.ssh/id_ed25519.pub                                   #将公钥加入到github的setting的ssh key中
+git config --global user.name "your_name"
+git config --global user.email "your_email@example.com"     #这个必须是github账号
+ssh-keygen -t ed25519 -C "your_email@example.com"
+cat ~/.ssh/id_ed25519.pub   #将公钥加入到github的setting的ssh key中
 ```
 
-3. 下载端侧sdk代码
+3. 下载端侧sdk代码<br>
 ```bash
-    git clone -b sg200x-evb git@github.com:sophgo/sophpi.git      #端侧最新代码
-    cd sophpi
-    ./scripts/repo_clone.sh --gitclone scripts/subtree.xml
+git clone -b sg200x-evb git@github.com:sophgo/sophpi.git      #端侧最新代码
+cd sophpi
+./scripts/repo_clone.sh --gitclone scripts/subtree.xml
 ```
 
-4. 编译sdk
+4. 编译sdk<br>
 ```bash
-    export TPU_REL=1                    # 如果不需要算法功能这一步可以不执行
-    source build/cvisetup.sh
-    defconfig sg2002_wevb_riscv64_sd    # 选择对应的卡板，这里以sg2002_wevb_riscv64_sd为例
-    clean_all && build_all              # 编译sdk
+export TPU_REL=1                    # 如果不需要算法功能这一步可以不执行
+source build/envsetup_soc.sh
+defconfig sg2002_wevb_riscv64_sd    # 选择对应的卡板，这里以sg2002_wevb_riscv64_sd为例
+clean_all && build_all              # 编译sdk
 ```
-5. 烧录固件
+5. 烧录固件<br>
 sdk编译完成后，将在install目录下生成固件，将固件放置在tf卡中，插入板端，重新上电后即可进入升级。关于烧录的具体流程可以参考《裸烧与非裸烧升级使用手册》，地址为：https://developer.sophgo.com/thread/471.html
 
-6. 编译ipcamera程序
+6. 编译ipcamera程序<br>
 将ipcamera程序与sdk放置在同一目录下，按一下流程即可进行编译，编译完成后的可执行文件ipcamera位置为install目录下。
 ```bash
-    cd ipcamera                         # 进入ipcamera目录
-    make ipcamera_defconfig             # 配置需要编译的组件，这里以ipcamera_defconfig为例，文件在configs目录下
-    make ipcamera clean && make ipcamera && make ipcamera install
+cd ipcamera              # 进入ipcamera目录
+make ipcamera_defconfig  # 配置需要编译的组件，这里以ipcamera_defconfig为例，文件在configs目录下
+make ipcamera clean_all && make ipcamera && make ipcamera install
 ```
 
 ## 3 程序运行
@@ -83,6 +85,7 @@ cd /mnt/sd
 程序运行起来后，即可通过RTSP流rtsp://192.168.3.8:8554/live0来观看视频流；也可以通过`http://192.168.3.8/index.html`的url进行访问（sd卡中需要有www的文件夹，该文件夹位于install或ipcamera/resource目录下）。
 
 ## 4 模块的编译控制
+1. 打开模块功能<br>
 模块的编译控制在configs文件夹下，客户可以通过宏CONFIG_XXX来控制模块的开启或关闭;也可以在ipcamera的目录下执行如下命令:
 ```bash
 make menuconfig
@@ -91,29 +94,30 @@ make menuconfig
 ```bash
  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   ┌────────────────────────────────────────── Sophapp Configuration ──────────────────────────────────────────┐
-  │  Arrow keys navigate the menu.  <Enter> selects submenus ---> (or empty submenus ----).  Highlighted      │  
-  │  letters are hotkeys.  Pressing <Y> includes, <N> excludes, <M> modularizes features.  Press <Esc><Esc>   │  
-  │  to exit, <?> for Help, </> for Search.  Legend: [*] built-in  [ ] excluded  <M> module  < > module       │  
-  │  capable                                                                                                  │  
-  │ ┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐ │  
-  │ │                    cross_compile options  --->                                                        │ │  
-  │ │                    platform options  --->                                                             │ │  
-  │ │                    module options  --->                                                               │ │  
-  │ │                    resource options  --->                                                             │ │  
-  │ │                    peripheral support list  --->                                                      │ │  
-  │ │                                                                                                       │ │  
-  │ └───────────────────────────────────────────────────────────────────────────────────────────────────────┘ │  
-  ├───────────────────────────────────────────────────────────────────────────────────────────────────────────┤  
-  │                         <Select>    < Exit >    < Help >    < Save >    < Load >                          │  
-  └───────────────────────────────────────────────────────────────────────────────────────────────────────────┘ 
+  │  Arrow keys navigate the menu.  <Enter> selects submenus ---> (or empty submenus ----).  Highlighted      │
+  │  letters are hotkeys.  Pressing <Y> includes, <N> excludes, <M> modularizes features.  Press <Esc><Esc>   │
+  │  to exit, <?> for Help, </> for Search.  Legend: [*] built-in  [ ] excluded  <M> module  < > module       │
+  │  capable                                                                                                  │
+  │ ┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐ │
+  │ │                    cross_compile options  --->                                                        │ │
+  │ │                    platform options  --->                                                             │ │
+  │ │                    module options  --->                                                               │ │
+  │ │                    resource options  --->                                                             │ │
+  │ │                    peripheral support list  --->                                                      │ │
+  │ │                                                                                                       │ │
+  │ └───────────────────────────────────────────────────────────────────────────────────────────────────────┘ │
+  ├───────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │                         <Select>    < Exit >    < Help >    < Save >    < Load >                          │
+  └───────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-如果需要添加一个新的模块，可以按如下步骤进行：
-1.module 目录下对应添加 Makefile 以及src,include等目录 具体参考module/ai；
-2.如果需要全局依赖的头文件目录 则放到dep.mk中，如果为模块内需要依赖的头文件则对应放置于模块Makefile中；
-3.在link.mk中添加对应生成的libxxxx.a 作为依赖；
-4.在build/module/Kconfig 中添加对应的模块配置；
-5.在configs/xxxx_defconfig 添加&打开对应的模块配置。
+2. 添加新模块功能<br>
+如果需要添加一个新的模块，可以按如下步骤进行：<br>
+2.1 module 目录下对应添加 Makefile 以及src,include等目录 具体参考module/ai；<br>
+2.2 如果需要全局依赖的头文件目录 则放到dep.mk中，如果为模块内需要依赖的头文件则对应放置于模块Makefile中；<br>
+2.3 在link.mk中添加对应生成的libxxxx.a 作为依赖；<br>
+2.4 在build/module/Kconfig 中添加对应的模块配置；<br>
+2.5 在configs/xxxx_defconfig 添加&打开对应的模块配置。<br>
 
 
 ## 5 ini配置文件

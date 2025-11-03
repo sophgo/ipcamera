@@ -93,7 +93,7 @@ static CVI_S32 app_ipcam_FrmBuf_Disp_DrawChar(CVI_VOID *arg, CVI_BOOL bgColor)
         return s32Ret;
     }
 
-    /*d is the abbreviation of day 
+    /*d is the abbreviation of day
     * w is the first letter of week
     * k is the last  letter of week */
     strcpy(tmpStr, "d wk");
@@ -152,13 +152,13 @@ CVI_VOID *dispFrmBufThr(CVI_VOID *arg)
     APP_PROF_LOG_PRINT(LEVEL_INFO, "dispFrmBufThr running...\n");
     while (pstDispFrmBufCtx->thrFlag) {
         usleep(1000);
-        
-#ifdef VDEC_SOFT
-        // For the ili8341 spi screen, 
+
+#ifdef VDEC_SOFT_SUPPORT
+        // For the ili8341 spi screen,
         // the test found that the delay of 35ms frame rate and cpu usage is more balanced
         usleep(35*1000);
-        
-        APP_PARAM_VDEC_SOFT_CTX_S *pstVdecSoftCtx = 
+
+        APP_PARAM_VDEC_SOFT_CTX_S *pstVdecSoftCtx =
             (APP_PARAM_VDEC_SOFT_CTX_S *)pstDispFrmBufCtx->pVdecSoftCtx;
         CVI_S32 vdecChn = 0;
         if (access(VDEC_TYPE_JPEG, F_OK) == 0) {
@@ -172,12 +172,12 @@ CVI_VOID *dispFrmBufThr(CVI_VOID *arg)
         FrmHeight       = pstVdecSoftCtx->astVdecSoftChnCfg[vdecChn].pstResultFrame->height;
 #endif
         // When the softsolution and overlay characters are enabled at the same time
-        if ((bVdecSoftEnable == CVI_TRUE) 
+        if ((bVdecSoftEnable == CVI_TRUE)
             && (pstFrmBufCtx->bEnable == CVI_TRUE)) {
 #ifdef SHOW_TIME
             u32Time = GetCurTimeInMsec();
 #endif
-#ifdef VDEC_SOFT
+#ifdef VDEC_SOFT_SUPPORT
             s32Ret = app_ipcam_Vdec_Soft_Proc(&pstVdecSoftCtx->astVdecSoftChnCfg[vdecChn]);
             if (s32Ret != CVI_SUCCESS) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "vdec soft process failed. s32Ret:%d. \n", s32Ret);
@@ -244,11 +244,11 @@ CVI_S32 app_ipcam_FrmBuf_Disp_Start(CVI_VOID)
 
 	pstDispFrmBufCtx = app_ipcam_FrmBuf_Disp_Param_Get();
     pstDispFrmBufCtx->pstFrmBufCtx = app_ipcam_FrmBuf_Param_Get();
-#ifdef VDEC_SOFT
+#ifdef VDEC_SOFT_SUPPORT
     pstDispFrmBufCtx->pVdecSoftCtx = (CVI_VOID *)app_ipcam_Vdec_Soft_Param_Get();
 #endif
     pstDispFrmBufCtx->thrFlag = CVI_TRUE;
-    
+
 	param.sched_priority = 80;
 	pthread_attr_init(&attr);
 	pthread_attr_setschedpolicy(&attr, SCHED_RR);

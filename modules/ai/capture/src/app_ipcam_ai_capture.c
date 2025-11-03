@@ -36,6 +36,8 @@ static TDLHandle g_CaptureTDLHandle;
 static TDLObject g_stObjDraw = {0};
 SMT_MUTEXAUTOLOCK_INIT(g_Mutex);
 static pthread_mutex_t g_StatusMutex = PTHREAD_MUTEX_INITIALIZER;
+static const char *emotionStr[] = {"Anger",   "Disgust", "Fear",    "Happy",
+                                   "Neutral", "Sad",     "Surprise"};
 
 /**************************************************************************
  *                 E X T E R N A L    R E F E R E N C E S                 *
@@ -150,6 +152,31 @@ static CVI_VOID *Thread_Capture_PROC(CVI_VOID *pArgs)
                     g_stObjDraw.info != NULL) {
                     g_stObjDraw.size = capture_info.person_meta.size <= 100 ? capture_info.person_meta.size : 100;
                     memcpy(g_stObjDraw.info, capture_info.person_meta.info, g_stObjDraw.size * sizeof(TDLObjectInfo));
+                }
+            }
+
+            for (uint32_t j = 0; j < capture_info.snapshot_size; j++) {
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "snapshot[%d]: male:%d,glass:%d,age:%d,emotion:%s\n", j,
+                                    capture_info.snapshot_info[j].male,
+                                    capture_info.snapshot_info[j].glass,
+                                    capture_info.snapshot_info[j].age,
+                                    emotionStr[capture_info.snapshot_info[j].emotion]);
+                float max_similarity = 0;
+                float similarity = 0;
+                uint8_t top_index = 0;
+                for (uint32_t k = 0; k < gallery_feature.size; k++) {
+                    TDL_CaculateSimilarity(gallery_feature.feature[k],
+                                        capture_info.features[j], &similarity);
+                    if (similarity > max_similarity) {
+                        max_similarity = similarity;
+                        top_index = k;
+                    }
+                }
+
+                if (max_similarity > 0.6) {
+                 APP_PROF_LOG_PRINT(LEVEL_INFO, "match feature %d.bin, track id: %ld, similarity: %.2f\n",
+                                    top_index, capture_info.snapshot_info[i].track_id,
+                                    max_similarity);
                 }
             }
 

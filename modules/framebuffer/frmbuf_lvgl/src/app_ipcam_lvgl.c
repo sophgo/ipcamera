@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <sys/prctl.h>
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include "app_ipcam_comm.h"
 #include "app_ipcam_pwm.h"
 
@@ -65,7 +61,7 @@ static lv_image_dsc_t mouse_cursor_icon = {
 
 static CVI_S32 mouse_init(void)
 {
-    pstLVGLCfg->indev_mouse = 
+    pstLVGLCfg->indev_mouse =
         (lv_indev_t *)lv_evdev_create(LV_INDEV_TYPE_POINTER, EVENT_DEVICE);
     if (pstLVGLCfg->indev_mouse == NULL) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "lv_evdev_create failed. \n");
@@ -76,7 +72,7 @@ static CVI_S32 mouse_init(void)
     // LV_IMG_DECLARE(mouse_cursor_icon);
     lv_obj_t * mouse_cursor = lv_image_create(lv_screen_active());
     if (mouse_cursor == NULL) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "lv_image_create failed. mouse_cursor is null. \n");
         return CVI_FAILURE;
     }
@@ -117,14 +113,14 @@ static void slider_event_cb(lv_event_t * e)
     int32_t slider_val __attribute__((unused)) = 0;
 
     if (e == NULL) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "slider_event_cb input param invalid. \n");
         return;
     }
 
     slider = lv_event_get_target(e);
     if (slider == NULL) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "lv_event_get_target failed. \n");
         return;
     }
@@ -139,7 +135,7 @@ static void slider_event_cb(lv_event_t * e)
                                     , LVGL_BACKLIGHT_PWM_PERIOD
                                     , slider_val);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "app_ipcam_Pwm_Param_Set failed. s32Ret:%d. \n", s32Ret);
     }
 #endif
@@ -200,7 +196,7 @@ CVI_S32 app_ipcam_FrmBuf_LVGL_Init(void)
     }
 
 #if LVGL_BACKLIGHT_PWM_ENABLE
-    
+
     /**
      * 初始LDC屏幕的PWM管脚，用于调整屏幕亮度
      * 初始化PWM6，grp：4，chn：2
@@ -211,7 +207,7 @@ CVI_S32 app_ipcam_FrmBuf_LVGL_Init(void)
                                     , LVGL_BACKLIGHT_PWM_PERIOD
                                     , LVGL_BACKLIGHT_PWM_DUCT_CYCLE);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "app_ipcam_Pwm_Param_Set failed. s32Ret:%d. \n", s32Ret);
         return CVI_FAILURE;
     }
@@ -230,18 +226,18 @@ CVI_S32 app_ipcam_FrmBuf_LVGL_DeInit(void)
 
     s32Ret = mouse_deinit();
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "mouse_deinit failed. s32Ret:%d. \n", s32Ret);
         return CVI_FAILURE;
     }
 
 #if LVGL_BACKLIGHT_PWM_ENABLE
-    
+
     // 初始化PWM6，grp：4，chn：2
     s32Ret = app_ipcam_Pwm_UnExport(LVGL_BACKLIGHT_PWM_CHIP
                                     , LVGL_BACKLIGHT_PWM_NUM);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "app_ipcam_Pwm_UnExport failed. s32Ret:%d. \n", s32Ret);
         return CVI_FAILURE;
     }
@@ -269,7 +265,7 @@ CVI_S32 app_ipcam_FrmBuf_LVGL_Start(void)
 #if LVGL_BACKLIGHT_PWM_ENABLE
     s32Ret = app_ipcam_Pwm_Enable(LVGL_BACKLIGHT_PWM_CHIP, LVGL_BACKLIGHT_PWM_NUM);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "app_ipcam_Pwm_Enable failed. s32Ret:%d. \n", s32Ret);
         return CVI_FAILURE;
     }
@@ -295,7 +291,7 @@ CVI_S32 app_ipcam_FrmBuf_LVGL_Stop(void)
 
     s32Ret = app_ipcam_Pwm_Disable(LVGL_BACKLIGHT_PWM_CHIP, LVGL_BACKLIGHT_PWM_NUM);
     if (s32Ret != CVI_SUCCESS) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, 
+        APP_PROF_LOG_PRINT(LEVEL_ERROR,
             "app_ipcam_Pwm_Disable failed. s32Ret:%d. \n", s32Ret);
         return CVI_FAILURE;
     }

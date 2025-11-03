@@ -5,7 +5,7 @@
 #include "app_ipcam_comm.h"
 #include "app_ipcam_venc.h"
 
-#ifdef AUDIO_SUPPORT
+#ifdef MPI_AUDIO_MODULE_SUPPORT
 #include "app_ipcam_audio.h"
 #endif
 
@@ -223,7 +223,7 @@ int app_ipcam_Mbuf_ReadFrame(CVI_MBUF_HANDLE readerid, int bKeyFrame, CVI_MEDIA_
 
         memcpy(&pFrameInfo->frameParam, &stMFrameHeader.frameParam, sizeof(pFrameInfo->frameParam));
     }
-    
+
 
     return iRet;
 }
@@ -277,7 +277,7 @@ int app_ipcam_Mbuf_Init()
     int iMbufSize = 0;
 
     APP_PARAM_VENC_CTX_S *pstVencCtx = app_ipcam_Venc_Param_Get();
-#ifdef AUDIO_SUPPORT
+#ifdef MPI_AUDIO_MODULE_SUPPORT
     APP_PARAM_AUDIO_CFG_T *pstAudioCtx = app_ipcam_Audio_Param_Get();
 #endif
 
@@ -290,7 +290,7 @@ int app_ipcam_Mbuf_Init()
                 return iRet;
             }
 
-#ifdef AUDIO_SUPPORT
+#ifdef MPI_AUDIO_MODULE_SUPPORT
             iMbufSize = ((((pstVencCtx->astVencChnCfg[i].u32BitRate / 8) << 10) +  (pstAudioCtx->astAudioCfg.enSamplerate * 2)) * CVI_CAMERA_PRE_RECORD_TIMES);
 #else
             iMbufSize = (((pstVencCtx->astVencChnCfg[i].u32BitRate / 8) << 10) * CVI_CAMERA_PRE_RECORD_TIMES);

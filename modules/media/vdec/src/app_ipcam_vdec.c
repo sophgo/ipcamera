@@ -31,7 +31,7 @@ APP_VDEC_CHN_CFG_S *app_ipcam_VdecChnCfg_Get() {
 }
 
 CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
-    CVI_S32 s32Ret = CVI_SUCCESS; 
+    CVI_S32 s32Ret = CVI_SUCCESS;
     FILE *fpStrm = NULL;
     CVI_U8 *pu8Buf = NULL;
     CVI_S32 bufSize = 0;
@@ -97,7 +97,7 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
             }
             /* CV181x VDEC support PT_JPEG/PT_MJPEG/PT_H264
             CV180X VDEC support PT_JPEG/PT_MJPEG */
-            if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME 
+            if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME
                 && pstVdecChnCfg->astChnAttr.enType == PT_H264) {
                 s32Ret = h264Parse(pu8Buf, &s32ReadLen);
                 if (s32Ret != CVI_SUCCESS) {
@@ -109,10 +109,10 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
                         APP_PROF_LOG_PRINT(LEVEL_DEBUG, "No a complete framee! ");
                     }
                 }
-            } else if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME 
+            } else if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME
                 && pstVdecChnCfg->astChnAttr.enType == PT_H265) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR,"Don't support H265.\n");
-            } else if (pstVdecChnCfg->astChnAttr.enType == PT_MJPEG 
+            } else if (pstVdecChnCfg->astChnAttr.enType == PT_MJPEG
                 || pstVdecChnCfg->astChnAttr.enType == PT_JPEG) {
                 s32Ret = mjpegParse(pu8Buf, &s32ReadLen, &u32Start);
                 if (s32Ret != CVI_SUCCESS) {
@@ -202,8 +202,8 @@ RETRY_GET_FRAME:
                 }
             }
 
-            /* Because the SPS and PPS were sent in at the beginning, 
-            valid frames cannot be obtained from the decoder, 
+            /* Because the SPS and PPS were sent in at the beginning,
+            valid frames cannot be obtained from the decoder,
             so it is necessary to continue */
             if ((stVdecFrame.stVFrame.u32Width == 0)
             || (stVdecFrame.stVFrame.u32Height == 0)
@@ -232,7 +232,7 @@ RETRY_GET_FRAME:
         }
     }
 
-    if ((pstVdecChnCfg->astChnAttr.enType == PT_H264) 
+    if ((pstVdecChnCfg->astChnAttr.enType == PT_H264)
     || (pstVdecChnCfg->astChnAttr.enType == PT_H265)) {
         /* send the flag of stream end */
         memset(&stStream, 0, sizeof(VDEC_STREAM_S));
@@ -271,7 +271,7 @@ int app_ipcam_Vdec_Start(void) {
 	pstVdecCtx = app_ipcam_Vdec_Param_Get();
 
     pstVdecCtx->thread_enable_flag = CVI_TRUE;
-    
+
 	param.sched_priority = 80;
 	pthread_attr_init(&attr);
 	pthread_attr_setschedpolicy(&attr, SCHED_RR);
@@ -343,7 +343,7 @@ int app_ipcam_Vdec_Init(void)
     memset(&stPool, 0, sizeof(VDEC_CHN_POOL_S));
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "app_ipcam_Vdec_Init VdecChn:%d.\n", VdecChn);
-	
+
     CVI_VDEC_GetModParam(&stModParam);
     stModParam.enVdecVBSource = VB_SOURCE_USER;
     CVI_VDEC_SetModParam(&stModParam);
@@ -378,7 +378,7 @@ int app_ipcam_Vdec_Init(void)
         return s32Ret;
     }
 
-    stChnParam.enPixelFormat      = pstVdecChnCfg->astChnParam.enPixelFormat; 
+    stChnParam.enPixelFormat      = pstVdecChnCfg->astChnParam.enPixelFormat;
     stChnParam.u32DisplayFrameNum = pstVdecChnCfg->astChnParam.u32DisplayFrameNum;
 	/* Set vidoe channel parameter */
     s32Ret = CVI_VDEC_SetChnParam(VdecChn, &stChnParam);

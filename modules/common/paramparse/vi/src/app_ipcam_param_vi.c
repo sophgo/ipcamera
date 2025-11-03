@@ -5,11 +5,7 @@
 #include <string.h>
 #include <getopt.h>
 #include "minIni.h"
-#ifndef __CV184X__
 #include "sensor_list.h"
-#else
-#include "sensor_cfg.h"
-#endif
 #include "app_ipcam_paramparse.h"
 
 const char *wdr_mode[WDR_MODE_MAX] = {
@@ -56,7 +52,6 @@ int Load_Param_Vi(const char *file)
 
     memset(tmp_section, 0, sizeof(tmp_section));
     snprintf(tmp_section, sizeof(tmp_section), "vi_config");
-#ifndef __CV184X__
     work_sns_cnt = ini_getl(tmp_section, "sensor_cnt", 0, file);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "work_sns_cnt = %ld\n", work_sns_cnt);
     if(work_sns_cnt <= (long int)(sizeof(pViIniCfg->astSensorCfg) / sizeof(pViIniCfg->astSensorCfg[0]))) {
@@ -115,67 +110,6 @@ int Load_Param_Vi(const char *file)
         APP_PROF_LOG_PRINT(LEVEL_INFO, "sensor_ID=%d hs_settle_en=%d hs_settle=%d RstPin=%d RstActive=%d\n", i, pViIniCfg->astSensorCfg[i].bHsettlen,
             pViIniCfg->astSensorCfg[i].u8Hsettle, pViIniCfg->astSensorCfg[i].s32RstPin, pViIniCfg->astSensorCfg[i].s32RstActive);
     }
-#else
-        memset(tmp_section, 0, sizeof(tmp_section));
-        snprintf(tmp_section, sizeof(tmp_section), "sensor_config");
-        work_sns_cnt = ini_getl(tmp_section, "sensor_cnt", 0, file);
-        pViIniCfg->stSensorCfg.sns_ini_cfg.enSnsMode = ini_getl(tmp_section, "sensor_mode", 0, file);
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "work_sns_cnt = %ld, sensor_mode = %d\n", work_sns_cnt, pViIniCfg->stSensorCfg.sns_ini_cfg.enSnsMode);
-        if(work_sns_cnt <= VI_MAX_DEV_NUM) {
-            pViIniCfg->u32WorkSnsCnt = work_sns_cnt;
-            pViIniCfg->stSensorCfg.sns_ini_cfg.devNum = work_sns_cnt;
-        } else {
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "work_sns_cnt error (%ld)\n", work_sns_cnt);
-            return CVI_FAILURE;
-        }
-
-        for (i = 0; i < work_sns_cnt; i++) {
-            memset(tmp_section, 0, sizeof(tmp_section));
-            snprintf(tmp_section, sizeof(tmp_section), "sensor_config%d", i);
-
-            pViIniCfg->stSensorCfg.sns_ini_cfg.enSnsType[i]     = ini_getl(tmp_section, "sns_type", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.s32BusId[i]      = ini_getl(tmp_section, "bus_id", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.s32SnsI2cAddr[i] = ini_getl(tmp_section, "sns_i2c_addr", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.MipiDev[i]       = ini_getl(tmp_section, "mipi_dev", 0, file);
-
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "sns_type=%d bus_id=%d sns_i2c_addr=%x mipi_dev=%d \n", 
-                pViIniCfg->stSensorCfg.sns_ini_cfg.enSnsType[i], 
-                pViIniCfg->stSensorCfg.sns_ini_cfg.s32BusId[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.s32SnsI2cAddr[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.MipiDev[i]);
-
-            for (int j = 0; j < MIPI_RX_MAX_LANE_NUM; j++) {
-                memset(tmp, 0, sizeof(tmp));
-                sprintf(tmp, "laneid%d", j);
-                pViIniCfg->stSensorCfg.sns_ini_cfg.as16LaneId[i][j] = ini_getl(tmp_section, tmp, 0, file);
-    
-                memset(tmp, 0, sizeof(tmp));
-                sprintf(tmp, "swap%d", j);
-                pViIniCfg->stSensorCfg.sns_ini_cfg.as8PNSwap[i][j] = ini_getl(tmp_section, tmp, 0, file);
-            }
-            pViIniCfg->stSensorCfg.sns_ini_cfg.u8HwSync[i]             = ini_getl(tmp_section, "hw_sync", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.stMclkAttr[i].bMclkEn   = ini_getl(tmp_section, "mclk_en", 1, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.stMclkAttr[i].u8Mclk    = ini_getl(tmp_section, "mclk", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.bHsettlen[i]            = ini_getl(tmp_section, "hs_settle_en", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.u8Hsettle[i]            = ini_getl(tmp_section, "hs_settle", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.u8Orien[i]              = ini_getl(tmp_section, "orien", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.s32RstPort[i]           = ini_getl(tmp_section, "rst_port", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.s32RstPin[i]            = ini_getl(tmp_section, "rst_pin", 0, file);
-            pViIniCfg->stSensorCfg.sns_ini_cfg.s32RstPol[i]            = ini_getl(tmp_section, "rst_pol", 0, file);
-
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "hw_sync=%d mclk_en=%d mclk=%d hs_settle_en=%d hs_settle=%d \
-                orien=%d rst_port=%d rst_pin=%d rst_pol=%d\n", pViIniCfg->stSensorCfg.sns_ini_cfg.u8HwSync[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.stMclkAttr[i].bMclkEn,
-                pViIniCfg->stSensorCfg.sns_ini_cfg.stMclkAttr[i].u8Mclk,
-                pViIniCfg->stSensorCfg.sns_ini_cfg.bHsettlen[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.u8Hsettle[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.u8Orien[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.s32RstPort[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.s32RstPin[i],
-                pViIniCfg->stSensorCfg.sns_ini_cfg.s32RstPol[i]
-                );
-        }
-#endif
 
     for (i = 0; i< (int)pViIniCfg->u32WorkSnsCnt; i++) {
         memset(tmp_section, 0, sizeof(tmp_section));

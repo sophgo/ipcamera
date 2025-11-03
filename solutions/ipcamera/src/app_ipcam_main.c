@@ -6,33 +6,6 @@
 #include <signal.h>
 
 #include "app_ipcam_paramparse.h"
-#include "app_ipcam_ircut.h"
-
-#ifdef SDCARD_SUPPORT
-#include "app_ipcam_sdcard.h"
-#endif
-#include "cvi_mbuf.h"
-
-#ifdef WEB_SOCKET
-#include "app_ipcam_websocket.h"
-#include "app_ipcam_netctrl.h"
-#endif
-
-#ifdef CVI_UVC_SUPPORT
-#include "cvi_uvc.h"
-#endif
-
-#ifdef CVI_UAC_SUPPORT
-#include "cvi_audio_uac.h"
-#endif
-
-#ifdef LOG_SUPPORT
-#include "cvi_log.h"
-#endif
-
-#ifdef CLOUD_SUPPORT
-#include "plt_common_hal.h"
-#endif
 
 /**************************************************************************
  *                              M A C R O S                               *
@@ -79,7 +52,9 @@ static CVI_VOID app_ipcam_Usr1Sig_handle(CVI_S32 signo)
 {
     if (SIGUSR1 == signo) {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "ipcam receive a signal(%d) from terminate and start trigger a picture\n", signo);
+        #ifdef MPI_VENC_MODULE_SUPPORT
         app_ipcam_JpgCapFlag_Set(CVI_TRUE);
+        #endif
     }
 }
 
@@ -90,7 +65,12 @@ static int app_ipcam_Peripheral_Init(void)
 #ifdef SDCARD_SUPPORT
     app_ipcam_SdCard_Init();
 #endif
+#ifdef IRCUT_MODULE_SUPPORT
     app_ipcam_IRCut_Init();
+#endif
+#ifdef PANEL_SUPPORT
+    app_ipcam_panel_init();
+#endif
 
     return CVI_SUCCESS;
 }
@@ -98,11 +78,15 @@ static int app_ipcam_Peripheral_Init(void)
 static int app_ipcam_Peripheral_UnInit(void)
 {
     /* do peripheral Init here */
-
 #ifdef SDCARD_SUPPORT
     app_ipcam_SdCard_UnInit();
 #endif
+#ifdef IRCUT_MODULE_SUPPORT
     app_ipcam_IrCut_DeInit();
+#endif
+#ifdef PANEL_SUPPORT
+    app_ipcam_panel_uninit();
+#endif
 
     return CVI_SUCCESS;
 }
@@ -155,24 +139,24 @@ static int app_ipcam_Exit(void)
 {
     APP_CHK_RET(app_ipcam_MiscThread_DeInit(), "MiscThread DeInit");
 
-#ifdef BLACKLIGHT_SUPPORT
+    #ifdef BLACKLIGHT_SUPPORT
     APP_CHK_RET(app_ipcam_BlackLight_DeInit(), "Deinit black light.");
-#endif
+    #endif
 
-#ifdef GDC_SUPPORT
+    #ifdef MPI_GDC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_GDC_DeInit(), "Deinit gdc.");
-#endif
+    #endif
 
-#ifdef FRMBUF_LVGL
+    #ifdef FRMBUF_LVGL_SUPPORT
     APP_CHK_RET(app_ipcam_FrmBuf_LVGL_Stop(), "Stop LVGL.");
     APP_CHK_RET(app_ipcam_FrmBuf_LVGL_DeInit(), "Deinit LVGL.");
-#endif
+    #endif
 
     #ifdef RTSP_SUPPORT
     APP_CHK_RET(app_ipcam_rtsp_Server_Destroy(), "RTSP Server Destroy");
     #endif
 
-    #if CLOUD_SUPPORT
+    #ifdef CLOUD_SUPPORT
     APP_CHK_RET(app_hal_platform_deinit(), "Cloud DeInit");
     #endif
 
@@ -187,7 +171,9 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_Record_UnInit(), "SD Record UnInit");
     #endif
 
+    #ifdef MPI_OSD_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Osdc_DeInit(), "OSDC DeInit");
+    #endif
 
     #ifdef TDL_SUPPORT
     #ifdef TDL_CAPTURE_SUPPORT
@@ -213,21 +199,29 @@ static int app_ipcam_Exit(void)
     #ifdef TDL_MOTION_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Motion_Stop(), "Stop Ai Motion");
     #endif
+
+    #if defined(MPI_AUDIO_MODULE_SUPPORT) && defined(TDL_SOUND_CLS)
+    APP_CHK_RET(app_ipcam_Ai_Cry_Stop(), "Stop Sound cls");
+    #endif
     #endif
 
-    #ifdef AUDIO_SUPPORT
+    #ifdef MPI_AUDIO_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Audio_UnInit(), "Audio UnInit");
     #endif
 
-    #ifdef VDEC
+    #ifdef MPI_VO_MODULE_SUPPORT
+    APP_CHK_RET(app_ipcam_vo_stop(), "Stop VO");
+    #endif
+
+    #ifdef MPI_VDEC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Vdec_Stop(), "VDEC Stop");
     #endif
 
-    #ifdef FRMBUF_DISP
+    #ifdef FRMBUF_DISP_SUPPORT
     APP_CHK_RET(app_ipcam_FrmBuf_Disp_Stop(), "DISP FRMBUF Stop");
     #endif
 
-    #ifdef VDEC_SOFT
+    #ifdef VDEC_SOFT_SUPPORT
     APP_CHK_RET(app_ipcam_Vdec_Soft_Stop(APP_VDEC_SOFT_ALL), "VDEC SOFT Stop");
     APP_CHK_RET(app_ipcam_Vdec_Soft_DeInit(), "VDEC SOFT DeInit");
     #endif
@@ -236,37 +230,55 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_FrmBuf_DeInit(), "FrmBuf DeInit");
     #endif
 
-    #ifdef DISPLAY
-    APP_CHK_RET(app_ipcam_Display_Exit(), "Display Exit");
-    #endif
-
-    #ifdef STITCH_SUPPORT
+    #ifdef MPI_STITCH_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Stitch_UnInit(), "Stitch UnInit");
     #endif
 
-
-
+    #ifdef MPI_VPSS_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Vpss_DeInit(), "VPSS DeInit");
+    #endif
+
+    #ifdef MPI_VENC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Venc_Stop(APP_VENC_ALL), "VENC Stop");
+    #endif
+
+    #ifdef MPI_VI_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Vi_DeInit(), "VI DeInit");
+    #endif
     APP_CHK_RET(app_ipcam_Sys_DeInit(), "System DeInit");
 
+    #ifdef MBUF_SUPPORT
     APP_CHK_RET(app_ipcam_Mbuf_UnInit(), "UnInit Mbuf");
+    #endif
+
+    #ifdef PERIPHERAL_SUPPORT
     APP_CHK_RET(app_ipcam_Peripheral_UnInit(), "UnInit Peripheral");
+    #endif
 
     return CVI_SUCCESS;
 }
 
 static int app_ipcam_Init(void)
 {
+    #ifdef PERIPHERAL_SUPPORT
     APP_CHK_RET(app_ipcam_Peripheral_Init(), "Init Peripheral");
+    #endif
+
     APP_CHK_RET(app_ipcam_Sys_Init(), "Init Systerm");
+
+    #ifdef MPI_VI_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Vi_Init(), "Init VI");
+    #endif
+
+    #ifdef MPI_VPSS_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Vpss_Init(), "Init VPSS");
+    #endif
 
+    #ifdef MPI_OSD_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Osdc_Init(), "Init Draw Osdc");
+    #endif
 
-    #ifdef STITCH_SUPPORT
+    #ifdef MPI_STITCH_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Stitch_Init(), "Init Stitch");
     #endif
 
@@ -275,17 +287,19 @@ static int app_ipcam_Init(void)
     APP_CHK_RET(app_ipcam_WebSocket_Init(), "Init Websocket");
     #endif
 
+    #ifdef MPI_VENC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Venc_Init(APP_VENC_ALL), "Init VENC");
+    #endif
 
-    #ifdef VDEC
+    #ifdef MPI_VDEC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Vdec_Init(), "Init VDEC");
     #endif
 
-    #ifdef VDEC_SOFT
+    #ifdef VDEC_SOFT_SUPPORT
     APP_CHK_RET(app_ipcam_Vdec_Soft_Init(), "Init VDEC SOFT");
     #endif
 
-    #ifdef AUDIO_SUPPORT
+    #ifdef MPI_AUDIO_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Audio_Init(), "Init Audio");
     #endif
 
@@ -297,19 +311,15 @@ static int app_ipcam_Init(void)
     app_uac_init();
     #endif
 
-    #ifdef DISPLAY
-    APP_CHK_RET(app_ipcam_Display_Init(), "Init Display");
-    #endif
-
     #ifdef FRMBUF
     APP_CHK_RET(app_ipcam_FrmBuf_Init(), "Init FrameBuffer");
     #endif
 
-    #ifdef FRMBUF_LVGL
+    #ifdef FRMBUF_LVGL_SUPPORT
     APP_CHK_RET(app_ipcam_FrmBuf_LVGL_Init(), "Init LVGL.");
     #endif
 
-    #ifdef GDC_SUPPORT
+    #ifdef MPI_GDC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_GDC_Init(), "Init gdc.");
     #endif
 
@@ -338,34 +348,43 @@ int main(int argc, char *argv[])
     /* load each moudles parameter from param_config.ini */
     APP_CHK_RET(app_ipcam_Param_Load(), "Load Global Parameter");
 
+    #ifdef MBUF_SUPPORT
     APP_CHK_RET(app_ipcam_Mbuf_Init(), "Init Mbuf");
+    #endif
 
     /* init modules include <Peripheral; Sys; VI; VB; OSD; Venc; AI; Audio; etc.> */
     APP_CHK_RET(app_ipcam_Init(), "Init Ipcam App");
 
     /* Configuration print level */
-#ifdef LOG_SUPPORT
+    #ifdef LOG_SUPPORT
     CVI_LOG_SET_LEVEL(CVI_LOG_WARN);
-#endif
+    #endif
 
     /* create rtsp server */
-#ifdef RTSP_SUPPORT
+    #ifdef RTSP_SUPPORT
     APP_CHK_RET(app_ipcam_Rtsp_Server_Create(), "Create RTSP Server");
-#endif
+    #endif
 
     /* start video encode */
+    #ifdef MPI_VENC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Venc_Start(APP_VENC_ALL), "Start VENC");
+    #endif
 
     /* start video decode */
-    #ifdef VDEC
+    #ifdef MPI_VDEC_MODULE_SUPPORT
     APP_CHK_RET(app_ipcam_Vdec_Start(), "Start VDEC");
     #endif
 
-    #ifdef VDEC_SOFT
+    /* start video output */
+    #ifdef MPI_VO_MODULE_SUPPORT
+    APP_CHK_RET(app_ipcam_vo_start(), "Start VO");
+    #endif
+
+    #ifdef VDEC_SOFT_SUPPORT
     APP_CHK_RET(app_ipcam_Vdec_Soft_Start(APP_VDEC_SOFT_ALL), "Start VDEC SOFT");
     #endif
 
-    #ifdef FRMBUF_DISP
+    #ifdef FRMBUF_DISP_SUPPORT
     APP_CHK_RET(app_ipcam_FrmBuf_Disp_Start(), "Start DISP FRMBUF");
     #endif
 
@@ -376,7 +395,7 @@ int main(int argc, char *argv[])
     #endif
 
     #ifdef TDL_FD_SUPPORT
-    APP_CHK_RET(app_ipcam_Ai_FD_Start(), "Start AI Capture");
+    APP_CHK_RET(app_ipcam_Ai_FD_Start(), "Start AI Detect");
     #endif
 
     #ifdef  TDL_MD_SUPPORT
@@ -394,6 +413,10 @@ int main(int argc, char *argv[])
     #ifdef TDL_MOTION_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Motion_Start(), "Start AI Motion");
     #endif
+
+    #if defined(MPI_AUDIO_MODULE_SUPPORT) && defined(TDL_SOUND_CLS)
+    APP_CHK_RET(app_ipcam_Ai_Cry_Start(), "Start Sound cls");
+    #endif
     #endif
 
     #ifdef RECORD_SUPPORT
@@ -402,11 +425,11 @@ int main(int argc, char *argv[])
     APP_CHK_RET(app_ipcam_Record_Init(), "Init SD Record");
     #endif
 
-    #ifdef FRMBUF_LVGL
+    #ifdef FRMBUF_LVGL_SUPPORT
     APP_CHK_RET(app_ipcam_FrmBuf_LVGL_Start(), "Start LVGL.");
     #endif
 
-    
+
     /* enable receive a command form another progress for test ipcam */
     // APP_CHK_RET(app_ipcam_CmdTask_Create(), "Create CMD Test");
 

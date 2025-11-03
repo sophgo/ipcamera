@@ -74,6 +74,12 @@ config RESOURCE_INSTALL_TDL_CV181X_FEATURE_CVIFACE
 	help
 		"support install 181x feature cviface"
 
+config RESOURCE_INSTALL_TDL_CV181X_SOUND_BABAY_CRY
+	bool "install sound babay cry"
+	default n
+	help
+		"support install 181x sound babay cry"
+
 endmenu
 
 endmenu

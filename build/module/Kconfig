@@ -40,11 +40,11 @@ config MODULE_MEDIA_VENC
 config MODULE_MEDIA_VO
 	bool "enable module media vo"
 	default n
-	depends on MODULE_MEDIA
+	depends on MODULE_MEDIA && MODULE_PANEL
 	help
 		enable media vo in applicant
 
-config MODULE_MEDIA_DEC
+config MODULE_MEDIA_VDEC
 	bool "enable module vdec(hard)"
 	default n
 	depends on MODULE_MEDIA
@@ -135,12 +135,6 @@ config MODULE_RTSP
 	help
 		enable rtsp in applicant
 
-config MODULE_DISPLAY
-	bool "enable module display"
-	default n
-	help
-		enable display in applicant
-
 config MODULE_CLOUD
 	bool "enable module cloud"
 	default n
@@ -195,6 +189,13 @@ config MODULE_TDL_HUMAN_KEYPOINT
 	depends on MODULE_TDL
 	help
 		enable ai human keypoint detect in applicant
+
+config MODULE_TDL_SOUND_CLS
+	bool "enable module ai sound cls"
+	default n
+	depends on MODULE_TDL
+	help
+		enable ai sound cls in applicant
 
 config MODULE_TDL_MOTION
 	bool "enable module ai motion"
@@ -272,6 +273,13 @@ config MODULE_SDCARD
         depends on MODULE_PERIPHERAL
         help
                 enable sdcard peripheral in applicant
+
+config MODULE_PANEL
+        bool "enable module panel"
+        default n
+        depends on MODULE_PERIPHERAL
+        help
+                enable panel peripheral in applicant
 
 config MODULE_PQTOOL
 	bool "enable module pqtool"

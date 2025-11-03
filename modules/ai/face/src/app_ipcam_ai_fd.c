@@ -14,7 +14,7 @@
 /**************************************************************************
  *                              M A C R O S                               *
  **************************************************************************/
-
+#define MAX_FD_NUM 100
 SMT_MUTEXAUTOLOCK_INIT(g_FDMutex);
 static pthread_mutex_t g_FDStatusMutex = PTHREAD_MUTEX_INITIALIZER;
 /**************************************************************************
@@ -46,7 +46,7 @@ static volatile bool g_bFDRunning = CVI_FALSE;
 static volatile bool g_bFDPause = CVI_FALSE;
 static pthread_t g_FDThreadHandle;
 static TDLHandle g_FDAiHandle = NULL;
-static TDLFace g_stFDObjDraw;
+static TDLFace g_stFDObjDraw = {};
 static pfpFaceInferenceFunc g_pfpFDInference;
 
 // #define IMAGE_DIR "/mnt/sd/picture/"
@@ -105,40 +105,19 @@ CVI_S32 app_ipcam_Ai_FD_ProcTime_Get(void)
     return g_FDProc;
 }
 
-int32_t app_ipcam_Ai_CaculateSimilarity(const TDLFeature feature1,
-                                        const TDLFeature feature2, float *similarity) {
-    *similarity = 0;
-    if (feature1.size != feature2.size) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "feature1.size is not equal to feature2.size");
-        return -1;
+const char* emotion_to_text(int code) {
+    switch (code) {
+        case 0: return "anger";
+        case 1: return "disgust";
+        case 2: return "fear";
+        case 3: return "happy";
+        case 4: return "neutral";
+        case 5: return "sad";
+        case 6: return "surprise";
+        default: return "unknown";
     }
-    float norm1 = 0;
-    float norm2 = 0;
-    for (size_t i = 0; i < feature1.size; i++) {
-        *similarity += feature1.ptr[i] * feature2.ptr[i];
-        norm1 += feature1.ptr[i] * feature1.ptr[i];
-        norm2 += feature2.ptr[i] * feature2.ptr[i];
-    }
-    norm1 = sqrt(norm1);
-    norm2 = sqrt(norm2);
-    *similarity = *similarity / (norm1 * norm2);
-    return 0;
 }
 
-// static void app_ipcam_Ai_Fd_Param_dump(void)
-// {
-//     // APP_PROF_LOG_PRINT(LEVEL_INFO, "FD_bEnable=%d FR_bEnable=%d MASK_bEnable=%d FACE_AE_bEnable=%d Grp=%d Chn=%d GrpW=%d GrpH=%d\n", 
-//     //     g_pstFDCfg->FD_bEnable, g_pstFDCfg->FR_bEnable,g_pstFDCfg->MASK_bEnable, g_pstFDCfg->FACE_AE_bEnable,
-//     //             g_pstFDCfg->VpssGrp, g_pstFDCfg->VpssChn, g_pstFDCfg->u32GrpWidth, g_pstFDCfg->u32GrpHeight);
-
-//     // APP_PROF_LOG_PRINT(LEVEL_INFO, "model_w=%d model_h=%d bSkip=%d FdPoolId=%d threshold_fd=%f threshold_fr=%f  threshold_mask=%f \n",
-//     //     g_pstFDCfg->model_size_w, g_pstFDCfg->model_size_h, g_pstFDCfg->bVpssPreProcSkip, g_pstFDCfg->FdPoolId,
-//     //     g_pstFDCfg->threshold_fd,g_pstFDCfg->threshold_fr,g_pstFDCfg->threshold_mask);
-//     // APP_PROF_LOG_PRINT(LEVEL_INFO, " model_id_fd=%d model_path_fd=%s model_id_fr=%d model_path_fr=%s model_id_mask=%d model_path_mask=%s\n",
-//     //                 g_pstFDCfg->model_id_fd, g_pstFDCfg->model_path_fd,
-//     //                 g_pstFDCfg->model_id_fr, g_pstFDCfg->model_path_fr,
-//     //                 g_pstFDCfg->model_id_mask, g_pstFDCfg->model_path_mask);
-// }
 static void app_ipcam_Ai_Fd_Param_dump(void)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "FD_bEnable=%d Grp=%d Chn=%d GrpW=%d GrpH=%d \n", \
@@ -179,13 +158,13 @@ static CVI_S32 app_ipcam_Ai_FD_Proc_Init(CVI_VOID)
         g_FDAiHandle = TDL_CreateHandle(0);
         if (g_FDAiHandle == NULL)
         {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_FD_CreateHandle failed with %#x!\n", s32Ret);
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_CreateHandle failed with %#x!\n", s32Ret);
             return s32Ret;
         }
     }
     else
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_FD_CreateHandle has created\n");
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_CreateHandle has created\n");
         return s32Ret;
     }
 
@@ -218,6 +197,22 @@ static CVI_S32 app_ipcam_Ai_FD_Proc_Init(CVI_VOID)
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelPath failed with %#x!\n", g_pstFDCfg->model_path_fea, s32Ret);
             return s32Ret;
         }
+
+        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_landmark, g_pstFDCfg->model_path_landmark, g_pstFDCfg->model_cfg_path);
+        if (s32Ret != CVI_SUCCESS)
+        {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelPath failed with %#x!\n", g_pstFDCfg->model_path_landmark, s32Ret);
+            return s32Ret;
+        }
+    }
+
+    if (g_pstFDCfg->FD_ATTR_bEnable) {
+        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_fd_attr, g_pstFDCfg->model_path_fd_attr, NULL);
+        if (s32Ret != CVI_SUCCESS)
+        {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelPath failed with %#x!\n", g_pstFDCfg->model_path_fd_attr, s32Ret);
+            return s32Ret;
+        }
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "AI FD init ------------------> done \n");
@@ -244,7 +239,13 @@ static int DeepCopy_TDLFace(TDLFace* dst, const TDLFace* src) {
     // 3. 处理 TDLFaceInfo 数组
     if (src->info != NULL && src->size > 0) {
         // 分配新数组内存
-        dst->info = (TDLFaceInfo*)malloc(src->size * sizeof(TDLFaceInfo));
+        if (dst->info == NULL) {
+            dst->info = (TDLFaceInfo*)malloc(MAX_FD_NUM * sizeof(TDLFaceInfo));
+        }
+        if (dst->info && src->size > MAX_FD_NUM) {
+            TDL_ReleaseFaceMeta(dst);
+            dst->info = (TDLFaceInfo*)malloc(src->size * sizeof(TDLFaceInfo));
+        }
         if (dst->info == NULL) {
             return -1;
         }
@@ -326,8 +327,26 @@ static CVI_VOID *Thread_FD_PROC(CVI_VOID *arg)
             usleep(100*1000);
             continue;
         }
+
+        // 计算总的图像大小
+        size_t image_size = stfdFrame.stVFrame.u32Length[0] +
+                            stfdFrame.stVFrame.u32Length[1] +
+                            stfdFrame.stVFrame.u32Length[2];
+        bool isMapped = false;
+        // 如果虚拟地址为空，进行内存映射
+        if (stfdFrame.stVFrame.pu8VirAddr[0] == NULL) {
+            stfdFrame.stVFrame.pu8VirAddr[0] =
+                (CVI_U8 *)CVI_SYS_Mmap(stfdFrame.stVFrame.u64PhyAddr[0], image_size);
+            isMapped = true;
+        }
+
         image_handle = TDL_WrapFrame((void*)&stfdFrame, false);
-      
+        if(image_handle == NULL) {
+            APP_PROF_LOG_PRINT(LEVEL_INFO, " image_handle is NULL\n");
+            CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stfdFrame);
+            continue;
+        }
+
         pthread_mutex_unlock(&g_FDStatusMutex);
         // iTime_proc = GetCurTimeInMsec();
         /* 2. Face Detect*/
@@ -336,18 +355,45 @@ static CVI_VOID *Thread_FD_PROC(CVI_VOID *arg)
         g_pfpFDInference(g_FDAiHandle, g_pstFDCfg->model_id_fd, image_handle, &face);
 
         if (g_pstFDCfg->FEA_bEnable && face.size > 0) {
-            TDLFeature face_feature = {0};
-            s32Ret = TDL_FeatureExtraction(g_FDAiHandle, g_pstFDCfg->model_id_fea, image_handle, &face_feature);
+            TDLImage crop_image;
+            s32Ret = TDL_FaceLandmark(g_FDAiHandle, g_pstFDCfg->model_id_landmark, image_handle, &crop_image, &face);
             if (s32Ret == 0) {
-                for (uint32_t j = 0; j < gallery_feature.size; j ++) {
-                    float similarity = 0.0;
-                    s32Ret = app_ipcam_Ai_CaculateSimilarity(face_feature, gallery_feature.feature[j], &similarity);
-                    if (s32Ret == 0 && similarity > 0.5) {
-                        APP_PROF_LOG_PRINT(LEVEL_INFO, "Get Feature similarity to gallery\n"); 
+                TDLFeature face_feature = {0};
+                s32Ret = TDL_FeatureExtraction(g_FDAiHandle, g_pstFDCfg->model_id_fea, crop_image, &face_feature);
+                if (s32Ret == 0) {
+                    for (uint32_t j = 0; j < gallery_feature.size; j ++) {
+                        float similarity = 0.0;
+                        s32Ret = TDL_CaculateSimilarity(face_feature, gallery_feature.feature[j], &similarity);
+                        if (s32Ret == 0 && similarity > 0.6) {
+                            APP_PROF_LOG_PRINT(LEVEL_INFO, "Get Feature similarity to gallery, j = %d, similarity = %f\n", j, similarity); 
+                        }
                     }
+                    APP_PROF_LOG_PRINT(LEVEL_INFO, "------------------------------------------------------------\n");
+                    TDL_ReleaseFeatureMeta(&face_feature);
                 }
-                TDL_ReleaseFeatureMeta(&face_feature);
             }
+            TDL_DestroyImage(crop_image);
+        }
+
+        if (g_pstFDCfg->FD_ATTR_bEnable && face.size > 0) {
+            s32Ret = TDL_FaceAttribute(g_FDAiHandle, g_pstFDCfg->model_id_fd_attr, image_handle, &face);
+            if (s32Ret != 0) {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_FaceAttribute failed with %#x!\n", s32Ret);
+            } else {
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "gender score:%f,age score:%f,glass score:%f,emotion score:%f\n",
+                                   face.info->gender_score, face.info->age,
+                                   face.info->glass_score, face.info->emotion_score);
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "Gender:%s\n",
+                                   face.info->gender_score > 0.5 ? "Male" : "Female");
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "Age:%d\n", (int)round(face.info->age * 100.0));
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "Glass:%s\n", face.info->glass_score > 0.5 ? "Yes" : "No");
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "Emotion:%s\n", emotion_to_text(face.info->emotion_score));
+            }
+        }
+
+        if (isMapped) {
+            CVI_SYS_Munmap((void *)stfdFrame.stVFrame.u64PhyAddr[0], image_size);
+            isMapped = false;
         }
 
         s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stfdFrame);
@@ -357,24 +403,13 @@ static CVI_VOID *Thread_FD_PROC(CVI_VOID *arg)
         }
         TDL_DestroyImage(image_handle);
 
-        // if (face.size == 0 || face.info == NULL) {
-        //     TDL_ReleaseFaceMeta(&face);
-        //     TDL_DestroyImage(image_handle);
-        //     if (g_stFDObjDraw.info != NULL) {
-        //         TDL_ReleaseFaceMeta(&g_stFDObjDraw);
-        //     }
-        //     continue;
-        // }
+        g_stFDObjDraw.size = 0;
         if (face.size == 0) {
             continue;
         }
 
         {
             SMT_MutexAutoLock(g_FDMutex, lock);
-            if (g_stFDObjDraw.info != NULL) {
-                TDL_ReleaseFaceMeta(&g_stFDObjDraw);
-            }
-            memset(&g_stFDObjDraw, 0, sizeof(TDLFace));
             DeepCopy_TDLFace(&g_stFDObjDraw, &face);
         }
 
@@ -390,17 +425,14 @@ int app_ipcam_Ai_FD_ObjDrawInfo_Get(TDLFace *pstAiObj)
 {
     _NULL_POINTER_CHECK_(pstAiObj, -1);
 
+    pstAiObj->size = 0;
     SMT_MutexAutoLock(g_FDMutex, lock);
     if (g_stFDObjDraw.size == 0){
         return CVI_SUCCESS;
     }
     else
     {
-        memset(pstAiObj, 0, sizeof(TDLFace));
         DeepCopy_TDLFace(pstAiObj, &g_stFDObjDraw);
-        if (g_stFDObjDraw.info != NULL) { 
-            TDL_ReleaseFaceMeta(&g_stFDObjDraw);
-        }
     }
     return CVI_SUCCESS;
 }
@@ -436,6 +468,11 @@ int app_ipcam_Ai_FD_Stop(void)
             TDL_ReleaseFeatureMeta(&gallery_feature.feature[i]);
         }
         TDL_CloseModel(g_FDAiHandle, g_pstFDCfg->model_id_fea);
+        TDL_CloseModel(g_FDAiHandle, g_pstFDCfg->model_id_landmark);
+    }
+
+    if (g_pstFDCfg->FD_ATTR_bEnable) {
+        TDL_CloseModel(g_FDAiHandle, g_pstFDCfg->model_id_fd_attr);
     }
 
     TDL_CloseModel(g_FDAiHandle, g_pstFDCfg->model_id_fd);
@@ -449,7 +486,7 @@ int app_ipcam_Ai_FD_Stop(void)
     {
         g_FDAiHandle = NULL;
     }
-
+    TDL_ReleaseFaceMeta(&g_stFDObjDraw);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "AI FD Thread exit takes %u ms\n", (GetCurTimeInMsec() - iTime));
 
     return CVI_SUCCESS;
