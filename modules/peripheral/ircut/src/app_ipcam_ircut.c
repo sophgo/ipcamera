@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "cvi_isp.h"
 #include "cvi_comm_isp.h"
 #include "cvi_ae.h"

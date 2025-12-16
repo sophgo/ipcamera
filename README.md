@@ -13,6 +13,7 @@ ipcamera是一款网络摄像机管理软件，是网络视频服务器和摄像
 | configs     | configs              |选择需要进行编译的模块|
 | modules     | ai                   |算法相关模块，包括有人脸识别，手势识别和行人检测等|
 |             | common               |通用模块，包括有ini解析和cjson|
+|             | display              |显示模块，用于显示屏的输出|
 |             | framebuffer          |提供framebuffer功能的API|
 |             | media                |多媒体模块，包括有vi，vpss和venc等模块|
 |             | peripheral           |外设模块，包括有adc，dma和gpio等模块|
@@ -94,21 +95,21 @@ make menuconfig
 ```bash
  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   ┌────────────────────────────────────────── Sophapp Configuration ──────────────────────────────────────────┐
-  │  Arrow keys navigate the menu.  <Enter> selects submenus ---> (or empty submenus ----).  Highlighted      │
-  │  letters are hotkeys.  Pressing <Y> includes, <N> excludes, <M> modularizes features.  Press <Esc><Esc>   │
-  │  to exit, <?> for Help, </> for Search.  Legend: [*] built-in  [ ] excluded  <M> module  < > module       │
-  │  capable                                                                                                  │
-  │ ┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐ │
-  │ │                    cross_compile options  --->                                                        │ │
-  │ │                    platform options  --->                                                             │ │
-  │ │                    module options  --->                                                               │ │
-  │ │                    resource options  --->                                                             │ │
-  │ │                    peripheral support list  --->                                                      │ │
-  │ │                                                                                                       │ │
-  │ └───────────────────────────────────────────────────────────────────────────────────────────────────────┘ │
-  ├───────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-  │                         <Select>    < Exit >    < Help >    < Save >    < Load >                          │
-  └───────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+  │  Arrow keys navigate the menu.  <Enter> selects submenus ---> (or empty submenus ----).  Highlighted      │  
+  │  letters are hotkeys.  Pressing <Y> includes, <N> excludes, <M> modularizes features.  Press <Esc><Esc>   │  
+  │  to exit, <?> for Help, </> for Search.  Legend: [*] built-in  [ ] excluded  <M> module  < > module       │  
+  │  capable                                                                                                  │  
+  │ ┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐ │  
+  │ │                    cross_compile options  --->                                                        │ │  
+  │ │                    platform options  --->                                                             │ │  
+  │ │                    module options  --->                                                               │ │  
+  │ │                    resource options  --->                                                             │ │  
+  │ │                    peripheral support list  --->                                                      │ │  
+  │ │                                                                                                       │ │  
+  │ └───────────────────────────────────────────────────────────────────────────────────────────────────────┘ │  
+  ├───────────────────────────────────────────────────────────────────────────────────────────────────────────┤  
+  │                         <Select>    < Exit >    < Help >    < Save >    < Load >                          │  
+  └───────────────────────────────────────────────────────────────────────────────────────────────────────────┘ 
 ```
 
 2. 添加新模块功能<br>

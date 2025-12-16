@@ -72,13 +72,7 @@ __attribute__((weak)) int Load_Param_Vdec_Soft(const char *file)
     return 0;
 }
 
-__attribute__((weak)) int Load_Param_Vo(const char* const file)
-{
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
-    return 0;
-}
-
-__attribute__((weak)) int Load_Param_Panel(const char* const file)
+__attribute__((weak)) int Load_Param_Display(const char* const file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
     return 0;
@@ -186,6 +180,11 @@ __attribute__((weak)) int Load_Param_Ai_CRY(const char *file)
     return 0;
 }
 
+__attribute__((weak)) int Load_Param_Ai_OBJECT_TRACK(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
 
 //common attribute
 const char *pixel_format[PIXEL_FORMAT_MAX] = {
@@ -252,12 +251,18 @@ const char *compress_mode[COMPRESS_MODE_BUTT] = {
 const char *vi_vpss_mode[VI_VPSS_MODE_BUTT] = {
     [VI_OFFLINE_VPSS_OFFLINE] = "VI_OFFLINE_VPSS_OFFLINE",
     [VI_OFFLINE_VPSS_ONLINE] = "VI_OFFLINE_VPSS_ONLINE",
+#ifdef __CV184X__
+    [VI_SLICE_VPSS_OFFLINE] = "VI_SLICE_VPSS_OFFLINE",
+    [VI_SLICE_VPSS_ONLINE] = "VI_SLICE_VPSS_ONLINE",
+#endif
     [VI_ONLINE_VPSS_OFFLINE] = "VI_ONLINE_VPSS_OFFLINE",
     [VI_ONLINE_VPSS_ONLINE] = "VI_ONLINE_VPSS_ONLINE",
+#ifndef __CV184X__
     [VI_BE_OFL_POST_OL_VPSS_OFL] = "VI_BE_OFL_POST_OL_VPSS_OFL",
     [VI_BE_OFL_POST_OFL_VPSS_OFL] = "VI_BE_OFL_POST_OFL_VPSS_OFL",
     [VI_BE_OL_POST_OFL_VPSS_OFL] = "VI_BE_OL_POST_OFL_VPSS_OFL",
     [VI_BE_OL_POST_OL_VPSS_OFL] = "VI_BE_OL_POST_OL_VPSS_OFL"
+#endif
 };
 
 const char *mode_id[CVI_ID_BUTT] = {
@@ -453,32 +458,31 @@ int app_ipcam_Opts_Parse(int argc, char *argv[])
 
 int app_ipcam_Param_Load(void)
 {
-    APP_CHK_RET(access(ParamCfgFile, F_OK),                  "param_config.ini access");
-    APP_CHK_RET(Load_Param_Sys(ParamCfgFile),                "Load SysVb Param");
-    APP_CHK_RET(Load_Param_Vi(ParamCfgFile),                 "Load VI Param");
-    APP_CHK_RET(Load_Param_Vpss(ParamCfgFile),               "Load VPSS Param");
-    APP_CHK_RET(Load_Param_Venc(ParamCfgFile),               "Load VENC Param");
-    APP_CHK_RET(Load_Param_Vdec(ParamCfgFile),               "Load VDEC Param");
-    APP_CHK_RET(Load_Param_Vdec_Soft(ParamCfgFile),          "Load VDEC SOFT Param");
-    APP_CHK_RET(Load_Param_Vo(ParamCfgFile),                 "Load Vo Param");
-    APP_CHK_RET(Load_Param_Panel(ParamCfgFile),              "Load Panel Param");
-    APP_CHK_RET(Load_Param_FrmBuf(ParamCfgFile),             "Load FrameBuffer Param");
-    APP_CHK_RET(Load_Param_Audio(ParamCfgFile),              "Load Audio Param");
-    APP_CHK_RET(Load_Param_Osdc(ParamCfgFile),               "Load OSDC Param");
-    APP_CHK_RET(Load_Param_Stitch(ParamCfgFile),             "Load Stitch Param");
-    APP_CHK_RET(Load_Param_GDC(ParamCfgFile),                "Load GDC Param");
-    APP_CHK_RET(Load_Param_BlackLight(ParamCfgFile),         "Load blacklight Param");
-    APP_CHK_RET(Load_Param_Rtsp(ParamCfgFile),               "Load RTSP Param");
-    APP_CHK_RET(Load_Param_Gpio(ParamCfgFile),               "Load GPIO Param");
-    APP_CHK_RET(Load_Param_Pwm(ParamCfgFile),                "Load PWM Param");
-    APP_CHK_RET(Load_Param_Record(ParamCfgFile),             "Load Record Param");
-    APP_CHK_RET(Load_Param_Ai_CAPTURE(ParamCfgFile),         "Load_Param_Ai_CAPTURE");
-    APP_CHK_RET(Load_Param_Ai_FD(ParamCfgFile),              "Load_Param_Ai_FD");
-    APP_CHK_RET(Load_Param_Ai_MD(ParamCfgFile),              "Load_Param_Ai_MD");
-    APP_CHK_RET(Load_Param_Ai_PD(ParamCfgFile),              "Load_Param_Ai_PD");
-    APP_CHK_RET(Load_Param_Ai_HumanKeypoint(ParamCfgFile),   "Load_Param_Ai_HumanKeypoint");
-    APP_CHK_RET(Load_Param_Ai_Motion(ParamCfgFile),          "Load_Param_Ai_Motion");
-    APP_CHK_RET(Load_Param_Ai_CRY(ParamCfgFile),             "Load_Param_Ai_CRY");
-
+    APP_CHK_RET(access(ParamCfgFile, F_OK), "param_config.ini access");
+    APP_CHK_RET(Load_Param_Sys(ParamCfgFile), "Load SysVb Param");
+    APP_CHK_RET(Load_Param_Vi(ParamCfgFile), "Load VI Param");
+    APP_CHK_RET(Load_Param_Vpss(ParamCfgFile), "Load VPSS Param");
+    APP_CHK_RET(Load_Param_Venc(ParamCfgFile), "Load VENC Param");
+    APP_CHK_RET(Load_Param_Vdec(ParamCfgFile), "Load VDEC Param");
+    APP_CHK_RET(Load_Param_Vdec_Soft(ParamCfgFile), "Load VDEC SOFT Param");
+    APP_CHK_RET(Load_Param_Display(ParamCfgFile), "Load Display Param");
+    APP_CHK_RET(Load_Param_FrmBuf(ParamCfgFile), "Load FrameBuffer Param");
+    APP_CHK_RET(Load_Param_Audio(ParamCfgFile), "Load Audio Param");
+    APP_CHK_RET(Load_Param_Osdc(ParamCfgFile), "Load OSDC Param");
+    APP_CHK_RET(Load_Param_Stitch(ParamCfgFile), "Load Stitch Param");
+    APP_CHK_RET(Load_Param_GDC(ParamCfgFile), "Load GDC Param");
+    APP_CHK_RET(Load_Param_BlackLight(ParamCfgFile), "Load blacklight Param");
+    APP_CHK_RET(Load_Param_Rtsp(ParamCfgFile), "Load RTSP Param");
+    APP_CHK_RET(Load_Param_Gpio(ParamCfgFile), "Load GPIO Param");
+    APP_CHK_RET(Load_Param_Pwm(ParamCfgFile), "Load PWM Param");
+    APP_CHK_RET(Load_Param_Record(ParamCfgFile), "Load Record Param");
+    APP_CHK_RET(Load_Param_Ai_CAPTURE(ParamCfgFile), "Load_Param_Ai_CAPTURE");
+    APP_CHK_RET(Load_Param_Ai_FD(ParamCfgFile), "Load_Param_Ai_FD");
+    APP_CHK_RET(Load_Param_Ai_MD(ParamCfgFile), "Load_Param_Ai_MD");
+    APP_CHK_RET(Load_Param_Ai_PD(ParamCfgFile), "Load_Param_Ai_PD");
+    APP_CHK_RET(Load_Param_Ai_HumanKeypoint(ParamCfgFile), "Load_Param_Ai_HumanKeypoint");
+    APP_CHK_RET(Load_Param_Ai_Motion(ParamCfgFile), "Load_Param_Ai_Motion");
+    APP_CHK_RET(Load_Param_Ai_CRY(ParamCfgFile), "Load_Param_Ai_CRY");
+    APP_CHK_RET(Load_Param_Ai_OBJECT_TRACK(ParamCfgFile), "Load AI OBJECT TRACK Param");
     return CVI_SUCCESS;
 }

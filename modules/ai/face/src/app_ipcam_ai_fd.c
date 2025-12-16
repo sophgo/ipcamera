@@ -175,7 +175,7 @@ static CVI_S32 app_ipcam_Ai_FD_Proc_Init(CVI_VOID)
         return s32Ret;
     }
 
-    s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_fd, g_pstFDCfg->model_path_fd, NULL);
+    s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_fd, g_pstFDCfg->model_path_fd, NULL, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelPath failed with %#x!\n", g_pstFDCfg->model_path_fd, s32Ret);
@@ -191,14 +191,14 @@ static CVI_S32 app_ipcam_Ai_FD_Proc_Init(CVI_VOID)
 
     if (g_pstFDCfg->FEA_bEnable) {
         TDL_GetGalleryFeature(g_pstFDCfg->gallery_dir_path, &gallery_feature, 256);
-        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_fea, g_pstFDCfg->model_path_fea, g_pstFDCfg->model_cfg_path);
+        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_fea, g_pstFDCfg->model_path_fea, g_pstFDCfg->model_cfg_path, 0);
         if (s32Ret != CVI_SUCCESS)
         {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelPath failed with %#x!\n", g_pstFDCfg->model_path_fea, s32Ret);
             return s32Ret;
         }
 
-        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_landmark, g_pstFDCfg->model_path_landmark, g_pstFDCfg->model_cfg_path);
+        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_landmark, g_pstFDCfg->model_path_landmark, g_pstFDCfg->model_cfg_path, 0);
         if (s32Ret != CVI_SUCCESS)
         {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelPath failed with %#x!\n", g_pstFDCfg->model_path_landmark, s32Ret);
@@ -207,7 +207,7 @@ static CVI_S32 app_ipcam_Ai_FD_Proc_Init(CVI_VOID)
     }
 
     if (g_pstFDCfg->FD_ATTR_bEnable) {
-        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_fd_attr, g_pstFDCfg->model_path_fd_attr, NULL);
+        s32Ret = TDL_OpenModel(g_FDAiHandle, g_pstFDCfg->model_id_fd_attr, g_pstFDCfg->model_path_fd_attr, NULL, 0);
         if (s32Ret != CVI_SUCCESS)
         {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelPath failed with %#x!\n", g_pstFDCfg->model_path_fd_attr, s32Ret);
@@ -353,6 +353,7 @@ static CVI_VOID *Thread_FD_PROC(CVI_VOID *arg)
         TDLFace face;
         memset(&face, 0, sizeof(TDLFace));
         g_pfpFDInference(g_FDAiHandle, g_pstFDCfg->model_id_fd, image_handle, &face);
+        APP_PROF_LOG_PRINT(LEVEL_TRACE, "FD obj: %d \n", face.size);
 
         if (g_pstFDCfg->FEA_bEnable && face.size > 0) {
             TDLImage crop_image;

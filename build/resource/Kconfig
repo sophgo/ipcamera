@@ -80,6 +80,18 @@ config RESOURCE_INSTALL_TDL_CV181X_SOUND_BABAY_CRY
 	help
 		"support install 181x sound babay cry"
 
+config RESOURCE_INSTALL_TDL_CV181X_YOLOV8N_DET_PERSON_VEHICLE
+	bool "install yolov8n_det_person_vehicle"
+	default n
+	help
+		"support install 181x yolov8n_det_person_vehicle"
+
+config RESOURCE_INSTALL_TDL_CV181X_TRACKING_FEARTACK
+	bool "install tracking_feartrack"
+	default n
+	help
+		"support install 181x tracking_feartrack"
+
 endmenu
 
 endmenu

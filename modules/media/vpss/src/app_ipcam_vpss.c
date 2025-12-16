@@ -187,7 +187,7 @@ int app_ipcam_Vpss_Unbind(VPSS_GRP VpssGrp)
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "VpssGrp=%d bindMode:%d\n", VpssGrp, pstVpssGrpCfg->bBindMode);
-
+    
     if (pstVpssGrpCfg->bBindMode) {
         s32Ret = CVI_SYS_UnBind(&pstVpssGrpCfg->astChn[0], &pstVpssGrpCfg->astChn[1]);
         if (s32Ret != CVI_SUCCESS) {
@@ -247,6 +247,13 @@ int app_ipcam_Vpss_Init(void)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
 
+#ifdef __CV184X__
+    s32Ret = CVI_VPSS_SetMode(&g_pstVpssCfg->stVPSSMode);
+	if (s32Ret != CVI_SUCCESS) {
+		APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VPSS_SetMode failed with %#x!\n", s32Ret);
+		return s32Ret;
+	}
+#endif
     APP_PROF_LOG_PRINT(LEVEL_INFO, "vpss init ------------------> start \n");
 
     for (CVI_U32 VpssGrp = 0; VpssGrp < g_pstVpssCfg->u32GrpCnt; VpssGrp++) {

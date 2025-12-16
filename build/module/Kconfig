@@ -40,11 +40,11 @@ config MODULE_MEDIA_VENC
 config MODULE_MEDIA_VO
 	bool "enable module media vo"
 	default n
-	depends on MODULE_MEDIA && MODULE_PANEL
+	depends on MODULE_MEDIA
 	help
 		enable media vo in applicant
 
-config MODULE_MEDIA_VDEC
+config MODULE_MEDIA_DEC
 	bool "enable module vdec(hard)"
 	default n
 	depends on MODULE_MEDIA
@@ -135,6 +135,19 @@ config MODULE_RTSP
 	help
 		enable rtsp in applicant
 
+config RTSP_AUDIO_ENABLE
+	bool "enable rtsp audio stream"
+	default n
+	depends on MODULE_RTSP && MODULE_MEDIA_AUDIO
+	help
+		enable audio streaming for rtsp when audio module is enabled
+
+config MODULE_DISPLAY
+	bool "enable module display"
+	default n
+	help
+		enable display in applicant
+
 config MODULE_CLOUD
 	bool "enable module cloud"
 	default n
@@ -203,6 +216,13 @@ config MODULE_TDL_MOTION
 	depends on MODULE_TDL
 	help
 		enable ai motion in applicant
+
+config MODULE_TDL_OBJECT_TRACK
+	bool "enable module ai object track"
+	default n
+	depends on MODULE_TDL
+	help
+		enable ai object track in applicant
 
 menuconfig MODULE_ENABLE_FRAMEBUFFER
 	bool "enable module eanble framebuffer"
@@ -273,13 +293,6 @@ config MODULE_SDCARD
         depends on MODULE_PERIPHERAL
         help
                 enable sdcard peripheral in applicant
-
-config MODULE_PANEL
-        bool "enable module panel"
-        default n
-        depends on MODULE_PERIPHERAL
-        help
-                enable panel peripheral in applicant
 
 config MODULE_PQTOOL
 	bool "enable module pqtool"

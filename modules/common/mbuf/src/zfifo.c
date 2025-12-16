@@ -679,19 +679,10 @@ int zfifo_readv_flag_plus(ZFIFO_DESC *zfifo_desc, ZFIFO_NODE *iov, int iovcnt, i
     struct timeval tv;
     struct timespec ts;
 
-    if (zfifo->flag_index > 0)
-    {
-        zfifo_desc->index = zfifo->flag_index;
-        zfifo_desc->offset = zfifo->flag_offset;
-    }
-    else
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Invalid not key fps %d\n", zfifo->flag_index);
-        return -1;
-    }
-
     pthread_mutex_lock(&zfifo->mutex);
 
+    // Wait for flag_index to be initialized (first I-frame written)
+    // This prevents "Invalid not key fps 0" error when client connects before encoder starts
     gettimeofday(&now, NULL);
     tv.tv_sec = timeout / 1000;
     tv.tv_usec = (timeout % 1000) * 1000;
@@ -699,6 +690,38 @@ int zfifo_readv_flag_plus(ZFIFO_DESC *zfifo_desc, ZFIFO_NODE *iov, int iovcnt, i
     ts.tv_nsec = ((now.tv_usec + tv.tv_usec) % MICROSECONDS) * 1000;
 
     int ret = 0;
+    while (zfifo->flag_index <= 0 && ret != ETIMEDOUT)
+    {
+        if(timeout <= 0)
+        {
+            pthread_mutex_unlock(&zfifo->mutex);
+            APP_PROF_LOG_PRINT(LEVEL_DEBUG, "flag_index not ready, timeout=0\n");
+            return 0;
+        }
+        ret = pthread_cond_timedwait(&zfifo->cond, &zfifo->mutex, &ts);
+    }
+
+    if (ret == ETIMEDOUT || zfifo->flag_index <= 0)
+    {
+        pthread_mutex_unlock(&zfifo->mutex);
+        APP_PROF_LOG_PRINT(LEVEL_WARN, "Timeout waiting for flag_index to be initialized (fps %d)\n", zfifo->flag_index);
+        return 0;
+    }
+
+    if (zfifo->flag_index > 0)
+    {
+        zfifo_desc->index = zfifo->flag_index;
+        zfifo_desc->offset = zfifo->flag_offset;
+    }
+
+    // Recalculate timeout for the data wait
+    gettimeofday(&now, NULL);
+    tv.tv_sec = timeout / 1000;
+    tv.tv_usec = (timeout % 1000) * 1000;
+    ts.tv_sec = now.tv_sec + tv.tv_sec + (now.tv_usec + tv.tv_usec) / MICROSECONDS;
+    ts.tv_nsec = ((now.tv_usec + tv.tv_usec) % MICROSECONDS) * 1000;
+
+    ret = 0;
 
     while (((zfifo_desc->index > zfifo->last_index) || (zfifo->flag_index < zfifo->first_index)) &&
            (ret != ETIMEDOUT))

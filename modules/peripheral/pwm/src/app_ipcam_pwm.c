@@ -9,7 +9,11 @@
 #include <sys/time.h>
 #include <stdbool.h>
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "app_ipcam_pwm.h"
 #include "app_ipcam_comm.h"
 

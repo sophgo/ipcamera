@@ -14,11 +14,18 @@ extern "C" {
 #endif
 #endif
 
+
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
 #include <linux/cvi_common.h>
 #include "linux/cvi_comm_vo.h"
+#else
+#include "cvi_type.h"
+#include "cvi_common.h"
+#include "cvi_comm_vo.h"
+#endif
 
-#define APP_IPCAM_VO_MAX_NUM (VO_MAX_DEV_NUM)
+
 typedef enum _VO_MODE_E {
     VO_MODE_1MUX,
     VO_MODE_2MUX,
@@ -33,7 +40,8 @@ typedef enum _VO_MODE_E {
     VO_MODE_2X4,
     VO_MODE_BUTT
 } VO_MODE_E;
-typedef struct _app_param_vo_cfg_s {
+
+typedef struct APP_PARAM_VO_CFG_S {
     VO_DEV s32VoDev;
     VO_PUB_ATTR_S stVoPubAttr;
     VO_VIDEO_LAYER_ATTR_S stLayerAttr;
@@ -45,15 +53,8 @@ typedef struct _app_param_vo_cfg_s {
     CVI_BOOL bBindMode;
 } APP_PARAM_VO_CFG_T;
 
-typedef struct _app_multi_vo_param_s {
-    APP_PARAM_VO_CFG_T vo_cfg[APP_IPCAM_VO_MAX_NUM];
-    CVI_U32 vo_num;
-} APP_MULTI_VO_PARAM_S;
-
-APP_MULTI_VO_PARAM_S *app_ipcam_vo_param_get(void);
-
-CVI_S32 app_ipcam_vo_start(void);
-CVI_S32 app_ipcam_vo_stop(void);
+CVI_S32 app_ipcam_Vo_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg);
 
 
 #ifdef __cplusplus

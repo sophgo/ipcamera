@@ -17,12 +17,17 @@ export SOC_NICK_NAME := CV180X
 export SOC_NICK_NAME_LOWER := $(shell echo $(SOC_NICK_NAME) | tr A-Z a-z)
 endif
 
+ifeq ($(SOC_SEGMENT), CV184X)
+export SOC_NICK_NAME := CV184X
+export SOC_NICK_NAME_LOWER := $(shell echo $(SOC_NICK_NAME) | tr A-Z a-z)
+endif
+
 $(info SOC_SEGMENT=$(SOC_SEGMENT))
 $(info SOC_NICK_NAME=$(SOC_NICK_NAME))
 $(info SOC_NICK_NAME_LOWER=$(SOC_NICK_NAME_LOWER))
 
 ## setup path ##
-ifeq ($(findstring $(SOC_SEGMENT), CV182X CV183X CV180X CV181X), )
+ifeq ($(findstring $(SOC_SEGMENT), CV182X CV183X CV180X CV181X CV184X), )
 	$(error UNKNOWN chip series - $(SOC_SEGMENT))
 endif
 

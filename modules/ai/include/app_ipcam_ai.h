@@ -1,8 +1,16 @@
 #ifndef __APP_IPCAM_AI_H__
 #define __APP_IPCAM_AI_H__
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
+#else
+#include "cvi_comm_video.h"
+#endif
 #include "cvi_vpss.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_vi.h"
@@ -126,7 +134,24 @@ typedef struct APP_PARAM_AI_CRY_CFG_T {
     char model_path[MODEL_PATH_LEN];
 } APP_PARAM_AI_CRY_CFG_S;
 
-#if defined(MPI_AUDIO_MODULE_SUPPORT) && defined(TDL_SOUND_CLS)
+typedef struct APP_PARAM_AI_OBJECT_TRACK_CFG_T
+{
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+    CVI_U32 u32GrpHeight;
+    TDLModel model_id_det;
+    TDLModel model_id_sot;
+    char model_path_det[MODEL_PATH_LEN];
+    char model_path_sot[MODEL_PATH_LEN];
+    char model_path_cfg[MODEL_PATH_LEN];
+    float threshold_occluded;
+    float threshold_reappear;
+    CVI_U32 lost_timeout_seconds;
+} APP_PARAM_AI_OBJECT_TRACK_CFG_S;
+
+#if defined(AUDIO_SUPPORT) && defined(TDL_SOUND_CLS)
 typedef enum {
     BABY_CRY = 0,
     AUDIO_ORDER = 1,
@@ -225,6 +250,23 @@ CVI_S32 app_ipcam_Ai_Human_Keypoint_StatusGet(void);
 APP_PARAM_AI_Motion_CFG_S *app_ipcam_Ai_Motion_Param_Get(void);
 int app_ipcam_Ai_Motion_Start(void);
 int app_ipcam_Ai_Motion_Stop(void);
+#endif
+
+#ifdef TDL_OBJECT_TRACK_SUPPORT
+typedef enum {
+    DETECTION = 0,
+    TRACKING = 1
+} APP_PARAM_OBJECT_TRACK_MODE;
+
+APP_PARAM_AI_OBJECT_TRACK_CFG_S *app_ipcam_Ai_Object_Track_Param_Get(void);
+CVI_BOOL app_ipcam_Ai_Object_Track_Pause_Get(void);
+CVI_VOID app_ipcam_Ai_Object_Track_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Object_Track_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Object_Track_ProcStatus_Set(CVI_BOOL flag);
+int app_ipcam_Ai_Object_Track_Start(void);
+int app_ipcam_Ai_Object_Track_Stop(void);
+CVI_VOID app_ipcam_Ai_Object_Track_ObjDrawInfo_Get(TDLObject *pstAiObj);
+APP_PARAM_OBJECT_TRACK_MODE app_ipcam_Ai_Object_Track_Mode_Get(void);
 #endif
 
 #ifdef __cplusplus

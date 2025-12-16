@@ -1,36 +1,26 @@
 #ifndef __APP_IPCAM_PARAM_PARSE_H__
 #define __APP_IPCAM_PARAM_PARSE_H__
-
+#ifndef __CV184X__
 #include "linux/cvi_common.h"
+#else
+#include "cvi_common.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
+#else
+#include "cvi_comm_video.h"
+#endif
 #include "app_ipcam_comm.h"
 #include "app_ipcam_sys.h"
-
-#ifdef MPI_VI_MODULE_SUPPORT
 #include "app_ipcam_vi.h"
-#endif
-
-#ifdef MPI_VPSS_MODULE_SUPPORT
 #include "app_ipcam_vpss.h"
-#endif
-
-#ifdef MPI_OSD_MODULE_SUPPORT
 #include "app_ipcam_osd.h"
-#endif
-
-#ifdef MPI_VENC_MODULE_SUPPORT
 #include "app_ipcam_venc.h"
-#endif
-
-#ifdef MPI_VO_MODULE_SUPPORT
-#include "app_ipcam_vo.h"
-#endif
 
 #ifdef RTSP_SUPPORT
 #include "app_ipcam_rtsp.h"
 #endif
-
-#ifdef MPI_VDEC_MODULE_SUPPORT
+#ifdef VDEC
 #include "app_ipcam_vdec.h"
 #endif
 
@@ -38,19 +28,23 @@
 #include "app_ipcam_frmbuf.h"
 #endif
 
-#ifdef VDEC_SOFT_SUPPORT
+#ifdef VDEC_SOFT
 #include "app_ipcam_vdec_soft.h"
 #endif
 
-#ifdef FRMBUF_DISP_SUPPORT
+#ifdef FRMBUF_DISP
 #include "app_ipcam_frmbuf_disp.h"
+#endif
+
+#ifdef DISPLAY
+#include "app_ipcam_display.h"
 #endif
 
 #ifdef FRMBUF
 #include "app_ipcam_frmbuf.h"
 #endif
 
-#ifdef MPI_AUDIO_MODULE_SUPPORT
+#ifdef AUDIO_SUPPORT
 #include "app_ipcam_audio.h"
 #endif
 
@@ -62,57 +56,20 @@
 #include "app_ipcam_record.h"
 #endif
 
-#ifdef MPI_STITCH_MODULE_SUPPORT
+#ifdef STITCH_SUPPORT
 #include "app_ipcam_stitch.h"
 #endif
 
-#ifdef FRMBUF_LVGL_SUPPORT
+#ifdef FRMBUF_LVGL
 #include "app_ipcam_frmbuf_lvgl.h"
 #endif
 
-#ifdef MPI_GDC_MODULE_SUPPORT
+#ifdef GDC_SUPPORT
 #include "app_ipcam_gdc.h"
 #endif
 
 #ifdef BLACKLIGHT_SUPPORT
 #include "app_ipcam_blacklight.h"
-#endif
-
-#ifdef PANEL_SUPPORT
-#include "app_ipcam_panel.h"
-#endif
-
-#ifdef IRCUT_MODULE_SUPPORT
-#include "app_ipcam_ircut.h"
-#endif
-
-#ifdef SDCARD_SUPPORT
-#include "app_ipcam_sdcard.h"
-#endif
-
-#ifdef MBUF_SUPPORT
-#include "cvi_mbuf.h"
-#endif
-
-#ifdef WEB_SOCKET
-#include "app_ipcam_websocket.h"
-#include "app_ipcam_netctrl.h"
-#endif
-
-#ifdef CVI_UVC_SUPPORT
-#include "cvi_uvc.h"
-#endif
-
-#ifdef CVI_UAC_SUPPORT
-#include "cvi_audio_uac.h"
-#endif
-
-#ifdef LOG_SUPPORT
-#include "cvi_log.h"
-#endif
-
-#ifdef CLOUD_SUPPORT
-#include "plt_common_hal.h"
 #endif
 
 #ifdef __cplusplus

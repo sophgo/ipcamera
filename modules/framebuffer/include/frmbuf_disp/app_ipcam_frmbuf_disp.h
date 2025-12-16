@@ -2,11 +2,15 @@
 #define __APP_IPCAM_DISPLAY_FRM_BUF_H__
 
 #include <sys/prctl.h>
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include <linux/cvi_common.h>
 #include "app_ipcam_frmbuf.h"
 
-#ifdef VDEC_SOFT_SUPPORT
+#ifdef VDEC_SOFT
 #include "app_ipcam_vdec_soft.h"
 #endif
 

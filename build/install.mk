@@ -64,6 +64,16 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_SOUND_BABAY_CRY),y)
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/cls_sound_babay_cry_188_40_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
 endif
 
+ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_TRACKING_FEARTACK),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv181x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/tracking_feartrack_128_128_256_256_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
+endif
+
+ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_YOLOV8N_DET_PERSON_VEHICLE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv181x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/yolov8n_det_person_vehicle_384_640_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
+endif
+
 #FILE  RECOVRY
 ifeq ($(CONFIG_RESOURCE_INSTALL_H264_PCM_TEMPLATE),y)
 	@cp -f $(APP_RESOURCE_DIR)/file_recover/h264_pcm_template.bin $(APP_INSTALL_DIR)

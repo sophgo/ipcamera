@@ -38,7 +38,7 @@
 #include "app_ipcam_ai.h"
 #endif
 #include "app_ipcam_osd.h"
-#ifdef MPI_AUDIO_MODULE_SUPPORT
+#ifdef AUDIO_SUPPORT
 #include "app_ipcam_audio.h"
 #endif
 #ifdef RECORD_SUPPORT
@@ -424,7 +424,9 @@ static int ImagePage_Get_Sharpen(void)
     }
 
     if (stDRCAttr.Enable && (stDRCAttr.enOpType == OP_TYPE_MANUAL)) {
+#ifndef __CV184X__
     s_sharpenn = stDRCAttr.stManual.GlobalGain;
+#endif
     }
 
     return s_sharpenn;
@@ -447,7 +449,9 @@ static int ImagePage_Set_Sharpness(int value)
 
     stDRCAttr.Enable = CVI_TRUE;
     stDRCAttr.enOpType = OP_TYPE_MANUAL;
+#ifndef __CV184X__
     stDRCAttr.stManual.GlobalGain = (CVI_U8)s_sharpenn;
+#endif
 
     ret = CVI_ISP_SetSharpenAttr(viPipe, &stDRCAttr);
     if (ret != CVI_SUCCESS) {
@@ -465,6 +469,7 @@ static int ImagePage_Get_2DNR(void)
 static int ImagePage_Set_2DNR(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
+#ifndef __CV184X__
     CVI_S32 ret;
     ISP_NR_ATTR_S  NrAttr;
     s_noise2d = value;
@@ -486,6 +491,7 @@ static int ImagePage_Set_2DNR(int value)
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_SetTNRAttr failed\n");
     }
+#endif
     return 0;
 }
 
@@ -504,10 +510,12 @@ static int ImagePage_Set_3DNR(int value)
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_GetTNRAttr failed\n");
     }
+#ifndef __CV184X__
     for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "TnrStrength0[%d]=%d\n", i, nioseTnrAttr.stAuto.TnrStrength0[i]);
         nioseTnrAttr.stAuto.TnrStrength0[i] = s_noise3d;
     }
+#endif
     ret = CVI_ISP_SetTNRAttr(0, &nioseTnrAttr);
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_SetTNRAttr failed\n");
@@ -600,7 +608,11 @@ static int ImagePage_Get_RedGain(void)
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#ifndef __CV184X__
     s_redGain = stRadialShadingGainLutAttr.RLscGainLut[i].RGain
+else
+    s_redGain = stRadialShadingGainLutAttr.GGain[0];
+#endif
 #endif
     return s_redGain;
 }
@@ -615,9 +627,15 @@ static int ImagePage_Set_RedGain(int value)
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#ifndef __CV184X__
     for(int i = 0;i < ISP_RLSC_COLOR_TEMPERATURE_SIZE ;i++){
         stRadialShadingGainLutAttr.RLscGainLut[i].RGain = s_redGain;
     }
+else
+    for(int i = 0; i < ISP_RLSC_WINDOW_SIZE; i++){
+        stRadialShadingGainLutAttr.GGain[i] = s_redGain;
+    }
+#endif
     CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
 #endif
     return 0;
@@ -631,7 +649,11 @@ static int ImagePage_Get_BlueGain(void)
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
+#ifndef __CV184X__
     s_blueGain = stRadialShadingGainLutAttr.RLscGainLut[0].BGain
+else
+    s_blueGain = stRadialShadingGainLutAttr.GGain[0];
+#endif
 #endif
     return s_blueGain;
 }
@@ -647,9 +669,15 @@ static int ImagePage_Set_BlueGain(int value)
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
 
+#ifndef __CV184X__
     for(int i = 0;i < ISP_RLSC_COLOR_TEMPERATURE_SIZE ;i++){
         stRadialShadingGainLutAttr.RLscGainLut[i].BGain = s_blueGain;
     }
+else
+    for(int i = 0; i < ISP_RLSC_WINDOW_SIZE; i++){
+        stRadialShadingGainLutAttr.GGain[i] = s_blueGain;
+    }
+#endif
     CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
 #endif
     return 0;
@@ -662,6 +690,7 @@ static int ImagePage_Get_Defog_Enable(void)
 
 static int ImagePage_Set_Defog_Enable(int value)
 {
+#ifndef __CV184X__
     CVI_S32 ret;
     VI_PIPE viPipe = 0;
     ISP_DEHAZE_ATTR_S dehazeAttr;
@@ -677,21 +706,25 @@ static int ImagePage_Set_Defog_Enable(int value)
     } else {
         printf("shutter\n");
     }
+#endif
     return 0;
 }
 
 static int ImagePage_Get_Defog(void)
 {
+#ifndef __CV184X__
     VI_PIPE viPipe = 0;
     ISP_DEHAZE_ATTR_S dehazeAttr;
     CVI_ISP_GetDehazeAttr(viPipe, &dehazeAttr);
     s_defog = dehazeAttr.stAuto.Strength[0];
+#endif
 
     return s_defog;
 }
 
 static int ImagePage_Set_Defog(int value)
 {
+#ifndef __CV184X__
     VI_PIPE viPipe = 0;
     ISP_DEHAZE_ATTR_S dehazeAttr;
     printf("enter: %s, %d\n", __func__, value);
@@ -706,6 +739,7 @@ static int ImagePage_Set_Defog(int value)
     } else {
         printf("Defog hasen't enable\n");
     }
+#endif
     return 0;
 }
 
@@ -772,7 +806,7 @@ static int ImagePage_Set_Distortion_Enable(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
 
-#ifdef MPI_GDC_MODULE_SUPPORT
+#ifdef GDC_SUPPORT
     VI_PIPE viPipe = 0;
     VI_CHN viChn = 0;
     VI_LDC_ATTR_S setLDCAttr;
@@ -795,7 +829,7 @@ static int ImagePage_Set_Distortion(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
 
-#ifdef MPI_GDC_MODULE_SUPPORT
+#ifdef GDC_SUPPORT
     VI_PIPE viPipe = 0;
     VI_CHN viChn = 0;
     VI_LDC_ATTR_S setLDCAttr;
@@ -995,17 +1029,20 @@ static int ImagePage_Set_KeepColor(int value)
 
 static int ImagePage_Get_Dis(void)
 {
+#ifndef __CV184X__
     ISP_DIS_ATTR_S stDisAttr;
 
     CVI_ISP_GetDisAttr(0, &stDisAttr);
     printf("stDisAttr.enable = %d\n", stDisAttr.enable);
 
     return stDisAttr.enable;
+#endif
     return 0;
 }
 
 static int ImagePage_Set_Dis(int value)
 {
+#ifndef __CV184X__
     printf("enter: %s, %d\n", __func__, value);
     ISP_DIS_ATTR_S stDisAttr;
 
@@ -1013,6 +1050,7 @@ static int ImagePage_Set_Dis(int value)
     stDisAttr.enable = value;
 
     return CVI_ISP_SetDisAttr(0, &stDisAttr);
+#endif
     return 0;
 }
 
@@ -1996,7 +2034,7 @@ int CVI_IPC_NetCtrlSetMd(APP_MD_INFO_S psmdinfo)
 #endif
 
 #ifdef TDL_SUPPORT
-#if defined MPI_AUDIO_MODULE_SUPPORT && defined AI_BABYCRY_SUPPORT
+#if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
 int CVI_IPC_NetCtrlSetCry(APP_CRY_INFO_S pscryinfo)
 {
     if(app_ipcam_Ai_Cry_ProcStatus_Get() != pscryinfo.enabled)
@@ -2097,7 +2135,7 @@ static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
     #ifdef MD_SUPPORT
     APP_PARAM_MD_CFG_S *pstMdInfo = app_ipcam_MD_Param_Get();
     #endif
-    #if defined MPI_AUDIO_MODULE_SUPPORT && defined AI_BABYCRY_SUPPORT
+    #if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     APP_PARAM_AI_CRY_CFG_S *pstCryInfo = app_ipcam_Ai_Cry_Param_Get();
     #endif
     cjsonAiAttr = cJSON_CreateObject();
@@ -2129,7 +2167,7 @@ static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
     #endif
 
     //cry
-#if defined MPI_AUDIO_MODULE_SUPPORT && defined AI_BABYCRY_SUPPORT
+#if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     cJSON_AddNumberToObject(cjsonAiAttr, "cry_enable", app_ipcam_Ai_Cry_StatusGet());
     cJSON_AddNumberToObject(cjsonAiAttr, "cry_scene", pstCryInfo->application_scene);
 #endif
@@ -2148,7 +2186,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     printf("enter: %s, %s %s\n", __func__, cmd, val);
     char decode[1024] = {0};
     cJSON *cjsonParser = NULL;
-#if (MPI_AUDIO_MODULE_SUPPORT && defined AI_BABYCRY_SUPPORT) || defined PD_SUPPORT || defined MD_SUPPORT
+#if (AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT) || defined PD_SUPPORT || defined MD_SUPPORT
     cJSON *cjsonObj = NULL;
 #endif
     int ret = 0;
@@ -2158,7 +2196,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
 #ifdef MD_SUPPORT
     APP_MD_INFO_S MdInfo = {0};
 #endif
-#if defined MPI_AUDIO_MODULE_SUPPORT && defined AI_BABYCRY_SUPPORT
+#if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     APP_CRY_INFO_S CryInfo = {0};
 #endif
     UrlDecode(val, decode);
@@ -2180,7 +2218,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     MdInfo.threshold = atoi(cjsonObj->valuestring);
     #endif
     //cry
-#if defined MPI_AUDIO_MODULE_SUPPORT && defined AI_BABYCRY_SUPPORT
+#if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     cjsonObj = cJSON_GetObjectItem(cjsonParser, "cry_enable");
     _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
     CryInfo.enabled = atoi(cjsonObj->valuestring);
@@ -2251,7 +2289,7 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     #ifdef MD_SUPPORT
     ret = CVI_IPC_NetCtrlSetMd(MdInfo);
 	#endif
-#if defined MPI_AUDIO_MODULE_SUPPORT && defined AI_BABYCRY_SUPPORT
+#if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
     ret = CVI_IPC_NetCtrlSetCry(CryInfo);
 #endif
     #ifdef PD_SUPPORT
@@ -2545,7 +2583,7 @@ static int SetOsdInfoCallBack(void *param, const char *cmd, const char *val)
 /*
 *   audio page start
 */
-#ifdef MPI_AUDIO_MODULE_SUPPORT
+#ifdef AUDIO_SUPPORT
 
 static void NetString2Str(const char *val, char *dstStr)
 {
@@ -2781,7 +2819,7 @@ static int app_ipcam_IcgiRegister_Osd(void)
 /*
 *  AUDIO page get/set CB list
 */
-#if MPI_AUDIO_MODULE_SUPPORT
+#if AUDIO_SUPPORT
 static int app_ipcam_IcgiRegister_Audio(void)
 {
     printf("enter: %s\n", __func__);
@@ -2837,7 +2875,7 @@ int app_ipcam_NetCtrl_Init()
     app_ipcam_IcgiRegister_Image();
     app_ipcam_IcgiRegister_Video();
     app_ipcam_IcgiRegister_Osd();
-#ifdef MPI_AUDIO_MODULE_SUPPORT
+#ifdef AUDIO_SUPPORT
     app_ipcam_IcgiRegister_Audio();
 #endif
 #ifdef TDL_SUPPORT

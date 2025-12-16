@@ -2,11 +2,20 @@
 #include <errno.h>
 #include <stdbool.h>
 
+#ifndef __CV184X__
 #include "linux/cvi_defines.h"
 #include "linux/cvi_math.h"
 #include "linux/cvi_comm_mipi_tx.h"
+#else
+#include "cvi_defines.h"
+#include "cvi_math.h"
+#include "cvi_comm_mipi_tx.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
-
+#else
+#include "cvi_comm_video.h"
+#endif
 #include "cvi_sys.h"
 #include "cvi_vpss.h"
 #include "cvi_vo.h"
@@ -17,57 +26,25 @@
 
 #define VO_SOURCE_FLAG "/tmp/vdec"
 
-static pthread_t g_pthVo[APP_IPCAM_VO_MAX_NUM];
-static bool b_VoRunning[APP_IPCAM_VO_MAX_NUM] = {CVI_FALSE};
+static pthread_t g_pthVo[VO_MAX_DEV_NUM];
+static bool b_VoRunning[VO_MAX_DEV_NUM] = {CVI_FALSE};
 
-APP_MULTI_VO_PARAM_S g_st_vo_cfg = {
-    .vo_cfg[0]={
-        .s32VoDev = 0,
-        .stVoPubAttr = {
-            .u32BgColor = 0x00000000,
-            .enIntfType = VO_INTF_MIPI,
-            .enIntfSync = VO_OUTPUT_720x1280_60,
-            .stSyncInfo = {CVI_FALSE, CVI_FALSE, 0, 0, 0, 0, 0, 0, 0, 0, 0, CVI_FALSE, CVI_FALSE, CVI_FALSE},
-            .sti80Cfg = {{0, 1, 2, 3}, VO_I80_FORMAT_RGB565, 200},
-        },
-        .stLayerAttr = {
-            .stDispRect = {.s32X = 0, .s32Y = 0, .u32Width = 720, .u32Height = 1280},
-            .stImageSize = {.u32Width = 720, .u32Height = 1280},
-            .u32DispFrmRt = 60,
-            .enPixFormat = PIXEL_FORMAT_NV21
-        },
-        .enVoMode = VO_MODE_1MUX,
-        .enRotation = ROTATION_90,
-        .u32DisBufLen = 3,
-        .stSrcChn = {.enModId = CVI_ID_VPSS, .s32DevId = 0, .s32ChnId = 2},
-        .stDstChn = {.enModId = CVI_ID_VO, .s32DevId = 1, .s32ChnId = 0}
-    },
-    .vo_num=1
-};
-APP_MULTI_VO_PARAM_S *g_pst_vo_cfg = &g_st_vo_cfg;
+CVI_S32 app_ipcam_Vo_Start_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Stop_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Stop_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Dev_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Dev_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Layer_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Layer_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Chn_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_Chn_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Vo_LayerDispWHFrm_Get(const VO_INTF_SYNC_E* const penIntfSync
+            , CVI_U32* const pu32W, CVI_U32* const pu32H, CVI_U32* const pu32Frm);
 
-static CVI_S32 app_ipcam_Vo_Start_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Stop_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Stop_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Dev_Start(APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Dev_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Layer_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Layer_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Chn_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-static CVI_S32 app_ipcam_Vo_Chn_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg);
-CVI_S32 app_ipcam_Vo_LayerDispWHFrm_Get(const VO_INTF_SYNC_E* const penIntfSync,
-       CVI_U32* const pu32W, CVI_U32* const pu32H, CVI_U32* const pu32Frm);
 static CVI_VOID *pfunThreadVo(CVI_VOID *pvArg);
-CVI_S32 app_ipcam_vo_start(void);
-CVI_S32 app_ipcam_vo_stop(void);
 
-APP_MULTI_VO_PARAM_S *app_ipcam_vo_param_get(void)
-{
-    return g_pst_vo_cfg;
-}
-
-static CVI_S32 app_ipcam_Vo_Start(APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -96,7 +73,7 @@ static CVI_S32 app_ipcam_Vo_Start(APP_PARAM_VO_CFG_T* const pstVoCfg)
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -109,7 +86,7 @@ static CVI_S32 app_ipcam_Vo_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Start_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Start_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -120,7 +97,7 @@ static CVI_S32 app_ipcam_Vo_Start_Preproc(const APP_PARAM_VO_CFG_T* const pstVoC
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -141,7 +118,7 @@ static CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVo
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Stop_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Stop_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
     b_VoRunning[pstVoCfg->s32VoDev] = CVI_FALSE;
@@ -152,7 +129,7 @@ static CVI_S32 app_ipcam_Vo_Stop_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCf
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Stop_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Stop_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -163,7 +140,7 @@ static CVI_S32 app_ipcam_Vo_Stop_Postproc(const APP_PARAM_VO_CFG_T* const pstVoC
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Dev_Start(APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Dev_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -173,7 +150,7 @@ static CVI_S32 app_ipcam_Vo_Dev_Start(APP_PARAM_VO_CFG_T* const pstVoCfg)
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Dev_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Dev_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -182,7 +159,7 @@ static CVI_S32 app_ipcam_Vo_Dev_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Layer_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Layer_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -201,7 +178,7 @@ static CVI_S32 app_ipcam_Vo_Layer_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Layer_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Layer_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -210,7 +187,7 @@ static CVI_S32 app_ipcam_Vo_Layer_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Chn_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Chn_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -322,7 +299,7 @@ static CVI_S32 app_ipcam_Vo_Chn_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     return CVI_SUCCESS;
 }
 
-static CVI_S32 app_ipcam_Vo_Chn_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
+CVI_S32 app_ipcam_Vo_Chn_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
@@ -358,8 +335,6 @@ static CVI_S32 app_ipcam_Vo_Chn_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 
     return CVI_SUCCESS;
 }
-
-
 
 CVI_S32 app_ipcam_Vo_LayerDispWHFrm_Get(const VO_INTF_SYNC_E* const penIntfSync, CVI_U32* const pu32W
             , CVI_U32* const pu32H, CVI_U32* const pu32Frm)
@@ -563,30 +538,3 @@ static CVI_VOID *pfunThreadVo(CVI_VOID *pvArg)
 
     return CVI_NULL;
 }
-
-CVI_S32 app_ipcam_vo_start(void)
-{
-    CVI_S32 ret = CVI_SUCCESS;
-    for(CVI_U32 i = 0; i < g_pst_vo_cfg->vo_num; i++){
-        ret = app_ipcam_Vo_Start(&g_pst_vo_cfg->vo_cfg[i]);
-        if(ret != CVI_SUCCESS){
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vo_Start failed, ret = %d\n", ret);
-            break;
-        }
-    }
-    return ret;
-}
-
-CVI_S32 app_ipcam_vo_stop(void)
-{
-    CVI_S32 ret = CVI_SUCCESS;
-    for(CVI_U32 i = 0; i < g_pst_vo_cfg->vo_num; i++){
-        ret = app_ipcam_Vo_Stop(&g_pst_vo_cfg->vo_cfg[i]);
-        if(ret != CVI_SUCCESS){
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vo_Stop failed, ret = %d\n", ret);
-            break;
-        }
-    }
-    return ret;
-}
-

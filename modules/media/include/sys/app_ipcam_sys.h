@@ -1,8 +1,16 @@
 #ifndef __APP_IPCAM_SYS_H__
 #define __APP_IPCAM_SYS_H__
 
+#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
+#else
+#include "cvi_comm_video.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_sys.h"
+#else
+#include "cvi_comm_sys.h"
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -45,7 +53,9 @@ typedef struct APP_PARAM_SYS_CFG_T {
     uint32_t vb_pool_num;
     VI_VPSS_MODE_S stVIVPSSMode;
     CVI_U32 u32ViVpssPipe;
+#ifndef __CV184X__
     VPSS_MODE_S stVPSSMode;
+#endif
     APP_PARAM_SWITCH_CFG_S astSwitchCfg;
     CVI_U8 u8SbmCnt;
     APP_PARAM_SBM_CFG_S *pstSbmCfg;

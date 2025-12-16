@@ -5,7 +5,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "app_ipcam_adc.h"
 #include "app_ipcam_comm.h"
 
@@ -21,7 +25,7 @@ static int fd_adc = -1;
 int app_ipcam_Adc_Init(char *node, char channel)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "Init adc channel: %s %d failed!\n", node, channel);
-
+    
     fd_adc = open(node, O_RDWR);
     if (fd_adc < 0) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "open adc node: %s failed!\n", node);
@@ -70,6 +74,6 @@ int app_ipcam_AdcVal_Get(const char *node)
 /* adc usage sample*/
 /**********************************************************************************
  *  step 1: app_ipcam_Adc_Init(SYSFS_ADC_NODE, channel_id);  // channel id = 1,2,3
- *
+ * 
  *  step 2: app_ipcam_AdcVal_Get(SYSFS_ADC_NODE);   // return current voltage
  * *******************************************************************************/

@@ -2,8 +2,16 @@
 #define __APP_IPCAM_OSD_H__
 
 #include <stdbool.h>
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
+#ifndef __CV184X__
 #include "linux/cvi_comm_region.h"
+#else
+#include "cvi_comm_region.h"
+#endif
 #include "cvi_region.h"
 
 #ifdef __cplusplus
@@ -16,7 +24,8 @@ extern "C"
 #define DEBUG_STR_LEN   32
 #define APP_OSD_STR_LEN_MAX     64
 #define OSDC_OBJS_MAX 128
-#define OSDC_NUM_MAX 2
+#define OSDC_NUM_MAX 3
+#define OSDC_AI_STR_MAX 20
 
 #define COLOR_WHITE(FORMATE)  ((FORMATE) ? 0xFFFFFFFF : 0xFFFF)
 #define COLOR_BLACK(FORMATE)  ((FORMATE) ? 0xFF000000 : 0x8000)
@@ -59,7 +68,13 @@ typedef enum OSD_TYPE_T {
     TYPE_END
 } OSD_TYPE_E;
 
-
+typedef struct APP_OSDC_OBJS_AI_STR_INFO_T
+{
+    CVI_U64 u64BitmapPhyAddr[OSDC_AI_STR_MAX];
+    CVI_VOID *pBitmapVirAddr[OSDC_AI_STR_MAX];
+    CVI_S32 maxlen[OSDC_AI_STR_MAX];
+    CVI_U32 ai_str_num;
+}APP_OSDC_OBJS_AI_STR_INFO_S;
 
 typedef struct APP_OSDC_OBJS_INFO_T {
     CVI_BOOL bShow;
@@ -98,12 +113,11 @@ typedef struct APP_PARAM_OSDC_CFG_T {
     CVI_BOOL bShowHdRect[OSDC_NUM_MAX];
     CVI_BOOL bShowCountRect[OSDC_NUM_MAX];
     CVI_BOOL bShowFdRect[OSDC_NUM_MAX];
+    CVI_BOOL bShowTrackRect[OSDC_NUM_MAX];
     CVI_BOOL bShowHumanKeypointRect[OSDC_NUM_MAX];
     CVI_U32 osdcObjNum[OSDC_NUM_MAX];
     APP_OSDC_OBJS_INFO_S osdcObj[OSDC_NUM_MAX][OSDC_OBJS_MAX];
 } APP_PARAM_OSDC_CFG_S;
-
-
 
 APP_PARAM_OSDC_CFG_S *app_ipcam_Osdc_Param_Get(void);
 int app_ipcam_Osdc_Init(void);

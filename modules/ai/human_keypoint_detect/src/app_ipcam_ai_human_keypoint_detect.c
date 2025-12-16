@@ -182,7 +182,7 @@ static CVI_S32 app_ipcam_Ai_Human_Keypoint_Proc_Init(CVI_VOID)
         return s32Ret;
     }
 
-    s32Ret = TDL_OpenModel(g_HumanKeypointAiHandle, g_pstHumanKeypointCfg->model_id, g_pstHumanKeypointCfg->model_path, NULL);
+    s32Ret = TDL_OpenModel(g_HumanKeypointAiHandle, g_pstHumanKeypointCfg->model_id, g_pstHumanKeypointCfg->model_path, NULL, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_SetModelPath failed with %#x! maybe reset model path\n", s32Ret);

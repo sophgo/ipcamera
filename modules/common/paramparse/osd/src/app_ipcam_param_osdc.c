@@ -77,11 +77,14 @@ int Load_Param_Osdc(const char *file)
             Osdc->bShowFdRect[j]            = ini_getl(tmp_section, "show_fd_rect", 0, file);
             Osdc->bShowHumanKeypointRect[j] = ini_getl(tmp_section, "show_human_keypoint_rect", 0, file);
             Osdc->bShowOcclusionRect[j]     = ini_getl(tmp_section, "show_occlusion_rect", 0, file);
+            Osdc->bShowTrackRect[j]         = ini_getl(tmp_section, "show_track_rect", 0, file);
             Osdc->osdcObjNum[j]             = ini_getl(tmp_section, "cnt", 0, file);
 
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "handle=%d bShow=%d Format=0x%x cpsSize=%d ModeId=%d DevId=%d ChnId=%d PdRect=%d MdRect=%d HdRect=%d CountRect=%d FdRect=%d osdcObjNum=%d\n",
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "handle=%d bShow=%d Format=0x%x cpsSize=%d ModeId=%d DevId=%d ChnId=%d PdRect=%d MdRect=%d HdRect=%d CountRect=%d FdRect=%d TrackRect=%d osdcObjNum=%d\n",
                 Osdc->handle[j], Osdc->bShow[j], Osdc->format[j], Osdc->CompressedSize[j], Osdc->mmfChn[j].enModId,
-                Osdc->mmfChn[j].s32DevId, Osdc->mmfChn[j].s32ChnId, Osdc->bShowPdRect[j], Osdc->bShowMdRect[j], Osdc->bShowHdRect[j], Osdc->bShowCountRect[j], Osdc->bShowFdRect[j], Osdc->osdcObjNum[j]);
+                Osdc->mmfChn[j].s32DevId, Osdc->mmfChn[j].s32ChnId, Osdc->bShowPdRect[j], Osdc->bShowMdRect[j],
+                Osdc->bShowHdRect[j], Osdc->bShowCountRect[j], Osdc->bShowFdRect[j], Osdc->bShowTrackRect[j],
+                Osdc->osdcObjNum[j]);
 
             for (i = 0; i < Osdc->osdcObjNum[j]; i++) {
                 memset(tmp_section, 0, sizeof(tmp_section));

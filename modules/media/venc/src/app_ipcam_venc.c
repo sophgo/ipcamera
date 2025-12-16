@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include "cvi_vpss.h"
 #include "errno.h"
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 #include "cvi_ae.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_sys.h"
@@ -24,7 +28,7 @@
 #include "app_ipcam_ai.h"
 #endif
 
-#ifdef MPI_STITCH_MODULE_SUPPORT
+#ifdef STITCH_SUPPORT
 #include "cvi_stitch.h"
 #include <semaphore.h>
 #include "app_ipcam_stitch.h"

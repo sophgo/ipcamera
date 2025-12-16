@@ -1,7 +1,11 @@
 #ifndef __CVI_AUDIO_DL_ADP_H__
 #define __CVI_AUDIO_DL_ADP_H__
 
+#ifndef __CV184X__
 #include "linux/cvi_type.h"
+#else
+#include "cvi_type.h"
+#endif
 
 CVI_S32 CVI_Audio_Dlpath(CVI_CHAR *pChLibPath);
 
