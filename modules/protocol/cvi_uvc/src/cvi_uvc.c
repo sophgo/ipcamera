@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "errno.h"
+#include <sys/prctl.h>
 
 #include "cvi_uvc.h"
 #include "cvi_uvc_gadget.h"
@@ -11,7 +12,6 @@
 #include "frame_cache.h"
 #include "cvi_ae.h"
 #include "cvi_venc.h"
-#include "app_ipcam_comm.h"
 
 #ifdef SUPPORT_AI_TRACK
 #include "track.h"
@@ -39,8 +39,6 @@ static UVC_STREAM_CONTEXT_S s_stUVCStreamCtx;
 
 /** UVC Context */
 static UVC_CONTEXT_S s_stUVCCtx = {.bRun = false, .bPCConnect = false, .TskId = (pthread_t)-1, .Tsk2Id = (pthread_t)-1};
-//static UVC_CONTEXT_S s_stStreamCtx = {.bRun = false, .bPCConnect = false, .TskId = (pthread_t)-1, .Tsk2Id = (pthread_t)-1};
-
 bool g_bPushVencData = false;
 
 int cvi_uvc_stream_send_data(void *data)
@@ -52,27 +50,28 @@ int cvi_uvc_stream_send_data(void *data)
     unsigned int copy_size = 0;
     VENC_STREAM_S * pstStream = (VENC_STREAM_S *) data;
 
-    if( false == s_stUVCCtx.bRun) {
+    if(false == s_stUVCCtx.bRun) {
         return -1;
     }
-    #ifdef VENC_SAVE_FILE
+#ifdef VENC_SAVE_FILE
     static int first_time = 0;
     static int frame_cnt = 0;
     static unsigned char* stream_buf;
     static int buf_len = 0;
+    static FILE* pFile = NULL; 
     if(first_time == 0){
         first_time = 1;
         char outputFileName[256] = {0};
-        char postfix[8] = {0};
         snprintf(outputFileName, 256, "venc.%s", "h264");
         pFile = fopen(outputFileName, "wb");
         if (pFile == NULL) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "open file err, %s\n", outputFileName);
+            printf("open file err, %s\n", outputFileName);
             return -1;
         }
 
-        stream_buf = (unsigned char*)malloc(15 * 1024 * 1024);
+        stream_buf = (unsigned char*)malloc(2 * 1024 * 1024);
         if(stream_buf == NULL){
+            printf("alloc stream_buf is err\n");
             return -1;
         }
         printf("venc create_stream_file done\n");
@@ -80,9 +79,9 @@ int cvi_uvc_stream_send_data(void *data)
 
     for (i = 0; i < pstStream->u32PackCount; ++i)
     {
-        // printf("frame_cnt = %d\n", frame_cnt);
-        // printf("buf_len = %d\n", buf_len);
-        if(buf_len < 14 * 1024 * 1024){
+        printf("frame_cnt = %d\n", frame_cnt);
+        printf("buf_len = %d\n", buf_len);
+        if(buf_len < 1 * 1024 * 1024){
             VENC_PACK_S *ppack;
             ppack = &pstStream->pstPack[i];
             memcpy(stream_buf + buf_len, ppack->pu8Addr + ppack->u32Offset, ppack->u32Len - ppack->u32Offset);
@@ -138,9 +137,8 @@ int cvi_uvc_stream_send_data(void *data)
         data_len = pstData->u32Len - pstData->u32Offset;
         if(data_len < (fnode->length - fnode->used)){
             copy_size = data_len;
-        }
-        else{
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "data_len=%d, (fnode->length - fnode->used)=%d\n", data_len, (fnode->length - fnode->used));
+        }else{
+            printf("data_len=%d, (fnode->length - fnode->used)=%d\n", data_len, (fnode->length - fnode->used));
             copy_size = (fnode->length - fnode->used);
         }
         // copy_size = data_len < (fnode->length - fnode->used) ? data_len : (fnode->length - fnode->used);
@@ -151,7 +149,7 @@ int cvi_uvc_stream_send_data(void *data)
             fnode->used += copy_size;
         }
     }
-    // APP_PROF_LOG_PRINT(LEVEL_INFO, "fnode->used = %d\n", fnode->used);
+    // printf("fnode->used = %d\n", fnode->used);
 
     put_node_to_queue(uvc_cache->ok_queue, fnode);
 
@@ -167,24 +165,26 @@ int32_t UVC_STREAM_ReqIDR(void) {
 
 static void *UVC_CheckTask(void *pvArg) {
     int32_t ret = 0;
+    prctl(PR_SET_NAME, "cvitask_uvc", 0, 0, 0);
     while (s_stUVCCtx.bRun) {
         ret = UVC_GADGET_DeviceCheck();
 
         if (ret < 0) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "UVC_GADGET_DeviceCheck %x\n", ret);
+            printf("UVC_GADGET_DeviceCheck %x\n", ret);
             break;
         } else if (ret == 0) {
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "Timeout Do Nothing\n");
+            printf("Timeout Do Nothing\n");
             if (false != g_bPushVencData) {
                 g_bPushVencData = false;
             }
         }
+        //usleep(50 * 1000);
     }
 
 
     return NULL;
 }
-#if 1
+#if 0
 static int32_t UVC_LoadMod(void) {
     static bool first = true;
     if(first == false) {
@@ -202,14 +202,14 @@ static int32_t UVC_LoadMod(void) {
     cvi_system("echo 0 >/sys/class/gpio/gpio449/value");
     cvi_system("echo 1 >/sys/class/gpio/gpio450/value");
 
-    // cvi_insmod(CVI_KOMOD_PATH"/usbcore.ko", NULL);
-    // cvi_insmod(CVI_KOMOD_PATH"/dwc2.ko", NULL);
-    // cvi_insmod(CVI_KOMOD_PATH"/configfs.ko", NULL);
-    // cvi_insmod(CVI_KOMOD_PATH"/libcomposite.ko", NULL);
-    // cvi_insmod(CVI_KOMOD_PATH"/videobuf2-vmalloc.ko", NULL);
-    // cvi_insmod(CVI_KOMOD_PATH"/usb_f_uvc.ko", NULL);
-    // cvi_insmod(CVI_KOMOD_PATH"/u_audio.ko", NULL);
-    // cvi_insmod(CVI_KOMOD_PATH"/usb_f_uac1.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/usbcore.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/dwc2.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/configfs.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/libcomposite.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/videobuf2-vmalloc.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/usb_f_uvc.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/u_audio.ko", NULL);
+    cvi_insmod(CVI_KOMOD_PATH"/usb_f_uac1.ko", NULL);
     cvi_system("echo device > /proc/cviusb/otg_role");
     cvi_system(CVI_UVC_SCRIPTS_PATH"/run_usb.sh probe uvc");
     cvi_system(CVI_UVC_SCRIPTS_PATH"/ConfigUVC.sh");
@@ -222,7 +222,7 @@ static int32_t UVC_LoadMod(void) {
 int32_t UVC_Init(const CVI_UVC_DEVICE_CAP_S *pstCap, const CVI_UVC_DATA_SOURCE_S *pstDataSrc,
                  CVI_UVC_BUFFER_CFG_S *pstBufferCfg) {
 
-    UVC_LoadMod();
+    // UVC_LoadMod();
 
     s_stUVCStreamCtx.stDeviceCap = *pstCap;
     s_stUVCStreamCtx.stDataSource = *pstDataSrc;
@@ -244,20 +244,51 @@ int32_t UVC_Start(const char *pDevPath) {
         strcpy(s_stUVCCtx.szDevPath, pDevPath);
 
         if (UVC_GADGET_DeviceOpen(pDevPath)) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "UVC_GADGET_DeviceOpen Failed!");
+            printf("UVC_GADGET_DeviceOpen Failed!");
             return -1;
         }
 
         s_stUVCCtx.bPCConnect = false;
         s_stUVCCtx.bRun = true;
+
+        // pthread_attr_t pthread_attr;
+        // pthread_attr_init(&pthread_attr);
+        // struct sched_param param;
+        // param.sched_priority = 90;
+        // pthread_attr_setschedpolicy(&pthread_attr, SCHED_RR);
+        // pthread_attr_setschedparam(&pthread_attr, &param);
+        // pthread_attr_setinheritsched(&pthread_attr, PTHREAD_EXPLICIT_SCHED);
+        // int policy;
+
         if (pthread_create(&s_stUVCCtx.TskId, NULL, UVC_CheckTask, NULL)) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "UVC_CheckTask create thread failed!\n");
+            printf("UVC_CheckTask create thread failed!\n");
             s_stUVCCtx.bRun = false;
             return -1;
         }
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "UVC_CheckTask create thread successful\n");
+
+        // usleep(100*1000);
+        // //获取当前线程的调度策略和参数
+        // if(pthread_getschedparam(s_stUVCCtx.TskId, &policy, &param) != 0){
+        //     printf("pthread_getschedparam failed!\n");
+        //     return -1;
+        // }
+        // //修改优先级
+        // param.sched_priority = 95;
+        // printf("param.sched_priority:%d\n", param.sched_priority);
+        // //设置新的调度策略和参数
+        // if(pthread_setschedparam(s_stUVCCtx.TskId, policy, &param) != 0){
+        //     printf("pthread_setschedparam failed!\n");
+        //     return -1;
+        // }
+
+        // if (pthread_create(&s_stUVCCtx.TskId, NULL, UVC_CheckTask, NULL)) {
+        //     printf("UVC_CheckTask create thread failed!\n");
+        //     s_stUVCCtx.bRun = false;
+        //     return -1;
+        // }
+        printf("UVC_CheckTask create thread successful\n");
     } else {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "UVC already started\n");
+        printf("UVC already started\n");
     }
 
     return 0;
@@ -265,7 +296,7 @@ int32_t UVC_Start(const char *pDevPath) {
 
 int32_t UVC_Stop(void) {
     if (false == s_stUVCCtx.bRun) {
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "UVC not run\n");
+        printf("UVC not run\n");
         return 0;
     }
 
@@ -280,15 +311,15 @@ UVC_CONTEXT_S *UVC_GetCtx(void) { return &s_stUVCCtx; }
 void app_uvc_exit(void)
 {
     if(!s_uvc_init){
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "uvc not init\n");
+        printf("uvc not init\n");
         return;
     }
 
 	if (UVC_Stop() != 0) {
-		APP_PROF_LOG_PRINT(LEVEL_ERROR, "UVC_Stop Failed !");
+		printf("UVC_Stop Failed !");
 	}
 	if (UVC_Deinit() != 0) {
-		APP_PROF_LOG_PRINT(LEVEL_ERROR, "UVC_Deinit Failed !");
+		printf("UVC_Deinit Failed !");
 	}
     destroy_uvc_cache();
 }
@@ -297,7 +328,7 @@ int app_uvc_init(void)
 {
     char uvc_devname[32] = "/dev/video0";
     if(access(uvc_devname, F_OK) != 0){
-		APP_PROF_LOG_PRINT(LEVEL_ERROR, "file %s not found\n", uvc_devname);
+		printf("file %s not found\n", uvc_devname);
 		return -1;
 	}
 
@@ -313,12 +344,12 @@ int app_uvc_init(void)
     create_uvc_cache();
 
     if (UVC_Init(&stDeviceCap, &stDataSource, &stBuffer) != 0) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "UVC_Init Failed !");
+        printf("UVC_Init Failed !");
         goto failed;
     }
 
     if (UVC_Start(uvc_devname) != 0) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "UVC_Start Failed !");
+        printf("UVC_Start Failed !");
         goto failed;
     }
 

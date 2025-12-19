@@ -32,10 +32,21 @@ typedef struct APP_VPSS_GRP_CFG_S {
     VPSS_CHN_BUF_WRAP_S stVpssChnBufWrap[VPSS_MAX_PHY_CHN_NUM];
 } APP_VPSS_GRP_CFG_T;
 
+typedef struct APP_VPSS_STITCH_PAIR_S {
+    VPSS_GRP srcGrp;
+    VPSS_CHN srcChn;
+    VPSS_GRP dstGrp;
+    VPSS_CHN dstChn;
+} APP_VPSS_STITCH_PAIR_T;
+
 typedef struct APP_PARAM_VPSS_CFG_S {
     VPSS_MODE_S stVPSSMode;
     CVI_U32 u32GrpCnt;
     APP_VPSS_GRP_CFG_T astVpssGrpCfg[CVI_MAX_VPSS_GRP];
+    /* stitch / forward config parsed from ini */
+    CVI_BOOL bStitchEnable;
+    CVI_U32 u32StitchPairCnt;
+    APP_VPSS_STITCH_PAIR_T astStitchPair[CVI_MAX_VPSS_GRP];
 } APP_PARAM_VPSS_CFG_T;
 
 APP_PARAM_VPSS_CFG_T *app_ipcam_Vpss_Param_Get(void);

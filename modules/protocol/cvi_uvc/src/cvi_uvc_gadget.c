@@ -19,8 +19,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "cvi_comm_isp.h"
-#include "cvi_isp.h"
 #include "cvi_uvc_gadget.h"
 #include "uvc.h" // TODO, move this into cvi_uvc.h
 #include "frame_cache.h"
@@ -82,6 +80,11 @@
 #define PU_BRIGHTNESS_STEP_SIZE 1
 #define PU_BRIGHTNESS_DEFAULT_VAL 127
 
+#define MAX_BITSTREAM_BUFFER_SIZE (2 * 1024 * 1024)
+#define MJPG_PAYLOAD_SIZE 1024
+#define H264_PAYLOAD_SIZE 512
+#define H265_PAYLOAD_SIZE 1024
+
 /* ---------------------------------------------------------------------------
  * Generic stuff
  */
@@ -114,57 +117,27 @@ struct uvc_format_info {
     const struct uvc_frame_info *frames;
 };
 
-static const struct uvc_frame_info uvc_frames_yuv[] = {
+static const struct uvc_frame_info uvc_frames_mjpeg[] = {
     // {
     //     2560,
     //     1440,
-    //     {5000000, 0},
+    //     {400000, 0},
     // },
-    // {
-    //     1920,
-    //     1080,
-    //     {2000000, 0},
-    // },
-    // {
-    //     1280,
-    //     720,
-    //     {666666, 0},
-    // },
-    {
-        640,
-        360,
-        {666666, 0},
-    },
-    {
-        0,
-        0,
-        {
-            0,
-        },
-    },
-};
-
-static const struct uvc_frame_info uvc_frames_mjpeg[] = {
-    {
-        2560,
-        1440,
-        {400000, 0},
-    },
     {
         1920,
         1080,
-        {400000, 0},
+        {333333, 0},
     },
-    {
-        1280,
-        720,
-        {500000, 0},
-    },
-    {
-        640,
-        360,
-        {2000000, 0},
-    },
+    // {
+    //     1280,
+    //     720,
+    //     {333333, 0},
+    // },
+    // {
+    //     640,
+    //     360,
+    //     {333333, 0},
+    // },
     {
         0,
         0,
@@ -175,26 +148,56 @@ static const struct uvc_frame_info uvc_frames_mjpeg[] = {
 };
 
 static const struct uvc_frame_info uvc_frames_h264[] = {
-    {
-        2560,
-        1440,
-        {400000, 0},
-    },
+    // {
+    //     2560,
+    //     1440,
+    //     {400000, 0},
+    // },
     {
         1920,
         1080,
-        {400000, 0},
+        {333333, 0},
     },
+    // {
+    //     1280,
+    //     720,
+    //     {400000, 0},
+    // },
+    // {
+    //     640,
+    //     360,
+    //     {400000, 0},
+    // },
     {
-        1280,
-        720,
-        {400000, 0},
+        0,
+        0,
+        {
+            0,
+        },
     },
+};
+
+static const struct uvc_frame_info uvc_frames_h265[] = {
+    // {
+    //     2560,
+    //     1440,
+    //     {400000, 0},
+    // },
     {
-        640,
-        360,
-        {400000, 0},
+        1920,
+        1080,
+        {333333, 0},
     },
+    // {
+    //     1280,
+    //     720,
+    //     {400000, 0},
+    // },
+    // {
+    //     640,
+    //     360,
+    //     {400000, 0},
+    // },
     {
         0,
         0,
@@ -206,9 +209,9 @@ static const struct uvc_frame_info uvc_frames_h264[] = {
 
 // TODO, move into parameters
 static const struct uvc_format_info uvc_formats[] = {
-    {V4L2_PIX_FMT_YUYV, uvc_frames_yuv},
     {V4L2_PIX_FMT_MJPEG, uvc_frames_mjpeg},
     {V4L2_PIX_FMT_H264, uvc_frames_h264},
+    {V4L2_PIX_FMT_HEVC, uvc_frames_h265},
 };
 
 /* ---------------------------------------------------------------------------
@@ -284,10 +287,6 @@ struct v4l2_device {
     UVC_DEVICE_CTX_S *udev;
 };
 
-#define MAX_BITSTREAM_BUFFER_SIZE (2 * 1024 * 1024)
-#define MJPG_PAYLOAD_SIZE 1024
-#define H264_PAYLOAD_SIZE 512
-// #define H264_BITRATE 4096
 
 #define WAITED_NODE_SIZE (3)
 static frame_node_t *__waited_node[WAITED_NODE_SIZE];
@@ -587,9 +586,9 @@ static int uvc_video_set_format(UVC_DEVICE_CTX_S *dev) {
     fmt.fmt.pix.pixelformat = dev->fcc;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
-    if (s_stUVCDevCtx.io == IO_METHOD_MMAP)
+	if (s_stUVCDevCtx.io == IO_METHOD_MMAP)
 		fmt.fmt.pix.sizeimage = dev->width * dev->height * 3 / 2;
-    else if (dev->fcc == V4L2_PIX_FMT_MJPEG || dev->fcc == V4L2_PIX_FMT_H264 || dev->fcc == V4L2_PIX_FMT_YUYV)
+    else if (dev->fcc == V4L2_PIX_FMT_MJPEG || dev->fcc == V4L2_PIX_FMT_H264 || dev->fcc == V4L2_PIX_FMT_HEVC || dev->fcc == V4L2_PIX_FMT_YUYV)
         fmt.fmt.pix.sizeimage = dev->imgsize;
 
     printf("[%s] fmt.fmt.pix.sizeimage: %u, dev->imgsize: %u\n", __func__, fmt.fmt.pix.sizeimage,
@@ -621,7 +620,24 @@ static int uvc_video_stream(UVC_DEVICE_CTX_S *dev, int enable) {
 
         printf("UVC: Stopping video stream.\n");
         UVC_VideoDisable(dev);
-        printf("UVC_VideoDisable done.\n");
+        printf("UVC_VideoDisable done.\n"); 
+
+        // int policy;
+        // struct sched_param param;
+        // // 获取当前线程的调度策略和参数
+        // pthread_getschedparam(pthread_self(), &policy, &param);
+        // printf("Current thread priority: %d\n", param.sched_priority);
+
+        // // 修改优先级
+        // param.sched_priority = 95; // 设置新优先级
+        // if (pthread_setschedparam(pthread_self(), SCHED_RR, &param) != 0) {
+        //     printf("pthread_setschedparam err\n");
+        // }
+
+        // // 再次获取并打印新的优先级
+        // pthread_getschedparam(pthread_self(), &policy, &param);
+        // printf("New thread priority: %d\n", param.sched_priority);
+
         return 0;
     }
 
@@ -632,6 +648,26 @@ static int uvc_video_stream(UVC_DEVICE_CTX_S *dev, int enable) {
     }
 
     printf("UVC: Starting video stream.\n");
+
+    // int policy;
+    // struct sched_param param;
+    // // 获取当前线程的调度策略和参数
+    // pthread_getschedparam(pthread_self(), &policy, &param);
+    // printf("Current thread priority: %d\n", param.sched_priority);
+
+    // // 修改优先级
+    // param.sched_priority = 0; // 设置新优先级
+    // if (pthread_setschedparam(pthread_self(), SCHED_OTHER, &param) != 0) {
+    //     printf("pthread_setschedparam err\n");
+    // }
+    // param.sched_priority = 80; // 设置新优先级
+    // if (pthread_setschedparam(pthread_self(), SCHED_RR, &param) != 0) {
+    //     printf("pthread_setschedparam err\n");
+    // }
+
+    // 再次获取并打印新的优先级
+    // pthread_getschedparam(pthread_self(), &policy, &param);
+    // printf("New thread priority: %d\n", param.sched_priority);
 
     dev->uvc_shutdown_requested = 0;
 
@@ -713,6 +749,8 @@ static inline CVI_UVC_STREAM_FORMAT_E UVC_FCC_TO_STREAM_FORMAT(uint32_t fcc) {
             return CVI_UVC_STREAM_FORMAT_MJPEG;
         case V4L2_PIX_FMT_H264:
             return CVI_UVC_STREAM_FORMAT_H264;
+        case V4L2_PIX_FMT_HEVC:
+            return CVI_UVC_STREAM_FORMAT_H265;
         default:
             return CVI_UVC_STREAM_FORMAT_MJPEG;
     }
@@ -732,7 +770,6 @@ static void UVC_VideoEnable(UVC_DEVICE_CTX_S *dev) {
  * UVC streaming related
  */
 
-#if 1
 static void uvc_video_fill_buffer(UVC_DEVICE_CTX_S *dev, struct v4l2_buffer* buf)
 {
     int retry_count = 0;
@@ -750,6 +787,7 @@ static void uvc_video_fill_buffer(UVC_DEVICE_CTX_S *dev, struct v4l2_buffer* buf
     {
     case V4L2_PIX_FMT_MJPEG:
     case V4L2_PIX_FMT_H264:
+    case V4L2_PIX_FMT_HEVC:
     case V4L2_PIX_FMT_YUYV:
     case V4L2_PIX_FMT_YUV420:
     {
@@ -792,7 +830,7 @@ retry:
             // printf("dump free\n");
             // debug_dump_queue(uvc_cache->free_queue);
             // printf("retry===== (%d)\n", retry_count);
-            usleep(1000);
+            usleep(10*1000);
             goto retry;
         }
         else{
@@ -808,36 +846,6 @@ retry:
 
 
 }
-#else
-static void uvc_video_fill_buffer(UVC_DEVICE_CTX_S *dev, struct v4l2_buffer *buf) {
-    uint32_t bpl;
-    uint32_t i;
-
-    uint32_t payload_size;
-
-    switch (dev->fcc) {
-        case V4L2_PIX_FMT_YUYV:
-            /* Fill the buffer with video data. */
-            // bpl = dev->width * 2;
-            // for (i = 0; i < dev->height; ++i) memset(dev->mem[buf->index].start + i * bpl, dev->color++, bpl);
-
-            // buf->bytesused = bpl * dev->height;
-            // break;
-
-        case V4L2_PIX_FMT_MJPEG:
-        case V4L2_PIX_FMT_H264:
-            // memset(dev->mem[buf->index].start, 0, sizeof(dev->mem[buf->index].length));
-            payload_size = UVC_STREAM_CopyBitStream(dev->mem[buf->index].start);
-            if (payload_size < 5000) {
-                payload_size = 5000;
-            }
-            buf->bytesused = payload_size;
-            buf->length = payload_size;
-            // printf("[%d]buf->bytesused = %d, buf len:%d\n", buf->index, buf->bytesused, dev->mem[buf->index].length);
-            break;
-    }
-}
-#endif
 
 static int uvc_video_process(UVC_DEVICE_CTX_S *dev) {
     struct v4l2_buffer ubuf;
@@ -848,7 +856,10 @@ static int uvc_video_process(UVC_DEVICE_CTX_S *dev) {
      * Return immediately if UVC video output device has not started
      * streaming yet.
      */
-    if (!dev->is_streaming) return 0;
+    if (!dev->is_streaming) {
+        usleep(1000);
+        return 0;
+    }
     /* Prepare a v4l2 buffer to be dequeued from UVC domain. */
     CLEAR(ubuf);
 
@@ -885,7 +896,6 @@ static int uvc_video_process(UVC_DEVICE_CTX_S *dev) {
         // gettimeofday(&perf_t1, NULL);
         // use_time = (perf_t1.tv_sec - perf_t0.tv_sec) * 1000 + (perf_t1.tv_usec - perf_t0.tv_usec) / 1000;
         // printf("======= %s use_time: %lu ms =======\n", "uvc_video_fill_buffer", use_time);
-        CVI_ISP_GetVDTimeOut(0, ISP_VD_BE_END, -1);
         ret = ioctl(dev->uvc_fd, VIDIOC_QBUF, &ubuf);
         if (ret < 0) {
             printf("UVC: Unable to queue buffer: %s (%d).\n", strerror(errno), errno);
@@ -1017,7 +1027,6 @@ static int uvc_video_qbuf_userptr(UVC_DEVICE_CTX_S *dev) {
             ret = ioctl(dev->uvc_fd, VIDIOC_QBUF, &buf);
             if (ret < 0) {
                 printf("UVC: VIDIOC_QBUF failed : %s (%d).\n", strerror(errno), errno);
-                //printf("%d,%d,%d,%d,%d,%p\n", buf.index, buf.type, buf.memory, buf.length, buf.bytesused, buf.m.userptr);
                 return ret;
             }
 
@@ -1128,7 +1137,6 @@ err:
 
 static int uvc_video_reqbufs_userptr(UVC_DEVICE_CTX_S *dev, int nbufs) {
     struct v4l2_requestbuffers rb;
-    //uint32_t i, j, bpl = 0, payload_size = 0;
     int ret;
 
     CLEAR(rb);
@@ -1149,52 +1157,7 @@ static int uvc_video_reqbufs_userptr(UVC_DEVICE_CTX_S *dev, int nbufs) {
     if (!rb.count) return 0;
 
     dev->nbufs = rb.count;
-    printf("UVC: %u buffers allocated.\n", rb.count);
-
-    // if (dev->run_standalone) {
-    //     /* Allocate buffers to hold dummy data pattern. */
-    //     dev->dummy_buf = calloc(rb.count, sizeof dev->dummy_buf[0]);
-    //     if (!dev->dummy_buf) {
-    //         printf("UVC: Out of memory\n");
-    //         ret = -ENOMEM;
-    //         goto err;
-    //     }
-
-    //     switch (dev->fcc) {
-    //         case V4L2_PIX_FMT_YUYV:
-    //             // bpl = dev->width * 2;
-    //             // payload_size = dev->width * dev->height * 2;
-    //             // break;
-    //         case V4L2_PIX_FMT_MJPEG:
-    //         case V4L2_PIX_FMT_H264:
-    //             payload_size = dev->imgsize;
-    //             break;
-    //     }
-
-    //     for (i = 0; i < rb.count; ++i) {
-    //         dev->dummy_buf[i].length = MAX_BITSTREAM_BUFFER_SIZE;
-    //         dev->dummy_buf[i].start = malloc(MAX_BITSTREAM_BUFFER_SIZE);
-    //         if (!dev->dummy_buf[i].start) {
-    //             printf("UVC: Out of memory\n");
-    //             ret = -ENOMEM;
-    //             goto err;
-    //         }
-
-    //         if (V4L2_PIX_FMT_MJPEG == dev->fcc || V4L2_PIX_FMT_H264 == dev->fcc || V4L2_PIX_FMT_YUYV == dev->fcc){
-    //             // memset(dev->dummy_buf[i].start, 0, dev->dummy_buf[i].length);
-    //             s_payload_size[i] = UVC_STREAM_CopyBitStream(dev->dummy_buf[i].start);
-    //         }
-
-    //         // if (V4L2_PIX_FMT_YUYV == dev->fcc)
-    //         //     for (j = 0; j < dev->height; ++j)
-    //         //         memset(dev->dummy_buf[i].start + j * bpl, dev->color++, bpl);
-    //     }
-
-    //     dev->mem = dev->dummy_buf;
-    // }
-
-    // printf("[%s] payload_size: %u\n", __FUNCTION__, payload_size);
-
+    printf("UVC: %u buffers allocated, per size:%d.\n", rb.count, sizeof dev->dummy_buf[0]);
     return 0;
 
 err:
@@ -1318,6 +1281,7 @@ static void uvc_fill_streaming_control(UVC_DEVICE_CTX_S *dev, struct uvc_streami
             break;
         case V4L2_PIX_FMT_MJPEG:
         case V4L2_PIX_FMT_H264:
+        case V4L2_PIX_FMT_HEVC:
             ctrl->dwMaxVideoFrameSize = MAX_BITSTREAM_BUFFER_SIZE;
             break;
     }
@@ -1638,6 +1602,8 @@ static void uvc_events_process_streaming(UVC_DEVICE_CTX_S *dev, uint8_t req, uin
             resp->length = 1;
             break;
     }
+    if (dev->bulk && cs == UVC_VS_COMMIT_CONTROL)
+        uvc_handle_streamon_event(dev);
 }
 
 static void uvc_events_process_class(UVC_DEVICE_CTX_S *dev, struct usb_ctrlrequest *ctrl,
@@ -1792,7 +1758,8 @@ static int uvc_events_process_data(UVC_DEVICE_CTX_S *dev, struct uvc_request_dat
 
     dev->width = frame->width;
     dev->height = frame->height;
-
+    printf("width:%d height:%d\n", dev->width, dev->height);
+    printf("format->fcc:%d, expect: %d\n", format->fcc, V4L2_PIX_FMT_H264);
     target->bFormatIndex = iformat;
     target->bFrameIndex = iframe;
     switch (format->fcc) {
@@ -1808,6 +1775,11 @@ static int uvc_events_process_data(UVC_DEVICE_CTX_S *dev, struct uvc_request_dat
         case V4L2_PIX_FMT_H264:
             if (dev->imgsize == 0) printf("WARNING: H264 requested and no image loaded.\n");
             dev->imgsize = H264_PAYLOAD_SIZE;
+            target->dwMaxVideoFrameSize = MAX_BITSTREAM_BUFFER_SIZE;
+            break;
+        case V4L2_PIX_FMT_HEVC:
+            if (dev->imgsize == 0) printf("WARNING: H265 requested and no image loaded.\n");
+            dev->imgsize = H265_PAYLOAD_SIZE;
             target->dwMaxVideoFrameSize = MAX_BITSTREAM_BUFFER_SIZE;
             break;
     }
@@ -1854,7 +1826,14 @@ static void uvc_events_process(UVC_DEVICE_CTX_S *dev) {
             printf(
                 "UVC: Possible USB shutdown requested from "
                 "Host, seen via UVC_EVENT_DISCONNECT\n");
-            UVC_VideoDisable(dev);
+            // UVC_VideoDisable(dev);
+            if (dev->is_streaming) {
+                uvc_video_stream(dev, 0);
+                uvc_uninit_device(dev);
+                uvc_video_reqbufs(dev, 0);
+                dev->is_streaming = 0;
+                dev->first_buffer_queued = 0;
+            }
             return;
 
         case UVC_EVENT_SETUP:
@@ -1868,8 +1847,8 @@ static void uvc_events_process(UVC_DEVICE_CTX_S *dev) {
 
         case UVC_EVENT_STREAMON:
             if (!dev->bulk) {
-                clear_ok_queue();
-                clear_waited_node();
+                // clear_ok_queue();
+                // clear_waited_node();
                 uvc_handle_streamon_event(dev);
             }
             return;
@@ -1885,7 +1864,6 @@ static void uvc_events_process(UVC_DEVICE_CTX_S *dev) {
 
             /* ... and now UVC streaming.. */
             if (dev->is_streaming) {
-                printf("[%s:%d]UVC_EVENT_STREAMOFF\n", __FUNCTION__, __LINE__);
                 uvc_video_stream(dev, 0);
                 uvc_uninit_device(dev);
                 uvc_video_reqbufs(dev, 0);
@@ -1913,6 +1891,7 @@ static void uvc_events_init(UVC_DEVICE_CTX_S *dev) {
             // break;
         case V4L2_PIX_FMT_MJPEG:
         case V4L2_PIX_FMT_H264:
+        case V4L2_PIX_FMT_HEVC:
             payload_size = dev->imgsize;
             break;
     }
@@ -2008,7 +1987,7 @@ int32_t UVC_GADGET_Init(const CVI_UVC_DEVICE_CAP_S *pstDevCaps, u_int32_t u32Max
         s_stUVCDevCtx.imgsize = s_stUVCDevCtx.width * s_stUVCDevCtx.height * 2;
         s_stUVCDevCtx.fcc = V4L2_PIX_FMT_YUYV;
     } else if (default_format == 1) {
-        s_stUVCDevCtx.imgsize = s_stUVCDevCtx.width * s_stUVCDevCtx.height * 1.5;
+        s_stUVCDevCtx.imgsize = s_stUVCDevCtx.width * s_stUVCDevCtx.height;
         s_stUVCDevCtx.fcc = V4L2_PIX_FMT_MJPEG;
     } else {
         s_stUVCDevCtx.imgsize = s_stUVCDevCtx.width * s_stUVCDevCtx.height;

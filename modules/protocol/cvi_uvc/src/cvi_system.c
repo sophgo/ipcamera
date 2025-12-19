@@ -1,3 +1,5 @@
+#define __STDC_WANT_LIB_EXT2__ 1  //Define you want TR 24731-2:2010 extensions
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>

@@ -933,7 +933,7 @@ static int _streaming_save_to_flash(APP_VENC_CHN_CFG_S *pstVencChnCfg, VENC_STRE
                 ppack->u32Len - ppack->u32Offset, 1, pstVencChnCfg->pFile);
 
         APP_PROF_LOG_PRINT(LEVEL_DEBUG, "pack[%d], PTS = %llu, Addr = %p, Len = 0x%X, Offset = 0x%X DataType=%d\n",
-                i, ppack->u64PTS, ppack->pu8Addr, ppack->u32Len, ppack->u32Offset, ppack->DataType.enH265EType);
+                i, (long long unsigned int)ppack->u64PTS, ppack->pu8Addr, ppack->u32Len, ppack->u32Offset, ppack->DataType.enH265EType);
     }
 
     if (pstVencChnCfg->enType == PT_JPEG) {
@@ -1203,7 +1203,8 @@ static void *Thread_Streaming_Proc(void *pArgs)
             stFrameInfo.frameParam.frameTime = time(NULL);
             app_ipcam_Mbuf_Video_WriteFrame(VencChn, &stFrameInfo);
 #ifdef CVI_UVC_SUPPORT
-            cvi_uvc_stream_send_data(pstStream);
+            if (VencChn == 1)
+                cvi_uvc_stream_send_data(&stStream);
 #endif
         }
 

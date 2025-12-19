@@ -71,7 +71,7 @@ static CVI_S32 app_ipcam_RtspAttr_Init(VENC_CHN vencChn, CVI_S32 session_id
 
     pstAttr->framerate = pstVencChnCfg->u32DstFrameRate;
 
-#ifdef AUDIO_SUPPORT
+#if defined(AUDIO_SUPPORT) && defined(RTSP_AUDIO_ENABLE)
     pstAttr->audio_en = CVI_TRUE;
     APP_PARAM_AUDIO_CFG_T *pstAudioCfg = app_ipcam_Audio_Param_Get();
     if (pstAudioCfg == NULL) {
@@ -86,10 +86,10 @@ static CVI_S32 app_ipcam_RtspAttr_Init(VENC_CHN vencChn, CVI_S32 session_id
     }
 #else
     pstAttr->audio_en          = CVI_FALSE;
-    pstAttr->audio_codec       = RTSP_AUDIO_PCM;
-    pstAttr->audio_sample_rate = 8000;
-    pstAttr->audio_channels    = 1;
-    pstAttr->audio_pernum      = 320;
+    pstAttr->audio_codec       = RTSP_AUDIO_BUTT;
+    pstAttr->audio_sample_rate = 0;
+    pstAttr->audio_channels    = 0;
+    pstAttr->audio_pernum      = 0;
 #endif
 
     pstAttr->timeout = 120;
@@ -138,16 +138,6 @@ static void rtsp_service_media_task(void *arg)
         return ;
     }
 
-#ifndef AUDIO_SUPPORT
-    CVI_S32 audio_null_data_len = 64;
-    CVI_U8 *audio_null_data = (CVI_U8 *)malloc(64);
-    if (audio_null_data == NULL){
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Malloc failed. audio_null_data == NULL. \n");
-        return ;
-    }
-    memset(audio_null_data, 0, audio_null_data_len);
-#endif
-
     // Ensure that the first frame is I-frame
     ctx->i_frame_flag = 1;
     while(ctx->RtspThread.bRun_flag) {
@@ -179,36 +169,23 @@ static void rtsp_service_media_task(void *arg)
                 if (s32Ret != CVI_SUCCESS) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "RTSP_WriteFrame failed\n");
                 }
-#ifndef AUDIO_SUPPORT
-                // send audio null data
-                frame.type = FRAME_TYPE_AUDIO;
-                frame.data[0] = audio_null_data;
-                frame.iskey[0] = 1;
-                frame.len[0] = audio_null_data_len;
-                s32Ret = RTSP_SendFrame(ctx->rtsp_ser, &frame);
-                if (s32Ret != CVI_SUCCESS) {
-                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "RTSP_WriteFrame failed\n");
-                }
-#endif
             } else if (stReadFrameInfo.frameParam.frameType == CVI_MEDIA_AFRAME_A) {
+#if defined(AUDIO_SUPPORT) && defined(RTSP_AUDIO_ENABLE)
                 // send audio data
                 frame.type = FRAME_TYPE_AUDIO;
                 s32Ret = RTSP_SendFrame(ctx->rtsp_ser, &frame);
                 if (s32Ret != CVI_SUCCESS) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "RTSP_WriteFrame failed\n");
                 }
+#else
+                APP_PROF_LOG_PRINT(LEVEL_DEBUG, "drop audio frame in rtsp.\n");
+#endif
             } else {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "No support frameType:%d. \n"
                     , stReadFrameInfo.frameParam.frameType);
             }
         }
     }
-
-#ifndef AUDIO_SUPPORT
-    if (audio_null_data) {
-        free(audio_null_data);
-    }
-#endif
 
     if (readerId) {
         app_ipcam_Mbuf_DestoryReader(readerId);

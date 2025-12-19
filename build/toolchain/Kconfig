@@ -40,8 +40,8 @@ config CROSS_COMPILE
 	string
 	default "riscv64-unknown-linux-gnu-" if TOOLCHAIN_GLIBC_RISCV64
 	default "riscv64-unknown-linux-musl-" if TOOLCHAIN_MUSL_RISCV64
-	default "arm-linux-gnueabihf-" if TOOLCHAIN_GLIBC_32BIT_ARM
-	default "aarch64-linux-gnu-" if TOOLCHAIN_GLIBC_64BIT_ARM
+	default "arm-none-linux-gnueabihf-" if TOOLCHAIN_GLIBC_32BIT_ARM
+	default "aarch64-none-linux-gnu-" if TOOLCHAIN_GLIBC_64BIT_ARM
 	default "arm-none-linux-musleabihf-" if TOOLCHAIN_MUSL_32BIT_ARM
 	help
 	  Cross compile toolchain.

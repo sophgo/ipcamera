@@ -210,7 +210,7 @@ static CVI_S32 app_ipcam_Ai_Keypoint_Hand_Gesture_Proc_Init(CVI_VOID)
     }
 
     // 打开检测模型
-    s32Ret = TDL_OpenModel(g_KeypointHandGestureAiHandle, g_pstKeypointHandGestureCfg->detect_model_id, g_pstKeypointHandGestureCfg->detect_model_path, g_pstKeypointHandGestureCfg->model_path_cfg);
+    s32Ret = TDL_OpenModel(g_KeypointHandGestureAiHandle, g_pstKeypointHandGestureCfg->detect_model_id, g_pstKeypointHandGestureCfg->detect_model_path, g_pstKeypointHandGestureCfg->model_path_cfg, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_SetModelPath failed for detect model with %#x! maybe reset model path\n", s32Ret);
@@ -220,7 +220,7 @@ static CVI_S32 app_ipcam_Ai_Keypoint_Hand_Gesture_Proc_Init(CVI_VOID)
     // 打开关键点模型
     APP_PROF_LOG_PRINT(LEVEL_INFO, "Opening keypoint model: %s (ID: %d)\n", 
         g_pstKeypointHandGestureCfg->keypoint_model_path, g_pstKeypointHandGestureCfg->keypoint_model_id);
-    s32Ret = TDL_OpenModel(g_KeypointHandGestureAiHandle, g_pstKeypointHandGestureCfg->keypoint_model_id, g_pstKeypointHandGestureCfg->keypoint_model_path, g_pstKeypointHandGestureCfg->model_path_cfg);
+    s32Ret = TDL_OpenModel(g_KeypointHandGestureAiHandle, g_pstKeypointHandGestureCfg->keypoint_model_id, g_pstKeypointHandGestureCfg->keypoint_model_path, g_pstKeypointHandGestureCfg->model_path_cfg, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_SetModelPath failed for keypoint model with %#x! maybe reset model path\n", s32Ret);
@@ -250,7 +250,7 @@ static CVI_S32 app_ipcam_Ai_Keypoint_Hand_Gesture_Proc_Init(CVI_VOID)
         g_pstKeypointHandGestureCfg->keypoint_model_id == TDL_MODEL_KEYPOINT_HAND) {
         
         s32Ret = TDL_OpenModel(g_KeypointHandGestureAiHandle, g_pstKeypointHandGestureCfg->classify_model_id, 
-                               g_pstKeypointHandGestureCfg->classify_model_path, g_pstKeypointHandGestureCfg->model_path_cfg);
+                               g_pstKeypointHandGestureCfg->classify_model_path, g_pstKeypointHandGestureCfg->model_path_cfg, 0);
         if (s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to open classification model with %#x! Classification disabled.\n", s32Ret);
             g_pstKeypointHandGestureCfg->bEnableClassification = CVI_FALSE;

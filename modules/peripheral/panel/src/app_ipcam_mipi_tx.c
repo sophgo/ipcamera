@@ -27,6 +27,11 @@ CVI_S32 app_ipcam_MipiTx_Enable(
     _NULL_POINTER_CHECK_(ps32MipiTxFd, CVI_FAILURE);
 
     *ps32MipiTxFd = 0;
+    ps32MipiTxFd[0] = open(MIPI_TX_NAME, O_RDWR | O_NONBLOCK, 0);
+    if (*ps32MipiTxFd == -1) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Cannot open '%s': %d, %s\n", MIPI_TX_NAME, errno, strerror(errno));
+        return CVI_FAILURE;
+    }
 
     APP_CHK_RET(mipi_tx_cfg(*ps32MipiTxFd, (struct combo_dev_cfg_s*)pstDevCfg), "mipi_tx_cfg");
 

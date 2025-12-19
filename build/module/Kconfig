@@ -128,6 +128,13 @@ config MODULE_RTSP
 	help
 		enable rtsp in applicant
 
+config RTSP_AUDIO_ENABLE
+	bool "enable rtsp audio stream"
+	default n
+	depends on MODULE_RTSP && MODULE_MEDIA_AUDIO
+	help
+		enable audio streaming for rtsp when audio module is enabled
+
 config MODULE_OTA
 	bool "enable module ota"
 	default n

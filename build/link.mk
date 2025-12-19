@@ -120,9 +120,11 @@ else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
   LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_riscv64_lib
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
   LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm32_lib
+  else ifeq ($(TARGET_MACHINE), arm-none-linux-gnueabihf)
+  LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm32_lib
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
   LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_arm32_lib
-else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+else ifeq ($(TARGET_MACHINE), aarch64-none-linux-gnu)
   LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm64_lib
 else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
@@ -145,7 +147,7 @@ else
 AISDK := -Wl,-Bdynamic -ltdl_core
 TPU =  -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
 endif
-OPENCV += -lkaldi-native-fbank-core -lkissfft-float -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
+OPENCV += -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
 LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
 
 ## MULTI_PROCESS_SUPPORT
@@ -172,11 +174,11 @@ ifeq ($(CONFIG_MODULE_AI), y)
   LIBS += -Wl,-Bdynamic -ldl -pthread
 else
   ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
-  ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu riscv64-unknown-linux-gnu),)
+  ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-none-linux-gnu riscv64-unknown-linux-gnu),)
     LIBS += -static
   endif
   endif
-  ifneq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu riscv64-unknown-linux-gnu),)
+  ifneq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-none-linux-gnu riscv64-unknown-linux-gnu),)
     LIBS += -Wl,-Bdynamic -ldl -pthread
   endif
 endif

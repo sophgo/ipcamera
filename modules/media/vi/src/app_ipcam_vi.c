@@ -233,7 +233,7 @@ void app_ipcam_Isp_AfFilter_Get(ISP_AF_STATISTICS_S *pAfStat)
     FVP = FVP / totalWeightSum;
     FVQ = FVQ / totalWeightSum;
 
-    APP_PROF_LOG_PRINT(LEVEL_TRACE, "FVP = %llu FVQ = %llu\n", FVP, FVQ);
+    APP_PROF_LOG_PRINT(LEVEL_TRACE, "FVP = %llu FVQ = %llu\n", (long long unsigned int)FVP, (long long unsigned int)FVQ);
 
     ISP_EXP_INFO_S stExpInfo;
     CVI_ISP_QueryExposureInfo(0, &stExpInfo);
@@ -294,7 +294,7 @@ static void *Thread_AF_Filter_Proc(void *pArgs)
 
         CVI_U32 u32Fv = FV & 0xFFFFFFFF;
 
-        APP_PROF_LOG_PRINT(LEVEL_TRACE, "FV = %llu, u32Fv = %u\n", FV, u32Fv);
+        APP_PROF_LOG_PRINT(LEVEL_TRACE, "FV = %llu, u32Fv = %u\n", (long long unsigned int)FV, u32Fv);
 
         /* for customer used */
         app_ipcam_Isp_AfFilter_Get(&afStat);

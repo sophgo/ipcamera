@@ -207,7 +207,7 @@ static CVI_S32 app_ipcam_Ai_PD_Proc_Init(CVI_VOID)
         return s32Ret;
     }
 
-    s32Ret = TDL_OpenModel(g_PDAiHandle, g_pstPdCfg->model_id, g_pstPdCfg->model_path, NULL);
+    s32Ret = TDL_OpenModel(g_PDAiHandle, g_pstPdCfg->model_id, g_pstPdCfg->model_path, NULL, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_SetModelPath failed with %#x! maybe reset model path\n", s32Ret);

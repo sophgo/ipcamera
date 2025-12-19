@@ -25,6 +25,7 @@ typedef enum cviUVC_STREAM_FORMAT_E
     CVI_UVC_STREAM_FORMAT_YUV420 = 0,
     CVI_UVC_STREAM_FORMAT_MJPEG,
     CVI_UVC_STREAM_FORMAT_H264,
+    CVI_UVC_STREAM_FORMAT_H265,
     CVI_UVC_STREAM_FORMAT_BUTT
 } CVI_UVC_STREAM_FORMAT_E;
 
@@ -97,7 +98,6 @@ int32_t UVC_Start(const char *pDevPath);
 int32_t UVC_Stop(void);
 
 int32_t UVC_STREAM_ReqIDR(void);
-int32_t UVC_STREAM_CopyBitStream(void *dst);
 
 UVC_CONTEXT_S *UVC_GetCtx(void);
 

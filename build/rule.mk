@@ -16,7 +16,7 @@ OBJCOPY         = $(CROSS_COMPILE)objcopy
 OBJDUMP         = $(CROSS_COMPILE)objdump
 ARFLAGS         = rcs
 LDFLAGS_SO      = -shared -fPIC
-# riscv64-unknown-linux-musl, riscv64-unknown-linux-gnu, aarch64-linux-gnu, arm-linux-gnueabihf
+# riscv64-unknown-linux-musl, riscv64-unknown-linux-gnu, aarch64-none-linux-gnu, arm-linux-gnueabihf
 export TARGET_MACHINE	:= $(shell ${CC} -dumpmachine)
 #
 APP_MODULES_PATH  := $(SRCTREE)/modules
@@ -28,10 +28,12 @@ ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
   APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/riscv64-unknown-linux-musl
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
   APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/riscv64-unknown-linux-gnu
-else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
-  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/aarch64-linux-gnu
+else ifeq ($(TARGET_MACHINE), aarch64-none-linux-gnu)
+  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/aarch64-none-linux-gnu
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
   APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/arm-linux-gnueabihf
+else ifeq ($(TARGET_MACHINE), arm-none-linux-gnueabihf)
+  APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/arm-none-linux-gnueabihf
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
   APP_COMPONENTS_INSTALL_DIR := $(SRCTREE)/components/comps_install/arm-none-linux-musleabihf
 else
@@ -73,10 +75,13 @@ else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
   THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/glibc_arm32_lib
   WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-gnueabihf)
+  THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/glibc_arm32_lib
+  WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/glibc_arm32_lib
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
   THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/musl_arm32_lib
   WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/musl_arm32_lib
-else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+else ifeq ($(TARGET_MACHINE), aarch64-none-linux-gnu)
   THTTPD_LIB_DIR = $(APP_PREBUILT_DIR)/thttpd/glibc_arm64_lib
   WEB_SOCKET_LIB_DIR = $(APP_PREBUILT_DIR)/libwebsockets/glibc_arm64_lib
 else
@@ -85,9 +90,11 @@ endif
 # FFMPEG
 ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
 	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-gnueabihf)
+	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/glibc_arm32_lib
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
 	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/musl_arm32_lib
-else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+else ifeq ($(TARGET_MACHINE), aarch64-none-linux-gnu)
 	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/glibc_arm64_lib
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
 	FFMPEG_LIB_DIR = $(APP_PREBUILT_DIR)/ffmpeg/musl_riscv64_lib
@@ -107,9 +114,11 @@ RTSP_DIR = $(APP_COMPONENTS_INSTALL_DIR)/rtsp
 #OPENSSL
 ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
   OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/glibc_arm32_lib
+else ifeq ($(TARGET_MACHINE), arm-none-linux-gnueabihf)
+  OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/glibc_arm32_lib
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
   OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/musl_arm32_lib
-else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+else ifeq ($(TARGET_MACHINE), aarch64-none-linux-gnu)
   OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/glibc_arm64_lib
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
   OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/glibc_riscv64_lib
@@ -122,10 +131,12 @@ endif
 #LVGL
 LVGL_LIB_DIR = $(APP_PREBUILT_DIR)/lvgl/lib
 
-ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+ifeq ($(TARGET_MACHINE), aarch64-none-linux-gnu)
 SDK_VER := 64bit
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
 SDK_VER := 32bit
+else ifeq ($(TARGET_MACHINE), arm-none-linux-gnueabihf)
+SDK_VER := glibc_arm
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
 SDK_VER := musl
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)

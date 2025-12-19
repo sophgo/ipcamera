@@ -162,6 +162,7 @@ typedef struct APP_PARAM_AI_OBJECT_TRACK_CFG_T
     char model_path_cfg[MODEL_PATH_LEN];
     float threshold_occluded;
     float threshold_reappear;
+    TDLTargetSearchTypeE search_type;
 } APP_PARAM_AI_OBJECT_TRACK_CFG_S;
 
 typedef struct APP_PARAM_AI_IMG_TXT_CLIP_CFG_T

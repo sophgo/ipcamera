@@ -230,7 +230,12 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
             fclose(pFile);
             box[0] = atoi(buf);
             APP_PROF_LOG_PRINT(LEVEL_INFO, "track id : %d \n", box[0]);
-            s32Ret = TDL_SetSingleObjectTracking(g_ObjectTrackTDLHandle, image, &g_obj_meta, box, 1);
+            s32Ret = TDL_SetSingleObjectTracking(g_ObjectTrackTDLHandle,
+                                                 image,
+                                                 &g_obj_meta,
+                                                 box,
+                                                 1,
+                                                 g_pstObjTrackCfg->search_type);
             if (s32Ret != 0) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_SetSingleObjectTracking failed with %#x!\n", s32Ret);
                 remove("/tmp/track");
@@ -308,14 +313,14 @@ static CVI_S32 app_ipcam_Ai_Object_Track_Proc_Init(CVI_VOID)
         return s32Ret;
     }
 
-    s32Ret = TDL_OpenModel(g_ObjectTrackTDLHandle, g_pstObjTrackCfg->model_id_det, g_pstObjTrackCfg->model_path_det, g_pstObjTrackCfg->model_path_cfg);
+    s32Ret = TDL_OpenModel(g_ObjectTrackTDLHandle, g_pstObjTrackCfg->model_id_det, g_pstObjTrackCfg->model_path_det, g_pstObjTrackCfg->model_path_cfg, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_OpenModel DET failed with %#x!\n", s32Ret);
         return s32Ret;
     }
 
-    s32Ret = TDL_OpenModel(g_ObjectTrackTDLHandle, g_pstObjTrackCfg->model_id_sot, g_pstObjTrackCfg->model_path_sot, g_pstObjTrackCfg->model_path_cfg);
+    s32Ret = TDL_OpenModel(g_ObjectTrackTDLHandle, g_pstObjTrackCfg->model_id_sot, g_pstObjTrackCfg->model_path_sot, g_pstObjTrackCfg->model_path_cfg, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_OpenModel SOT failed with %#x!\n", s32Ret);

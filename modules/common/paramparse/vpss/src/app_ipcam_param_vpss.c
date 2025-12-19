@@ -239,6 +239,34 @@ int Load_Param_Vpss(const char *file)
                 pastVpssChnAttr->enVideoFormat, pastVpssChnAttr->enPixelFormat);
         }
     }
+
+    /* 读取 stitch / forward 配置 */
+    memset(tmp_section, 0, sizeof(tmp_section));
+    snprintf(tmp_section, sizeof(tmp_section), "vpss_stitch");
+    Vpss->bStitchEnable = ini_getl(tmp_section, "stitch_en", 0, file);
+    if (Vpss->bStitchEnable) {
+        CVI_U32 pair_cnt = ini_getl(tmp_section, "stitch_pair_cnt", 0, file);
+        if (pair_cnt > CVI_MAX_VPSS_GRP) {
+            APP_PROF_LOG_PRINT(LEVEL_WARN, "[%s] stitch_pair_cnt(%d) > max(%d), truncate\n",
+                                tmp_section, pair_cnt, CVI_MAX_VPSS_GRP);
+            pair_cnt = CVI_MAX_VPSS_GRP;
+        }
+        Vpss->u32StitchPairCnt = pair_cnt;
+        for (CVI_U32 i = 0; i < pair_cnt; i++) {
+            char sec[32] = {0};
+            snprintf(sec, sizeof(sec), "vpss_stitch%d", i);
+            Vpss->astStitchPair[i].srcGrp = ini_getl(sec, "src_grp", 0, file);
+            Vpss->astStitchPair[i].srcChn = ini_getl(sec, "src_chn", 0, file);
+            Vpss->astStitchPair[i].dstGrp = ini_getl(sec, "dst_grp", 0, file);
+            Vpss->astStitchPair[i].dstChn = ini_getl(sec, "dst_chn", 0, file);
+            APP_PROF_LOG_PRINT(LEVEL_INFO,
+                                "[%s] pair%d: src(%d,%d) -> dst(%d,%d)\n",
+                                tmp_section, i,
+                                Vpss->astStitchPair[i].srcGrp, Vpss->astStitchPair[i].srcChn,
+                                Vpss->astStitchPair[i].dstGrp, Vpss->astStitchPair[i].dstChn);
+        }
+    }
+
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading vpss config ------------------> done \n\n");
     return CVI_SUCCESS;
 }

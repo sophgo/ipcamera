@@ -28,6 +28,7 @@ int Load_Param_Ai_OBJECT_TRACK(const char * file)
     Ai->u32GrpHeight            = ini_getl(tmp_section, "grp_height", 0, file);
     Ai->threshold_occluded      = ini_getf(tmp_section, "threshold_occluded", 0.1, file);
     Ai->threshold_reappear      = ini_getf(tmp_section, "threshold_reappear", 2.0, file);
+    Ai->search_type             = ini_getl(tmp_section, "search_type", 2, file);
 
     ini_gets(tmp_section, "model_id_det", " ", str_name, PARAM_STRING_NAME_LEN, file);
     ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, ai_supported_model, TDL_MODEL_MAX, &enum_num);

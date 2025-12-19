@@ -81,6 +81,7 @@ INCS-$(CONFIG_MODULE_RTSP)    += -I$(APP_COMPONENTS_INSTALL_DIR)/rtsp/include
 INCS-$(CONFIG_MODULE_RTSP)    += -I$(APP_COMPONENTS_INSTALL_DIR)/osal/include
 INCS-$(CONFIG_MODULE_RTSP)    += -I$(APP_COMPONENTS_INSTALL_DIR)/ringbuffer/include
 DEFS-$(CONFIG_MODULE_RTSP)    += -DRTSP_SUPPORT
+DEFS-$(CONFIG_RTSP_AUDIO_ENABLE) += -DRTSP_AUDIO_ENABLE
 
 # PQTOOL
 DEFS-$(CONFIG_MODULE_PQTOOL) += -DSUPPORT_ISP_PQTOOL
@@ -150,8 +151,9 @@ else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
   CFLAGS		  += -MMD -Os -mcpu=c906fdv -march=rv64imafdcv0p7xthead -mcmodel=medany -mabi=lp64d
   TARGETFLAGS += -mcpu=c906fdv -march=rv64imafdcv0p7xthead -mcmodel=medany -mabi=lp64d
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
-else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
+else ifeq ($(TARGET_MACHINE), aarch64-none-linux-gnu)
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
+else ifeq ($(TARGET_MACHINE), arm-none-linux-gnueabihf)
 else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
@@ -159,7 +161,7 @@ endif
 CFLAGS += -D__CV184X__
 
 CFLAGS += -std=gnu11 -g -Wall -Wextra -Werror -fPIC -ffunction-sections -fdata-sections -Wl,--gc-sections
-ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu arm-none-linux-musleabihf),)
+ifeq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-none-linux-gnu arm-none-linux-musleabihf arm-none-linux-gnueabihf),)
   CFLAGS += -mno-ldd
 endif
 CFLAGS += $(DEFS-y)

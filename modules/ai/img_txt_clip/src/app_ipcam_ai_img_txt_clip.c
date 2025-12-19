@@ -151,14 +151,14 @@ static CVI_S32 app_ipcam_Ai_Img_Txt_Clip_Proc_Init(CVI_VOID)
         return s32Ret;
     }
 
-    s32Ret = TDL_OpenModel(g_ClipAiHandle, g_pstClipCfg->model_id_img, g_pstClipCfg->model_path_img, g_pstClipCfg->model_path_cfg);
+    s32Ret = TDL_OpenModel(g_ClipAiHandle, g_pstClipCfg->model_id_img, g_pstClipCfg->model_path_img, g_pstClipCfg->model_path_cfg, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_OpenModel failed with %#x!\n", g_pstClipCfg->model_path_img, s32Ret);
         return s32Ret;
     }
 
-    s32Ret = TDL_OpenModel(g_ClipAiHandle, g_pstClipCfg->model_id_txt, g_pstClipCfg->model_path_txt, g_pstClipCfg->model_path_cfg);
+    s32Ret = TDL_OpenModel(g_ClipAiHandle, g_pstClipCfg->model_id_txt, g_pstClipCfg->model_path_txt, g_pstClipCfg->model_path_cfg, 0);
     if (s32Ret != CVI_SUCCESS)
     {
         TDL_CloseModel(g_ClipAiHandle, g_pstClipCfg->model_id_img);

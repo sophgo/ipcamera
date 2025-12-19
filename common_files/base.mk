@@ -24,7 +24,7 @@ PYTHON    := python
 CHECK     := sparse
 MAKE      := make
 CMAKE     := cmake
-# riscv64-unknown-linux-musl, riscv64-unknown-linux-gnu, aarch64-linux-gnu, arm-linux-gnueabihf gcc
+# riscv64-unknown-linux-musl, riscv64-unknown-linux-gnu, aarch64-none-linux-gnu, arm-linux-gnueabihf gcc
 TARGET_MACHINE  := $(shell ${CROSS_COMPILE}gcc -dumpmachine)
 #
 ifeq ($(notdir $(CROSS_COMPILE)), riscv64-unknown-linux-musl-)
