@@ -128,6 +128,10 @@ static int app_ipcam_Exit(void)
     app_uvc_exit();
     #endif
 
+    #ifdef CVI_UVC_HOST_SUPPORT
+    APP_CHK_RET(app_ipcam_UvcHost_DeInit(), "deinit uvc host module");
+    #endif
+
     #ifdef CVI_UAC_SUPPORT
     app_uac_exit();
     #endif
@@ -232,6 +236,10 @@ static int app_ipcam_Init(void)
 
     #ifdef CVI_UVC_SUPPORT
     app_uvc_init();
+    #endif
+
+    #ifdef CVI_UVC_HOST_SUPPORT
+    APP_CHK_RET(app_ipcam_UvcHost_Init(), "init uvc host module");
     #endif
 
     #ifdef CVI_UAC_SUPPORT

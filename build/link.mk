@@ -26,6 +26,7 @@ LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_paramparse_pwm
 LIBS-$(CONFIG_MODULE_RTSP)                        += -lapp_paramparse_rtsp
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_paramparse_record
+LIBS-$(CONFIG_MODULE_CVIUVC_HOST)                += -lapp_paramparse_uvc_host
 LIBS-y += -Wl,--no-whole-archive
 endif
 
@@ -62,6 +63,7 @@ LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT)               += -lapp_media_vdecsoft
 LIBS-$(CONFIG_MODULE_MEDIA_MSG)                   += -lapp_media_msg
 LIBS-$(CONFIG_MODULE_CVIUAC)                      += -lapp_cvi_uac
 LIBS-$(CONFIG_MODULE_CVIUVC)                      += -lapp_cvi_uvc
+LIBS-$(CONFIG_MODULE_CVIUVC_HOST)                 += -lapp_cvi_uvc_host
 LIBS-y                                            += -lapp_media_module
 
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_recorder
@@ -147,7 +149,7 @@ else
 AISDK := -Wl,-Bdynamic -ltdl_core
 TPU =  -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
 endif
-OPENCV += -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
+OPENCV += -lkaldi-native-fbank-core -lkissfft-float -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
 LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
 
 ## MULTI_PROCESS_SUPPORT
@@ -182,6 +184,3 @@ else
     LIBS += -Wl,-Bdynamic -ldl -pthread
   endif
 endif
-
-
-

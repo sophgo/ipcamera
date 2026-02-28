@@ -218,6 +218,12 @@ __attribute__((weak)) int Load_Param_Record(const char *file)
     return 0;
 }
 
+__attribute__((weak)) int Load_Param_Uvc(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
+
 //common attribute
 const char *pixel_format[PIXEL_FORMAT_MAX] = {
     [PIXEL_FORMAT_RGB_888] = "PIXEL_FORMAT_RGB_888",
@@ -506,5 +512,6 @@ int app_ipcam_Param_Load(void)
     APP_CHK_RET(Load_Param_Ai_OBJECT_TRACK(ParamCfgFile), "Load AI Object Track Param");
     APP_CHK_RET(Load_Param_Ai_Img_Txt_Clip(ParamCfgFile), "Load AI Image Txt Clip Param");
     APP_CHK_RET(Load_Param_Record(ParamCfgFile), "Load Record Param");
+    APP_CHK_RET(Load_Param_Uvc(ParamCfgFile), "Load UVC Param");
     return CVI_SUCCESS;
 }

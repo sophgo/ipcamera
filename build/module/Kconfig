@@ -88,9 +88,17 @@ config MODULE_CVIUAC
 config MODULE_CVIUVC
 	bool "enale module uvc"
 	default n
+	depends on !MODULE_CVIUVC_HOST
 	select MODULE_PROTOCOL
 	help 
 		enable uvc in applicant
+
+config MODULE_CVIUVC_HOST
+	bool "enale module uvc host"
+	default n
+	select MODULE_PROTOCOL
+	help
+		enable uvc host in applicant
 
 config MODULE_MEDIA_MSG
 	bool "enale module msg"

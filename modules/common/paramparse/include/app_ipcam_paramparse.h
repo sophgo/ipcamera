@@ -49,6 +49,10 @@
 #include "cvi_uvc.h"
 #endif
 
+#ifdef CVI_UVC_HOST_SUPPORT
+#include "app_ipcam_uvc_host.h"
+#endif
+
 #ifdef CVI_UAC_SUPPORT
 #include "cvi_audio_uac.h"
 #endif

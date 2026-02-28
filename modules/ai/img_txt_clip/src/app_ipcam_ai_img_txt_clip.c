@@ -208,7 +208,7 @@ static CVI_VOID *Thread_Img_Txt_Clip_PROC(CVI_VOID *arg)
             usleep(100*1000);
             continue;
         }
-        image_handle = TDL_WrapFrame((void*)&stfdFrame, false);
+        image_handle = TDL_WrapFrame((void*)&stfdFrame, false, false);
 
         /* 2. Feature Detect*/
         TDL_FeatureExtraction(g_ClipAiHandle, g_pstClipCfg->model_id_img, image_handle, &feature);

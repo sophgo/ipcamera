@@ -30,6 +30,7 @@ DEFS-$(CONFIG_MODULE_CVIUAC) += -DCVI_UAC_SUPPORT
 
 # UVC
 DEFS-$(CONFIG_MODULE_CVIUVC) += -DCVI_UVC_SUPPORT
+DEFS-$(CONFIG_MODULE_CVIUVC_HOST) += -DCVI_UVC_HOST_SUPPORT
 
 # MD
 DEFS-$(CONFIG_MODULE_AI_MD) += -DMD_SUPPORT
@@ -127,6 +128,7 @@ INCS-$(CONFIG_MODULE_PARAMPARSE)	+= -I$(SRCTREE)/modules/common/paramparse/inclu
 INCS-$(CONFIG_MODULE_AI)				  += -I$(SRCTREE)/modules/ai/include
 INCS-$(CONFIG_MODULE_CVIUAC)			+= -I$(SRCTREE)/modules/protocol/cvi_uac/include
 INCS-$(CONFIG_MODULE_CVIUVC)			+= -I$(SRCTREE)/modules/protocol/cvi_uvc/include
+INCS-$(CONFIG_MODULE_CVIUVC_HOST)		+= -I$(SRCTREE)/modules/protocol/cvi_uvc_host/include
 INCS-$(CONFIG_MODULE_NETWORK)			+= -I$(SRCTREE)/modules/protocol/network/include
 INCS-$(CONFIG_MODULE_RTSP)				+= -I$(SRCTREE)/modules/protocol/rtsp/include
 INCS-$(CONFIG_MODULE_OTA)				  += -I$(SRCTREE)/modules/protocol/ota/include

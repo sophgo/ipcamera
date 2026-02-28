@@ -341,15 +341,10 @@ static CVI_S32 app_ipcam_ISP_ProcInfo_Open(CVI_U32 ProcLogLev)
         ISP_CTRL_PARAM_S setParam;
         memset(&setParam, 0, sizeof(ISP_CTRL_PARAM_S));
 
-        setParam.u32ProcLevel = ProcLogLev;    // proc printf level (level =0,disable; =3,log max)
-        setParam.u32ProcParam = 15;        // isp info frequency of collection (unit:frame; rang:(0,0xffffffff])
         setParam.u32AEStatIntvl = 1;    // AE info update frequency (unit:frame; rang:(0,0xffffffff])
         setParam.u32AWBStatIntvl = 6;    // AW info update frequency (unit:frame; rang:(0,0xffffffff])
         setParam.u32AFStatIntvl = 1;    // AF info update frequency (unit:frame; rang:(0,0xffffffff])
-        setParam.u32UpdatePos = 0;        // Now, only support before sensor cfg; default 0
-        setParam.u32IntTimeOut = 0;        // interrupt timeout; unit:ms; not used now
         setParam.u32PwmNumber = 0;        // PWM Num ID; Not used now
-        setParam.u32PortIntDelay = 0;    // Port interrupt delay time
 
         s32Ret = CVI_ISP_SetCtrlParam(0, &setParam);
         if (s32Ret != CVI_SUCCESS) {

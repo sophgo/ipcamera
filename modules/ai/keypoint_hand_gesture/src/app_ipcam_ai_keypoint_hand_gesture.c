@@ -304,7 +304,7 @@ static CVI_VOID *Thread_Keypoint_Hand_Gesture_PROC(CVI_VOID *arg)
             usleep(100*1000);
             continue;
         }
-        image_handle = TDL_WrapFrame((void*)&stfdFrame, false);
+        image_handle = TDL_WrapFrame((void*)&stfdFrame, false, false);
 
         pthread_mutex_unlock(&g_KeypointHandGestureStatusMutex);
 
@@ -478,7 +478,7 @@ static CVI_VOID *Thread_Keypoint_Hand_Gesture_PROC(CVI_VOID *arg)
                             frame.stVFrame.u32Width = 42;  // 42 float
                             frame.stVFrame.u32Height = 1;
                             
-                            TDLImage cls_image = TDL_WrapFrame(&frame, false);
+                            TDLImage cls_image = TDL_WrapFrame(&frame, false, false);
                             if (cls_image != NULL) {
                                 // 执行手势分类 (分类模型已在初始化时打开)
                                 TDLClassInfo class_info = {0};

@@ -26,6 +26,7 @@ module-$(CONFIG_MODULE_AI_OBJECT_TRACK)	       	+= ai_object_track
 module-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)	        += ai_img_txt_clip
 module-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)+= ai_keypoint_hand_gesture
 module-$(CONFIG_MODULE_RECORD)				    += record
+module-$(CONFIG_MODULE_CVIUVC_HOST)				+= uvc_host
 
 SUBDIRS += $(module-y)
 

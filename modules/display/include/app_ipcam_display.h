@@ -24,6 +24,7 @@ extern "C" {
 
 typedef struct APP_PARAM_DISPLAY_CFG_S {
     PANEL_TYPE_E enPanelType;
+    PANEL_I2C_CFG_T stPanelI2cCfg;
     APP_PARAM_VO_CFG_T stVoCfg;
 } APP_PARAM_DISPLAY_CFG_T;
 

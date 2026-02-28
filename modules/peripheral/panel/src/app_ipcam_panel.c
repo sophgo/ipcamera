@@ -14,35 +14,21 @@
 #include "dsi_ota7290b.h"
 #include "dsi_ota7290b_1920.h"
 #include "dsi_st7701.h"
+#include "bt656_ms7024.h"
+#include "lvds_lcm185x56.h"
+
+#include "cvi_vo.h"
 
 #include "app_ipcam_comm.h"
 #include "app_ipcam_mipi_tx.h"
 #include "app_ipcam_panel.h"
+#include "app_ipcam_panel_i2c.h"
 #include "app_ipcam_vo.h"
 
-
-CVI_S32 app_ipcam_Panel_FillIntfAttr(APP_PARAM_VO_CFG_T* const pstVoCfg)
-{
-    _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
-
-    switch (pstVoCfg->stVoPubAttr.enIntfType) {
-
-        case VO_INTF_BT656:
-            break;
-        case VO_INTF_BT1120:
-            break;
-        case VO_INTF_MIPI:
-            //no need, MIPI-DSI is setup by mipi-tx
-            break;
-
-        default:
-            break;
-    }
-
-    return CVI_SUCCESS;
-}
-
-CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PANEL_DESC_T* const pstPanelDesc)
+CVI_S32 app_ipcam_Panel_PanelDesc_Get(
+    const PANEL_TYPE_E* const penPanelType,
+    PANEL_DESC_T* const pstPanelDesc,
+    APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(penPanelType, CVI_FAILURE);
     _NULL_POINTER_CHECK_(pstPanelDesc, CVI_FAILURE);
@@ -208,6 +194,37 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PA
         //     pstPanelDesc->s32DsiInitCmdsSize = ARRAY_SIZE(dsi_init_cmds_ST7796S_320x480);
         //     break;
 
+        case PANEL_BT656_MS7024_720x480_60:
+            pstPanelDesc->pchPanelName = "MS7024-720x480";
+            pstPanelDesc->pstDevCfg = NULL;
+            pstPanelDesc->pstHsTimingCfg = NULL;
+            pstPanelDesc->pstDsiInitCmds = NULL;
+            pstPanelDesc->s32DsiInitCmdsSize = 0;
+            if (pstVoCfg) {
+                pstVoCfg->stVoPubAttr.enIntfType = VO_INTF_BT656;
+                pstVoCfg->stVoPubAttr.enIntfSync = VO_OUTPUT_USER;
+                pstVoCfg->stVoPubAttr.stSyncInfo = (VO_SYNC_INFO_S){.bSynm = 1, .bIop = 1, .u16FrameRate = 60,
+                    .u16Vact = 480, .u16Vbb = 30, .u16Vfb = 9,
+                    .u16Hact = 720, .u16Hbb = 60, .u16Hfb = 16,
+                    .u16Vpw = 6, .u16Hpw = 62, .bIdv = 0, .bIhs = 0, .bIvs = 0};
+            }
+            break;
+        case PANEL_LVDS_LCM185X56:
+            pstPanelDesc->pchPanelName = "LCM185X56-1366x768";
+            pstPanelDesc->pstDevCfg = NULL;
+            pstPanelDesc->pstHsTimingCfg = NULL;
+            pstPanelDesc->pstDsiInitCmds = NULL;
+            pstPanelDesc->s32DsiInitCmdsSize = 0;
+            if (pstVoCfg) {
+                pstVoCfg->stVoPubAttr.enIntfType = VO_INTF_LVDS;
+                pstVoCfg->stVoPubAttr.enIntfSync = VO_OUTPUT_USER;
+                pstVoCfg->stVoPubAttr.stSyncInfo = (VO_SYNC_INFO_S){.bSynm = 1, .bIop = 1, .u16FrameRate = 60,
+                    .u16Vact = 768, .u16Vbb = 20, .u16Vfb = 10,
+                    .u16Hact = 1366, .u16Hbb = 100, .u16Hfb = 88,
+                    .u16Vpw = 2, .u16Hpw = 20, .bIdv = 0, .bIhs = 0, .bIvs = 0};
+            }
+            break;
+
         case PANEL_DSI_HX8394_EVB:
         case PANEL_BT656_TP2803:
         case PANEL_I80_ST7789V:
@@ -220,5 +237,138 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PA
             break;
     }
 
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Panel_BT_Init(const APP_PARAM_VO_CFG_T* const pstVoCfg, const PANEL_TYPE_E enPanelType,
+    const PANEL_I2C_CFG_T* const pstI2cCfg)
+{
+    CVI_S32 ret = CVI_SUCCESS;
+    CVI_BOOL bNeedI2c = CVI_FALSE;
+    VO_BT_ATTR_S stBtAttr;
+
+    _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
+
+    // 选择 BT 面板参数与是否需要 I2C 下发
+    switch (enPanelType) {
+    case PANEL_BT656_MS7024_720x480_60:
+        stBtAttr = stMS7024bt656cfg;
+        bNeedI2c = CVI_TRUE;
+        break;
+    default:
+        // 其他 BT 面板初始化流程预留
+        return CVI_SUCCESS;
+    }
+
+    // BT 参数设置
+    ret = CVI_VO_SetPubAttr(pstVoCfg->s32VoDev, &pstVoCfg->stVoPubAttr);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VO_SetPubAttr failed with %#x!\n", ret);
+        return ret;
+    }
+
+    ret = CVI_VO_SetBTParam(pstVoCfg->s32VoDev, &stBtAttr);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VO_SetBTParam failed with %#x!\n", ret);
+        return ret;
+    }
+
+    // 回读校验 BT 参数
+    ret = CVI_VO_GetBTParam(pstVoCfg->s32VoDev, &stBtAttr);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VO_GetBTParam failed with %#x!\n", ret);
+        return ret;
+    }
+
+    // I2C 初始化与面板寄存器下发
+    if (bNeedI2c) {
+        APP_CHK_RET(app_ipcam_Panel_I2c_Init(pstVoCfg->s32VoDev, pstI2cCfg),
+                    "app_ipcam_Panel_I2c_Init");
+        APP_CHK_RET(app_ipcam_Panel_I2c_SendInit(pstVoCfg->s32VoDev, enPanelType, pstI2cCfg),
+                    "app_ipcam_Panel_I2c_SendInit");
+    }
+
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Panel_BT_Deinit(const APP_PARAM_VO_CFG_T* const pstVoCfg, const PANEL_TYPE_E enPanelType)
+{
+    CVI_BOOL bNeedI2c = CVI_FALSE;
+
+    _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
+
+    // 选择 BT 面板反初始化行为
+    switch (enPanelType) {
+    case PANEL_BT656_MS7024_720x480_60:
+        bNeedI2c = CVI_TRUE;
+        break;
+    default:
+        // 其他 BT 面板反初始化流程预留
+        return CVI_SUCCESS;
+    }
+
+    // I2C 资源释放
+    if (bNeedI2c) {
+        APP_CHK_RET(app_ipcam_Panel_I2c_Exit(pstVoCfg->s32VoDev), "app_ipcam_Panel_I2c_Exit");
+    }
+
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Panel_Lvds_Init(const APP_PARAM_VO_CFG_T* const pstVoCfg, const PANEL_TYPE_E enPanelType)
+{
+    CVI_S32 ret = CVI_SUCCESS;
+    VO_LVDS_ATTR_S stLvdsAttr;
+
+    _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
+
+    // 选择 LVDS 面板参数
+    switch (enPanelType) {
+    case PANEL_LVDS_LCM185X56:
+        stLvdsAttr = lvds_lcm185x56_cfg;
+        break;
+    default:
+        // 其他 LVDS 面板初始化流程预留
+        return CVI_SUCCESS;
+    }
+
+    // LVDS 公共属性设置
+    ret = CVI_VO_SetPubAttr(pstVoCfg->s32VoDev, &pstVoCfg->stVoPubAttr);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VO_SetPubAttr failed with %#x!\n", ret);
+        return ret;
+    }
+
+    // LVDS 参数设置
+    ret = CVI_VO_SetLVDSParam(pstVoCfg->s32VoDev, &stLvdsAttr);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VO_SetLVDSParam failed with %#x!\n", ret);
+        return ret;
+    }
+
+    // 回读校验 LVDS 参数
+    ret = CVI_VO_GetLVDSParam(pstVoCfg->s32VoDev, &stLvdsAttr);
+    if (ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VO_GetLVDSParam failed with %#x!\n", ret);
+        return ret;
+    }
+
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Panel_Lvds_Deinit(const APP_PARAM_VO_CFG_T* const pstVoCfg, const PANEL_TYPE_E enPanelType)
+{
+    _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
+
+    // 选择 LVDS 面板反初始化行为
+    switch (enPanelType) {
+    case PANEL_LVDS_LCM185X56:
+        break;
+    default:
+        // 其他 LVDS 面板反初始化流程预留
+        return CVI_SUCCESS;
+    }
+
+    // 目前无额外反初始化流程
     return CVI_SUCCESS;
 }

@@ -46,6 +46,10 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_YOLOV8N_DET_PERSON_VEHICLE),y)
 	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
 	@cp -f $(APP_RESOURCE_DIR)/ai_model/yolov8n_det_person_vehicle_384_640_INT8_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
 endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_YOLO11_PERSON_VEHICLE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_model/yolo11_person_vehicle_576_960_INT8_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
+endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_CLIP_IMG),y)
 	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
 	@cp -f $(APP_RESOURCE_DIR)/ai_model/feature_clip_image_224_224_W4BF16_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/

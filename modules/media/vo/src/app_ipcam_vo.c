@@ -17,6 +17,7 @@
 #define VO_SOURCE_FLAG "/tmp/vdec"
 
 static pthread_t g_pthVo;
+static CVI_BOOL g_vo_thread_created;
 
 CVI_S32 app_ipcam_Vo_Start_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
 CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg);
@@ -98,6 +99,7 @@ CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 
     if (pstVoCfg->bBindMode != 1){
         if (pthread_create(&g_pthVo, CVI_NULL, pfunThreadVo, (CVI_VOID*)pstVoCfg) == 0) {
+            g_vo_thread_created = CVI_TRUE;
             APP_PROF_LOG_PRINT(LEVEL_INFO, "Thread VO is created successfully.\n");
         } else {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Thread VO is created failed.\n");
@@ -111,7 +113,10 @@ CVI_S32 app_ipcam_Vo_Stop_Preproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 {
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
     thread_enable_flag = false;
-    pthread_join(g_pthVo, CVI_NULL);
+    if (pstVoCfg->bBindMode != 1 && g_vo_thread_created) {
+        pthread_join(g_pthVo, CVI_NULL);
+        g_vo_thread_created = CVI_FALSE;
+    }
     return CVI_SUCCESS;
 }
 
@@ -316,6 +321,7 @@ CVI_S32 app_ipcam_Vo_Chn_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     }
 
     for (CVI_U32 i = 0; i < u32WndNum; i++) {
+        APP_CHK_RET(CVI_VO_ClearChnBuf(pstVoCfg->stDstChn.s32DevId, i, CVI_TRUE), "CVI_VO_ClearChnBuf");
         APP_CHK_RET(CVI_VO_DisableChn(pstVoCfg->stDstChn.s32DevId, i), "CVI_VO_DisableChn");
     }
 

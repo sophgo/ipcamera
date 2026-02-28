@@ -240,7 +240,7 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
                 usleep(100*1000);
                 continue;
             }
-            image_back = TDL_WrapFrame((void*)&stVencFrame_back, false);
+            image_back = TDL_WrapFrame((void*)&stVencFrame_back, false, false);
         }
         pthread_mutex_unlock(&g_MdStatusMutex);
         iTime_proc = GetCurTimeInMsec();
@@ -250,7 +250,7 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
         {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) get frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
         }
-        image_det = TDL_WrapFrame((void*)&stVencFrame_det, false);
+        image_det = TDL_WrapFrame((void*)&stVencFrame_det, false, false);
 
         TDL_MotionDetection(g_MDHandle, image_back, image_det, &roi, g_MDThreshold, miniArea, &obj_meta, 0);
         // for(uint32_t i = 0; i < obj_meta.size; i++)

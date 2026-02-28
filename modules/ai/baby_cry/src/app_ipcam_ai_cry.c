@@ -135,7 +135,7 @@ static CVI_VOID *Thread_Cry_PROC(CVI_VOID *pArgs)
             continue;
         }
 
-        image_handle = TDL_WrapFrame((void*)&Frame, false);
+        image_handle = TDL_WrapFrame((void*)&Frame, false, false);
         if (image_handle == NULL) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "image is NULL\n");
             continue;
