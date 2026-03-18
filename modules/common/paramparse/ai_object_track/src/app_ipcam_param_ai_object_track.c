@@ -54,6 +54,9 @@ int Load_Param_Ai_OBJECT_TRACK(const char * file)
     ini_gets(tmp_section, "model_path_sot", " ", tmp_buff, 128, file);
     strncpy(Ai->model_path_sot, tmp_buff, 128);
 
+    ini_gets(tmp_section, "model_path_sam", " ", tmp_buff, 128, file);
+    strncpy(Ai->model_path_sam, tmp_buff, 128);
+
     ini_gets(tmp_section, "model_path_cfg", " ", tmp_buff, 128, file);
     strncpy(Ai->model_path_cfg, tmp_buff, 128);
 

@@ -34,6 +34,12 @@ config RESOURCE_INSTALL_TRACKING_FEARTACK
 	help
 		"support install tracking_feartrack"
 
+config RESOURCE_INSTALL_FASTSAM_SEG
+	bool "install fastsam_seg"
+	default n
+	help
+		"support install fastsam_seg"
+
 config RESOURCE_INSTALL_CLIP_IMG
 	bool "install clip image"
 	default n

@@ -42,6 +42,10 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_TRACKING_FEARTACK),y)
 	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
 	@cp -f $(APP_RESOURCE_DIR)/ai_model/tracking_feartrack_128_128_256_256_INT8_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
 endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_FASTSAM_SEG),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_model/fastsam_seg_320_320_INT8_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
+endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_YOLOV8N_DET_PERSON_VEHICLE),y)
 	@mkdir -p $(APP_INSTALL_DIR)/cv184x/
 	@cp -f $(APP_RESOURCE_DIR)/ai_model/yolov8n_det_person_vehicle_384_640_INT8_cv184x.bmodel $(APP_INSTALL_DIR)/cv184x/
