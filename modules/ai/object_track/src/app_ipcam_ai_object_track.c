@@ -146,7 +146,7 @@ static CVI_VOID *Thread_Object_Det_Proc(CVI_VOID *pArgs)
 
         g_frame_id++;
 
-        TDLImage image = TDL_WrapFrame(&stObjectDetFrame, true);
+        TDLImage image = TDL_WrapFrame(&stObjectDetFrame, true, false);
         if (image == NULL) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to wrap frame \n");
             CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stObjectDetFrame);
@@ -215,7 +215,7 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
 
         g_frame_id++;
 
-        TDLImage image = TDL_WrapFrame(&stObjectTrackFrame, true);
+        TDLImage image = TDL_WrapFrame(&stObjectTrackFrame, true, false);
         if (image == NULL) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to wrap frame \n");
             CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stObjectTrackFrame);

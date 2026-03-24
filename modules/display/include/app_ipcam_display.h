@@ -14,13 +14,8 @@ extern "C" {
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#ifndef __CV184X__
 #include "linux/cvi_defines.h"
 #include "linux/cvi_type.h"
-#else
-#include "cvi_defines.h"
-#include "cvi_type.h"
-#endif
 
 #include "app_ipcam_panel.h"
 #include "app_ipcam_vo.h"
@@ -29,6 +24,7 @@ extern "C" {
 
 typedef struct APP_PARAM_DISPLAY_CFG_S {
     PANEL_TYPE_E enPanelType;
+    PANEL_I2C_CFG_T stPanelI2cCfg;
     APP_PARAM_VO_CFG_T stVoCfg;
 } APP_PARAM_DISPLAY_CFG_T;
 

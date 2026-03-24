@@ -1,11 +1,7 @@
 #ifndef __APP_IPCAM_GPIO_H__
 #define __APP_IPCAM_GPIO_H__
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 typedef enum _CVI_GPIO_NUM_E {
     CVI_GPIOA_00 = 480,
     CVI_GPIOA_01,   CVI_GPIOA_02,   CVI_GPIOA_03,   CVI_GPIOA_04,   CVI_GPIOA_05,

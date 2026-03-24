@@ -15,13 +15,8 @@ extern "C" {
 #endif /* End of #ifdef __cplusplus */
 
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
 #include "linux/cvi_comm_vo.h"
-#else
-#include "cvi_type.h"
-#include "cvi_comm_vo.h"
-#endif
 #include "app_ipcam_vo.h"
 
 
@@ -32,6 +27,11 @@ typedef struct PANEL_DESC_S {
     const struct dsc_instr *pstDsiInitCmds;
     CVI_S32 s32DsiInitCmdsSize;
 } PANEL_DESC_T;
+
+typedef struct PANEL_I2C_CFG_S {
+    CVI_S32 s32I2cDev;
+    CVI_S32 s32I2cAddr;
+} PANEL_I2C_CFG_T;
 
 typedef enum _PANEL_TYPE_E {
     PANEL_DSI_3AML069LP01G,
@@ -56,12 +56,21 @@ typedef enum _PANEL_TYPE_E {
     PANEL_DSI_ST7785M,
     PANEL_DSI_ST7796S,
     PANEL_BT656_TP2803,
+    PANEL_BT656_MS7024_720x480_60,
     PANEL_I80_ST7789V,
     PANEL_MAX
 } PANEL_TYPE_E;
 
-CVI_S32 app_ipcam_Panel_FillIntfAttr(APP_PARAM_VO_CFG_T* const pstVoCfg);
-CVI_S32 app_ipcam_Panel_PanelDesc_Get(const PANEL_TYPE_E* const penPanelType, PANEL_DESC_T* const pstPanelDesc);
+CVI_S32 app_ipcam_Panel_FillIntfAttr(APP_PARAM_VO_CFG_T* const pstVoCfg, const PANEL_TYPE_E enPanelType);
+CVI_S32 app_ipcam_Panel_PanelDesc_Get(
+    const PANEL_TYPE_E* const penPanelType,
+    PANEL_DESC_T* const pstPanelDesc,
+    APP_PARAM_VO_CFG_T* const pstVoCfg);
+CVI_S32 app_ipcam_Panel_BT_Init(
+    const APP_PARAM_VO_CFG_T* const pstVoCfg,
+    const PANEL_TYPE_E enPanelType,
+    const PANEL_I2C_CFG_T* const pstI2cCfg);
+CVI_S32 app_ipcam_Panel_BT_Deinit(const APP_PARAM_VO_CFG_T* const pstVoCfg, const PANEL_TYPE_E enPanelType);
 
 
 #ifdef __cplusplus

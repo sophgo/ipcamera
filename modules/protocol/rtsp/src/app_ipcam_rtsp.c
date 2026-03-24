@@ -10,19 +10,12 @@
 #include "app_ipcam_audio.h"
 #endif
 
-#ifdef __CV184X__
-#include <string.h>
-#endif
 /**************************************************************************
  *                              M A C R O S                               *
  **************************************************************************/
 
 /**************************************************************************
  *                           C O N S T A N T S                            *
- **************************************************************************/
-
-/**************************************************************************
- *                          D A T A    T Y P E S                          *
  **************************************************************************/
 
 /**************************************************************************
@@ -430,5 +423,120 @@ CVI_S32 app_ipcam_rtsp_Server_Destroy(CVI_VOID)
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "app_ipcam_rtsp_Server_Destroy done.\n");
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Rtsp_Client_Create(APP_RTSP_CLIENT_HANDLE **handle
+    , const APP_RTSP_CLIENT_ATTR_S *attr)
+{
+    RTSP_CLIENT_ATTR_S cli_attr;
+    APP_RTSP_CLIENT_HANDLE *ctx = NULL;
+
+    if (handle == NULL || attr == NULL) {
+        return CVI_FAILURE;
+    }
+    *handle = NULL;
+
+    ctx = (APP_RTSP_CLIENT_HANDLE *)malloc(sizeof(*ctx));
+    if (ctx == NULL) {
+        return CVI_FAILURE;
+    }
+    memset(ctx, 0, sizeof(*ctx));
+    memset(&cli_attr, 0, sizeof(cli_attr));
+
+    strncpy(cli_attr.url, attr->url, sizeof(cli_attr.url) - 1);
+    cli_attr.transport = (attr->transport == APP_RTSP_TRANS_UDP) ?
+        RTSP_TRANS_UDP : RTSP_TRANS_TCP;
+    cli_attr.timeout_ms = attr->timeout_ms;
+    cli_attr.max_frame_size = attr->max_frame_size;
+
+    if (RTSP_ClientCreate(&ctx->rtsp_cli, &cli_attr) != 0) {
+        free(ctx);
+        return CVI_FAILURE;
+    }
+
+    ctx->frame_valid = CVI_FALSE;
+    *handle = ctx;
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Rtsp_Client_Destroy(APP_RTSP_CLIENT_HANDLE *handle)
+{
+    APP_RTSP_CLIENT_HANDLE *ctx = handle;
+
+    if (ctx == NULL) {
+        return CVI_FAILURE;
+    }
+
+    if (ctx->frame_valid) {
+        RTSP_ReleaseFrame(ctx->rtsp_cli, &ctx->frame);
+        ctx->frame_valid = CVI_FALSE;
+    }
+
+    RTSP_ClientDestroy(ctx->rtsp_cli);
+    free(ctx);
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Rtsp_Client_RecvVideo(APP_RTSP_CLIENT_HANDLE *handle
+    , APP_RTSP_CLIENT_FRAME_S *frame, CVI_S32 timeout_ms)
+{
+    APP_RTSP_CLIENT_HANDLE *ctx = handle;
+
+    if (ctx == NULL || frame == NULL) {
+        return CVI_FAILURE;
+    }
+
+    if (ctx->frame_valid) {
+        RTSP_ReleaseFrame(ctx->rtsp_cli, &ctx->frame);
+        ctx->frame_valid = CVI_FALSE;
+    }
+
+    memset(&ctx->frame, 0, sizeof(ctx->frame));
+    ctx->frame.type = FRAME_TYPE_VIDEO;
+    if (RTSP_RecvFrame(ctx->rtsp_cli, &ctx->frame, timeout_ms) != 0) {
+        return CVI_FAILURE;
+    }
+
+    ctx->frame_valid = CVI_TRUE;
+    frame->data = ctx->frame.data[0];
+    frame->len = ctx->frame.len[0];
+    frame->pts = ctx->frame.vi_pts[0];
+
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Rtsp_Client_ReleaseVideo(APP_RTSP_CLIENT_HANDLE *handle)
+{
+    APP_RTSP_CLIENT_HANDLE *ctx = handle;
+
+    if (ctx == NULL) {
+        return CVI_FAILURE;
+    }
+
+    if (ctx->frame_valid) {
+        RTSP_ReleaseFrame(ctx->rtsp_cli, &ctx->frame);
+        ctx->frame_valid = CVI_FALSE;
+    }
+
+    return CVI_SUCCESS;
+}
+
+CVI_S32 app_ipcam_Rtsp_Client_DropAudio(APP_RTSP_CLIENT_HANDLE *handle)
+{
+    APP_RTSP_CLIENT_HANDLE *ctx = handle;
+    RTSP_FRAME_S frame;
+
+    if (ctx == NULL) {
+        return CVI_FAILURE;
+    }
+
+    memset(&frame, 0, sizeof(frame));
+    frame.type = FRAME_TYPE_AUDIO;
+    if (RTSP_RecvFrame(ctx->rtsp_cli, &frame, 0) != 0) {
+        return CVI_FAILURE;
+    }
+    RTSP_ReleaseFrame(ctx->rtsp_cli, &frame);
+
     return CVI_SUCCESS;
 }

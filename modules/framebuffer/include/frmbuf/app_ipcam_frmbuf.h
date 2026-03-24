@@ -12,11 +12,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include <linux/cvi_common.h>
 
 #ifdef __cplusplus

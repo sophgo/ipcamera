@@ -93,11 +93,7 @@ endif
 LIBS-$(CONFIG_MODULE_NETWORK) += -L$(WEB_SOCKET_LIB_DIR)
 LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -lisp -lraw_dump -lcvi_json-c
 LIBS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -L$(FFMPEG_6_0_LIB_DIR) -lavcodec -lavutil -lswresample -lswscale
-ifeq ($(SOC_SEGMENT), CV184X)
-LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvenc -lvdec -lisp -lawb -lae -laf -lisp_algo -lsensor -lmipi -lsensor_cfg -lini -lsns_full
-else
 LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lcvi_bin_isp -lvenc -lvdec -lsns_full -lisp -lawb -lae -laf -lisp_algo
-endif
 LIBS-y += -L$(MW_PATH)/lib -lvi -lvo -lvpss -lrgn -lgdc -lsys -lrt
 LIBS-$(CONFIG_SUPPORT_ATOMIC) += -latomic
 LIBS-y += -L$(MW_PATH)/lib/3rd
@@ -105,11 +101,7 @@ LIBS-y += -L$(MW_PATH)/lib/3rd
 ifneq ($(SOC_SEGMENT), CV180X)
   LIBS-$(CONFIG_MODULE_DISPLAY) += -L$(MW_PATH)/lib -lmipi_tx
 endif
-ifeq ($(SOC_SEGMENT), CV184X)
-LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine
-else
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -lcvi_audio -ltinyalsa -lcvi_vqe -lcvi_ssp -lcvi_RES1 -lcvi_VoiceEngine -lsbc
-endif
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO) += -lcvi_dnvqe -lcvi_ssp2
 LIBS-$(CONFIG_MODULE_MEDIA_AUDIO)  += -laacdec2 -laacenc2 -laacsbrdec2 -laacsbrenc2 -laaccomm2
 LIBS-$(CONFIG_MODULE_AUDIO_MP3)  += -lcvi_mp3 -lmad
@@ -120,24 +112,14 @@ LIBS-$(CONFIG_MODULE_MEDIA_STITCH)  += -lstitch
 
 ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-musl)
   LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_riscv64_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_riscv64_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_riscv64_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), riscv64-unknown-linux-gnu)
   LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_riscv64_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_riscv64_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_riscv64_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), arm-linux-gnueabihf)
   LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm32_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm32_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm32_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), arm-none-linux-musleabihf)
   LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_arm32_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_arm32_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/musl_arm32_lib/opencv4/3rdparty
 else ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)
   LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/jpegturbo/glibc_arm64_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm64_lib
-  LIBS-$(CONFIG_MODULE_TDL) += -L$(APP_PREBUILT_DIR)/opencv4_5/glibc_arm64_lib/opencv4/3rdparty
 else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
@@ -147,18 +129,22 @@ LIBS-$(CONFIG_MODULE_TDL) += -L$(TDL_PATH)/install/$(SOC_SEGMENT)/lib
 LIBS-$(CONFIG_MODULE_TDL) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib
 LIBS-$(CONFIG_MODULE_TDL) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/libsophon-0.4.9/lib
 LIBS-$(CONFIG_MODULE_TDL) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/lib
-LIBS-$(CONFIG_MODULE_TDL) += -L$(TDL_PATH)/build/$(SOC_SEGMENT)/_deps/kaldi-native-fbank-build
-LIBS-$(CONFIG_MODULE_TDL) += -L$(TDL_PATH)/build/$(SOC_SEGMENT)/_deps/kissfft-build
+LIBS-$(CONFIG_MODULE_TDL) += -L$(TOP_DIR)/tdl_sdk/build/$(SOC_SEGMENT)/_deps/opencv-src/lib
+LIBS-$(CONFIG_MODULE_TDL) += -L$(TOP_DIR)/tdl_sdk/build/$(SOC_SEGMENT)/_deps/opencv-src/lib/opencv4/3rdparty
+LIBS-$(CONFIG_MODULE_TDL) += -L$(TOP_DIR)/tdl_sdk/build/$(SOC_SEGMENT)/_deps/zlib-src/lib
+LIBS-$(CONFIG_MODULE_TDL) += -L$(TOP_DIR)/tdl_sdk/build/$(SOC_SEGMENT)/_deps/curl-src/lib
+LIBS-$(CONFIG_MODULE_TDL) += -L$(TOP_DIR)/tdl_sdk/build/$(SOC_SEGMENT)/_deps/kaldi-native-fbank-build
+LIBS-$(CONFIG_MODULE_TDL) += -L$(TOP_DIR)/tdl_sdk/build/$(SOC_SEGMENT)/_deps/kissfft-build
 
 ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # AI libs static link
   AISDK := -ltdl_core-static
   TPU := -lcvikernel-static -lcviruntime-static -lcnpy -lcvimath-static -lz
   IVE := -lcvi_ive
   TEAISP := -lteaisp
-  ifeq ($(TARGET_MACHINE),$(filter $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu))
+  ifeq ($(TARGET_MACHINE),$(filter $(TARGET_MACHINE), arm-linux-gnueabihf aarch64-linux-gnu arm-none-linux-musleabihf))
     OPENCV += -ltegra_hal -littnotify
   endif
-  OPENCV += -lkaldi-native-fbank-core -lkissfft-float -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibjpeg-turbo -llibwebp -llibpng -llibtiff -llibopenjp2 -lzlib -latomic
+  OPENCV += -lkaldi-native-fbank-core -lkissfft-float -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibwebp -llibpng -llibtiff -llibopenjp2 -lzlib -latomic
   LIBS-$(CONFIG_MODULE_TDL) += -Wl,--start-group -Wl,--allow-multiple-definition $(AISDK) $(IVE) $(TPU) $(OPENCV) $(JPEG-TUBRO) $(TEAISP) -Wl,--end-group
 else
   AISDK := -ltdl_core

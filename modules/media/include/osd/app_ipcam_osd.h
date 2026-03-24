@@ -2,16 +2,8 @@
 #define __APP_IPCAM_OSD_H__
 
 #include <stdbool.h>
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
-#ifndef __CV184X__
 #include "linux/cvi_comm_region.h"
-#else
-#include "cvi_comm_region.h"
-#endif
 #include "cvi_region.h"
 
 #ifdef __cplusplus

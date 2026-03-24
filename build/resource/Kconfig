@@ -44,6 +44,12 @@ config RESOURCE_INSTALL_TDL_CV181X_KEYPOINT_FACE_V2
 	help
 		"support install 181x keypoint_face_v2"
 
+config RESOURCE_INSTALL_TDL_CV181X_KEYPOINT_YOLOV8POSE_PERSON
+	bool "install keypoint_yolov8pose_person"
+	default n
+	help
+		"support install 181x keypoint_yolov8pose_person17_384_640"
+
 config RESOURCE_INSTALL_TDL_CV181X_YOLOV8N_DET_FACE_HAND_PERSON_PET
 	bool "install yolov8n_det_face_hand_person_pet"
 	default n

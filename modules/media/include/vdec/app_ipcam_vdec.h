@@ -1,11 +1,7 @@
 #ifndef __APP_IPCAM_VDEC_H__
 #define __APP_IPCAM_VDEC_H__
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include <linux/cvi_common.h>
 #include "linux/cvi_comm_vdec.h"
 
@@ -15,6 +11,14 @@ extern "C"
 #endif
 
 #define VDEC_CHN_MAX 4
+#define VDEC_RTSP_URL_LEN 256
+
+typedef enum APP_VDEC_INPUT_TYPE_E {
+    APP_VDEC_INPUT_NONE = 0,
+    APP_VDEC_INPUT_FILE,
+    APP_VDEC_INPUT_RTSP,
+    APP_VDEC_INPUT_BUTT
+} APP_VDEC_INPUT_TYPE_E;
 
 typedef struct APP_VDEC_CHN_CFG_T {
     CVI_BOOL    bEnable;
@@ -22,6 +26,9 @@ typedef struct APP_VDEC_CHN_CFG_T {
     CVI_U32     u32Width;
     CVI_U32     u32Height;
     CVI_CHAR    decode_file_name[64];
+    APP_VDEC_INPUT_TYPE_E input_type;
+    CVI_CHAR    rtsp_url[VDEC_RTSP_URL_LEN];
+    CVI_S32     rtsp_transport;
     RECT_S      astDispRect;
     VDEC_CHN_ATTR_S astChnAttr;
     VDEC_CHN_PARAM_S astChnParam;
@@ -35,10 +42,6 @@ typedef struct APP_PARAM_VDEC_CTX_T {
     pthread_t   send_to_vdec_thread;
     pthread_t   send_to_vpss_thread;
     CVI_BOOL    thread_enable_flag;
-    CVI_BOOL    bBindMode;
-    MMF_CHN_S   astChn[2];
-    VPSS_GRP    VpssGrp;
-    VPSS_CHN    VpssChn;
     APP_VDEC_CHN_CFG_S astVdecChnCfg;
 
 } APP_PARAM_VDEC_CTX_S;

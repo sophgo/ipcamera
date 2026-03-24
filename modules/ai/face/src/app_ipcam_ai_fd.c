@@ -328,19 +328,7 @@ static CVI_VOID *Thread_FD_PROC(CVI_VOID *arg)
             continue;
         }
 
-        // 计算总的图像大小
-        size_t image_size = stfdFrame.stVFrame.u32Length[0] +
-                            stfdFrame.stVFrame.u32Length[1] +
-                            stfdFrame.stVFrame.u32Length[2];
-        bool isMapped = false;
-        // 如果虚拟地址为空，进行内存映射
-        if (stfdFrame.stVFrame.pu8VirAddr[0] == NULL) {
-            stfdFrame.stVFrame.pu8VirAddr[0] =
-                (CVI_U8 *)CVI_SYS_Mmap(stfdFrame.stVFrame.u64PhyAddr[0], image_size);
-            isMapped = true;
-        }
-
-        image_handle = TDL_WrapFrame((void*)&stfdFrame, false);
+        image_handle = TDL_WrapFrame((void*)&stfdFrame, false, false);
         if(image_handle == NULL) {
             APP_PROF_LOG_PRINT(LEVEL_INFO, " image_handle is NULL\n");
             CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stfdFrame);
@@ -390,11 +378,6 @@ static CVI_VOID *Thread_FD_PROC(CVI_VOID *arg)
                 APP_PROF_LOG_PRINT(LEVEL_INFO, "Glass:%s\n", face.info->glass_score > 0.5 ? "Yes" : "No");
                 APP_PROF_LOG_PRINT(LEVEL_INFO, "Emotion:%s\n", emotion_to_text(face.info->emotion_score));
             }
-        }
-
-        if (isMapped) {
-            CVI_SYS_Munmap((void *)stfdFrame.stVFrame.u64PhyAddr[0], image_size);
-            isMapped = false;
         }
 
         s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stfdFrame);

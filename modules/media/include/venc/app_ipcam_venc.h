@@ -5,16 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
-#else
-#include "cvi_comm_video.h"
-#endif
-#ifndef __CV184X__
 #include "linux/cvi_comm_sys.h"
-#else
-#include "cvi_comm_sys.h"
-#endif
 #include "cvi_venc.h"
 
 

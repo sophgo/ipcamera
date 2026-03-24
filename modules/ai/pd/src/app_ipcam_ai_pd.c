@@ -255,7 +255,7 @@ static CVI_VOID *Thread_PD_PROC(CVI_VOID *arg)
             usleep(100*1000);
             continue;
         }
-        image_handle = TDL_WrapFrame((void*)&stfdFrame, false);
+        image_handle = TDL_WrapFrame((void*)&stfdFrame, false, false);
 
         pthread_mutex_unlock(&g_PDStatusMutex);
 

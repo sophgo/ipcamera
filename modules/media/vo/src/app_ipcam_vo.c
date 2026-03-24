@@ -2,29 +2,18 @@
 #include <errno.h>
 #include <stdbool.h>
 
-#ifndef __CV184X__
 #include "linux/cvi_defines.h"
 #include "linux/cvi_math.h"
 #include "linux/cvi_comm_mipi_tx.h"
-#else
-#include "cvi_defines.h"
-#include "cvi_math.h"
-#include "cvi_comm_mipi_tx.h"
-#endif
-#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
-#else
-#include "cvi_comm_video.h"
-#endif
 #include "cvi_sys.h"
 #include "cvi_vpss.h"
+#include "cvi_vdec.h"
 #include "cvi_vo.h"
 
 #include "app_ipcam_comm.h"
 #include "app_ipcam_vo.h"
 
-
-#define VO_SOURCE_FLAG "/tmp/vdec"
 
 static pthread_t g_pthVo[VO_MAX_DEV_NUM];
 static bool b_VoRunning[VO_MAX_DEV_NUM] = {CVI_FALSE};
@@ -508,15 +497,14 @@ CVI_S32 app_ipcam_Vo_LayerDispWHFrm_Get(const VO_INTF_SYNC_E* const penIntfSync,
 static CVI_VOID *pfunThreadVo(CVI_VOID *pvArg)
 {
     const APP_PARAM_VO_CFG_T* const pstVoCfg = (APP_PARAM_VO_CFG_T*)pvArg;
+    CVI_S32 s32Ret = CVI_SUCCESS;
     VIDEO_FRAME_INFO_S stVoFrame = {0};
 
     while (b_VoRunning[pstVoCfg->s32VoDev]) {
         usleep(1000);
 
-        if (access(VO_SOURCE_FLAG, F_OK) == 0) {
-            // If the VO_SOURCE_FLAG exists, the VO will play video through VDEC.
-            // View the relevant code in the VDEC module.
-        } else {
+        /* 根据 src_mod_id 选择取帧模块 */
+        if (pstVoCfg->stSrcChn.enModId == CVI_ID_VPSS) {
             APP_FUNC_RET_CALLBACK(CVI_VPSS_GetChnFrame(pstVoCfg->stSrcChn.s32DevId, pstVoCfg->stSrcChn.s32ChnId
                 , &stVoFrame, 3000), {}, {
                 APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VPSS_GetChnFrame didn't return success!\n");
@@ -532,7 +520,53 @@ static CVI_VOID *pfunThreadVo(CVI_VOID *pvArg)
                 , &stVoFrame), {}, {
                 APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VPSS_ReleaseChnFrame didn't return success!\n");
             });
+        } else if (pstVoCfg->stSrcChn.enModId == CVI_ID_VDEC) {
+            VDEC_CHN_STATUS_S stStatus;
 
+            memset(&stStatus, 0, sizeof(stStatus));
+            s32Ret = CVI_VDEC_QueryStatus(pstVoCfg->stSrcChn.s32ChnId, &stStatus);
+            if (s32Ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VDEC_QueryStatus failed. s32Ret=%d\n", s32Ret);
+                usleep(1000);
+                continue;
+            }
+            if (stStatus.u32LeftPics == 0) {
+                usleep(1000);
+                continue;
+            }
+
+RETRY_GET_FRAME:
+            s32Ret = CVI_VDEC_GetFrame(pstVoCfg->stSrcChn.s32ChnId, &stVoFrame, 1000);
+            if (s32Ret != CVI_SUCCESS) {
+                if (s32Ret == CVI_ERR_VDEC_BUSY) {
+                    goto RETRY_GET_FRAME;
+                }
+                APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VDEC_GetFrame failed. s32Ret=%d\n", s32Ret);
+                continue;
+            }
+
+            /* 起始阶段会先送 SPS/PPS，可能获取到无效帧，需要丢弃继续 */
+            if ((stVoFrame.stVFrame.u32Width == 0)
+            || (stVoFrame.stVFrame.u32Height == 0)
+            || (stVoFrame.stVFrame.pu8VirAddr[0] == 0)
+            || (stVoFrame.stVFrame.u64PhyAddr[0] == 0)) {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VDEC_GetFrame invalid frame, drop.\n");
+                APP_FUNC_RET_CALLBACK(CVI_VDEC_ReleaseFrame(pstVoCfg->stSrcChn.s32ChnId, &stVoFrame), {}, {
+                    APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VDEC_ReleaseFrame didn't return success!\n");
+                });
+                continue;
+            }
+
+            APP_FUNC_RET_CALLBACK(CVI_VO_SendFrame(pstVoCfg->stDstChn.s32DevId, pstVoCfg->stDstChn.s32ChnId
+                , &stVoFrame, 3000), {}, {
+                APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VO_SendFrame didn't return success!\n");
+            });
+
+            APP_FUNC_RET_CALLBACK(CVI_VDEC_ReleaseFrame(pstVoCfg->stSrcChn.s32ChnId, &stVoFrame), {}, {
+                APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VDEC_ReleaseFrame didn't return success!\n");
+            });
+        } else {
+            APP_PROF_LOG_PRINT(LEVEL_WARN, "VO src_mod_id not support: %d\n", pstVoCfg->stSrcChn.enModId);
         }
     }
 

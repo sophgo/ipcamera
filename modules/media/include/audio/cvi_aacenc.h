@@ -19,11 +19,7 @@ extern "C" {
 #endif
 #endif
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 
 /********************************Macro Definition********************************/
 /** \addtogroup      AACENC */

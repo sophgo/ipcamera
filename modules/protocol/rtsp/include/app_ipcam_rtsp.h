@@ -10,19 +10,13 @@ extern "C"
 #include "stdbool.h"
 #include "stddef.h"
 #include <pthread.h>
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
-#ifndef __CV184X__
 #include "linux/cvi_common.h"
-#else
-#include "cvi_common.h"
-#endif
 #include "app_ipcam_comm.h"
 #include "rtsp.h"
 #include "osal.h"
+
+#define APP_RTSP_URL_LEN 256
 
 typedef struct CVI_RTSP_SER_ATTR {
     CVI_S32 id;
@@ -67,9 +61,44 @@ typedef struct APP_PARAM_RTSP_S {
     RTSP_SERVICE_CONTEXT_S *rtsp_ctx[RTSP_INSTANCE_NUM];
 } APP_PARAM_RTSP_T;
 
+typedef enum APP_RTSP_TRANSPORT_E {
+    APP_RTSP_TRANS_UDP = 0,
+    APP_RTSP_TRANS_TCP,
+    APP_RTSP_TRANS_BUTT
+} APP_RTSP_TRANSPORT_E;
+
+typedef struct APP_RTSP_CLIENT_ATTR_S {
+    CVI_CHAR url[APP_RTSP_URL_LEN];
+    CVI_S32 transport;
+    CVI_S32 timeout_ms;
+    CVI_S32 max_frame_size;
+} APP_RTSP_CLIENT_ATTR_S;
+
+typedef struct APP_RTSP_CLIENT_FRAME_S {
+    CVI_U8 *data;
+    CVI_U32 len;
+    CVI_U64 pts;
+} APP_RTSP_CLIENT_FRAME_S;
+
+typedef struct APP_RTSP_CLIENT_CTX_S {
+    CVI_VOID *rtsp_cli;
+    RTSP_FRAME_S frame;
+    CVI_BOOL frame_valid;
+} APP_RTSP_CLIENT_CTX_S;
+
+typedef APP_RTSP_CLIENT_CTX_S APP_RTSP_CLIENT_HANDLE;
+
 APP_PARAM_RTSP_T *app_ipcam_Rtsp_Param_Get(CVI_VOID);
-int app_ipcam_Rtsp_Server_Create(CVI_VOID);
-int app_ipcam_rtsp_Server_Destroy(CVI_VOID);
+CVI_S32 app_ipcam_Rtsp_Server_Create(CVI_VOID);
+CVI_S32 app_ipcam_rtsp_Server_Destroy(CVI_VOID);
+
+CVI_S32 app_ipcam_Rtsp_Client_Create(APP_RTSP_CLIENT_HANDLE **handle
+    , const APP_RTSP_CLIENT_ATTR_S *attr);
+CVI_S32 app_ipcam_Rtsp_Client_Destroy(APP_RTSP_CLIENT_HANDLE *handle);
+CVI_S32 app_ipcam_Rtsp_Client_RecvVideo(APP_RTSP_CLIENT_HANDLE *handle
+    , APP_RTSP_CLIENT_FRAME_S *frame, CVI_S32 timeout_ms);
+CVI_S32 app_ipcam_Rtsp_Client_ReleaseVideo(APP_RTSP_CLIENT_HANDLE *handle);
+CVI_S32 app_ipcam_Rtsp_Client_DropAudio(APP_RTSP_CLIENT_HANDLE *handle);
 
 #ifdef __cplusplus
 }

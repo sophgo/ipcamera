@@ -31,28 +31,23 @@ const char *panel_type[PANEL_MAX] = {
     [PANEL_DSI_ST7785M] = "PANEL_DSI_ST7785M",
     [PANEL_DSI_ST7796S] = "PANEL_DSI_ST7796S",
     [PANEL_BT656_TP2803] = "PANEL_BT656_TP2803",
+    [PANEL_BT656_MS7024_720x480_60] = "PANEL_BT656_MS7024_720x480_60",
     [PANEL_I80_ST7789V] = "PANEL_I80_ST7789V"
 };
 
 const char *vo_intf_type[VO_INTF_TYPE_MAX] = {
-#ifndef __CV184X__
     [VO_INTF_CVBS] = "VO_INTF_CVBS",
     [VO_INTF_YPBPR] = "VO_INTF_YPBPR",
     [VO_INTF_VGA] = "VO_INTF_VGA",
-#endif
     [VO_INTF_BT656] = "VO_INTF_BT656",
     [VO_INTF_BT1120] = "VO_INTF_BT1120",
-#ifndef __CV184X__
     [VO_INTF_LCD] = "VO_INTF_LCD",
     [VO_INTF_LCD_18BIT] = "VO_INTF_LCD_18BIT",
     [VO_INTF_LCD_24BIT] = "VO_INTF_LCD_24BIT",
     [VO_INTF_LCD_30BIT] = "VO_INTF_LCD_30BIT",
-#endif
     [VO_INTF_MIPI] = "VO_INTF_MIPI",
-#ifndef __CV184X__
     [VO_INTF_MIPI_SLAVE] = "VO_INTF_MIPI_SLAVE",
     [VO_INTF_HDMI] = "VO_INTF_HDMI",
-#endif
     [VO_INTF_I80] = "VO_INTF_I80"
 };
 
@@ -135,6 +130,9 @@ int Load_Param_Display(const char * file)
                 , tmp_section, str_name, enum_num);
             pstDisplayCfg->vo_cfg[i].enPanelType = enum_num;
         }
+
+        pstDisplayCfg->vo_cfg[i].stPanelI2cCfg.s32I2cDev = ini_getl(tmp_section, "i2c_dev", 0, file);
+        pstDisplayCfg->vo_cfg[i].stPanelI2cCfg.s32I2cAddr = ini_getl(tmp_section, "i2c_addr", 0, file);
 
         pstDisplayCfg->vo_cfg[i].stVoCfg.s32VoDev = ini_getl(tmp_section, "vo_dev", 0, file);
         pstDisplayCfg->vo_cfg[i].stVoCfg.stVoPubAttr.u32BgColor = ini_getl(tmp_section, "bg_color", 0, file);
@@ -234,10 +232,12 @@ int Load_Param_Display(const char * file)
         pstDisplayCfg->vo_cfg[i].stVoCfg.stDstChn.s32DevId = ini_getl(tmp_section, "dst_dev_id", 0, file);
         pstDisplayCfg->vo_cfg[i].stVoCfg.stDstChn.s32ChnId = ini_getl(tmp_section, "dst_chn_id", 0, file);
 
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "enPanelType:%d, s32VoDev:%d, u32BgColor:%d, enIntfType:%d, enIntfSync:%d, \n"
-            "x:%d, y:%d, w:%d, h:%d, imgw:%d, imgh:%d, u32DispFrmRt:%d, enPixFormat:%d, enVoMode:%d, enRotation:%d,"
-            "u32DisBufLen:%d, \n"
-            "bBindMode:%d, src: modid=%d, devid=%d, chnid=%d, dst: modid=%d, devid=%d, chnid=%d.\n"
+        APP_PROF_LOG_PRINT(LEVEL_INFO,
+            "enPanelType:%d, s32VoDev:%d, u32BgColor:%d, enIntfType:%d, enIntfSync:%d,\n"
+            "x:%d, y:%d, w:%d, h:%d, imgw:%d, imgh:%d,\n"
+            "u32DispFrmRt:%d, enPixFormat:%d, enVoMode:%d, enRotation:%d, u32DisBufLen:%d,\n"
+            "bBindMode:%d, src: modid=%d, devid=%d, chnid=%d, dst: modid=%d, devid=%d, chnid=%d,\n"
+            "i2c_dev:%d, i2c_addr:%d.\n"
             , pstDisplayCfg->vo_cfg[i].enPanelType
             , pstDisplayCfg->vo_cfg[i].stVoCfg.s32VoDev
             , pstDisplayCfg->vo_cfg[i].stVoCfg.stVoPubAttr.u32BgColor
@@ -260,7 +260,9 @@ int Load_Param_Display(const char * file)
             , pstDisplayCfg->vo_cfg[i].stVoCfg.stSrcChn.s32ChnId
             , pstDisplayCfg->vo_cfg[i].stVoCfg.stDstChn.enModId
             , pstDisplayCfg->vo_cfg[i].stVoCfg.stDstChn.s32DevId
-            , pstDisplayCfg->vo_cfg[i].stVoCfg.stDstChn.s32ChnId);
+            , pstDisplayCfg->vo_cfg[i].stVoCfg.stDstChn.s32ChnId
+            , pstDisplayCfg->vo_cfg[i].stPanelI2cCfg.s32I2cDev
+            , pstDisplayCfg->vo_cfg[i].stPanelI2cCfg.s32I2cAddr);
     }
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading display config ------------------> done \n\n");
 

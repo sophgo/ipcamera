@@ -10,11 +10,7 @@
 
 #include <stdio.h>
 #include "cvi_comm_aio.h"
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include "cvi_audio.h"
 #include "cvi_comm_aenc.h"
 #include "cvi_comm_adec.h"

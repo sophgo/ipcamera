@@ -123,7 +123,7 @@ static CVI_VOID *Thread_Capture_PROC(CVI_VOID *pArgs)
                 continue;
             }
 
-            TDLImage image = TDL_WrapFrame(&stCaptureFrame, true);
+            TDLImage image = TDL_WrapFrame(&stCaptureFrame, true, false);
             if (image == NULL) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to wrap frame for channel %s\n", channel_names[i]);
                 CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stCaptureFrame);
@@ -221,7 +221,7 @@ static CVI_S32 app_ipcam_Ai_Capture_Proc_Init(CVI_VOID)
 
     TDL_GetGalleryFeature(g_pstCapCfg->gallery_dir, &gallery_feature, FEATURE_SIZE);
 
-    s32Ret = TDL_APP_Init(g_CaptureTDLHandle, "face_pet_capture", g_pstCapCfg->config_file, &channel_names, &channel_size);
+    s32Ret = TDL_APP_Init(g_CaptureTDLHandle, "face_pet_capture", g_pstCapCfg->config_file, &channel_names, &channel_size, false);
     if (s32Ret != CVI_SUCCESS)
     {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_TDL_SetPerfEvalInterval failed with %#x!\n", s32Ret);

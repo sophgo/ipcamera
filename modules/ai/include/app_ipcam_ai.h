@@ -1,16 +1,8 @@
 #ifndef __APP_IPCAM_AI_H__
 #define __APP_IPCAM_AI_H__
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
-#ifndef __CV184X__
 #include "linux/cvi_comm_video.h"
-#else
-#include "cvi_comm_video.h"
-#endif
 #include "cvi_vpss.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_vi.h"
@@ -117,6 +109,11 @@ typedef struct APP_PARAM_AI_HUMAN_KEYPOINT_CFG_T {
     float threshold;
     TDLModel model_id;
     char model_path[MODEL_PATH_LEN];
+    CVI_U8 color_r;
+    CVI_U8 color_g;
+    CVI_U8 color_b;
+    CVI_U32 point_size;
+    CVI_U32 line_width;
 } APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S;
 
 typedef struct APP_PARAM_AI_Motion_CFG_T {

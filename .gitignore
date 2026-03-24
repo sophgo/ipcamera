@@ -1,0 +1,14 @@
+out
+pqtool_definition.json
+cmd/cmdTest
+mercury/ipcam_mercury
+mars/ipcam_mars
+install
+.config
+.config.old
+scripts
+components/cvi_rtsp/lib/*
+components/cvi_osal/lib/*
+components/ringbuffer/lib/*
+solutions/**/obj/
+modules/**/obj/

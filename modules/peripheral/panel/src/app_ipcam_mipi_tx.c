@@ -4,11 +4,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 
 #include "app_ipcam_comm.h"
 #include "app_ipcam_mipi_tx.h"
@@ -36,12 +32,8 @@ CVI_S32 app_ipcam_MipiTx_Enable(
         return CVI_FAILURE;
     }
 
-#ifndef __CV184X__
     // APP_CHK_RET(CVI_MIPI_TX_Disable(*ps32MipiTxFd), "CVI_MIPI_TX_Disable");
     APP_CHK_RET(CVI_MIPI_TX_Cfg(*ps32MipiTxFd, (struct combo_dev_cfg_s*)pstDevCfg), "CVI_MIPI_TX_Cfg");
-#else
-    APP_CHK_RET(mipi_tx_cfg(*ps32MipiTxFd, (struct combo_dev_cfg_s*)pstDevCfg), "mipi_tx_cfg");
-#endif
 
     for (CVI_S32 i = 0; i < *ps32DsiInitCmdsSize; i++) {
         struct cmd_info_s stCmdInfo = {
@@ -50,11 +42,8 @@ CVI_S32 app_ipcam_MipiTx_Enable(
             .data_type = pstDsiInitCmds[i].data_type,
             .cmd = (void *)pstDsiInitCmds[i].data
         };
-#ifndef __CV184X__
+
         APP_FUNC_RET_CALLBACK(CVI_MIPI_TX_SendCmd(*ps32MipiTxFd, &stCmdInfo), {
-#else
-        APP_FUNC_RET_CALLBACK(mipi_tx_send_cmd(*ps32MipiTxFd, &stCmdInfo), {
-#endif
             if (pstDsiInitCmds[i].delay) {
                 usleep(pstDsiInitCmds[i].delay * 1000);
             }
@@ -69,13 +58,8 @@ CVI_S32 app_ipcam_MipiTx_Enable(
         });
     }
 
-#ifndef __CV184X__
     APP_CHK_RET(CVI_MIPI_TX_SetHsSettle(*ps32MipiTxFd, pstHsTimingCfg), "CVI_MIPI_TX_SetHsSettle");
     APP_CHK_RET(CVI_MIPI_TX_Enable(*ps32MipiTxFd), "CVI_MIPI_TX_Enable");
-#else
-    APP_CHK_RET(mipi_tx_set_hs_settle(*ps32MipiTxFd, pstHsTimingCfg), "mipi_tx_set_hs_settle");
-    APP_CHK_RET(mipi_tx_enable(*ps32MipiTxFd), "mipi_tx_enable");
-#endif
     APP_PROF_LOG_PRINT(LEVEL_INFO, "Enable MIPI-TX driver for panel [%s].\n", pchPanelName);
 
     return CVI_SUCCESS;
@@ -90,11 +74,7 @@ CVI_S32 app_ipcam_MipiTx_Disable(const CVI_S32* const ps32MipiTxFd)
         return CVI_FAILURE;
     }
 
-#ifndef __CV184X__
     APP_CHK_RET(CVI_MIPI_TX_Disable(*ps32MipiTxFd), "CVI_MIPI_TX_Disable");
-#else
-    APP_CHK_RET(mipi_tx_disable(*ps32MipiTxFd), "mipi_tx_disable");
-#endif
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "Disable MIPI-TX driver.\n");
 

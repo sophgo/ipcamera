@@ -5,11 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include "app_ipcam_adc.h"
 #include "app_ipcam_comm.h"
 

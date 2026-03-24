@@ -92,6 +92,15 @@ static TDLObject g_objMetaCap = {0};
 #ifdef TDL_HUMAN_KEYPOINT_SUPPORT
 APP_OSDC_AI_RECT_RATIO_S g_stHumanKeypointRectRatio = {0};
 static TDLObject g_objMetaHumanKeypoint = {0};
+/* 固定人体骨架的结构定义 —— 这是 COCO 数据集的标准，用于绘制人体骨架。 */
+/* COCO 17 关键点骨架定义，19 条连线，每条线由两个关键点索引组成。 */
+/* 15: 右肩, 13: 右肘, 11: 右腕, 14: 左肩, 12: 左肘, 10: 左腕, 5: 右髋, 6: 左髋, 7: 右膝, 8: 左膝, 9: 右踝, 10: 左踝, 1: 右眼, 2: 左眼, 3: 右耳, 4: 左耳, 0: 头顶 */
+static const int g_stHumanKeypointSkeleton[19][2] = {
+    {15, 13}, {13, 11}, {16, 14}, {14, 12}, {11, 12},
+    {5, 11},  {6, 12},  {5, 6},   {5, 7},   {6, 8},
+    {7, 9},   {8, 10},  {1, 2},   {0, 1},   {0, 2},
+    {1, 3},   {2, 4},   {3, 5},   {4, 6}
+};
 #endif
 #ifdef TDL_OBJECT_TRACK_SUPPORT
 APP_OSDC_AI_RECT_RATIO_S g_stObjectTrackRectRatio = {0};
@@ -184,6 +193,21 @@ static CVI_VOID GetDebugStr(char *pazStr, CVI_S32 s32MaxLen)
     snprintf(pazStr, s32MaxLen, "PD:N MD:N");
 #endif
 }
+
+#ifdef TDL_HUMAN_KEYPOINT_SUPPORT
+static CVI_U32 GetOsdcColorFromRgb(PIXEL_FORMAT_E format, CVI_U8 r, CVI_U8 g, CVI_U8 b)
+{
+    switch (format) {
+    case PIXEL_FORMAT_ARGB_8888:
+        return 0xFF000000 | ((CVI_U32)r << 16) | ((CVI_U32)g << 8) | (CVI_U32)b;
+    case PIXEL_FORMAT_ARGB_4444:
+        return 0xF000 | ((CVI_U32)(r >> 4) << 8) | ((CVI_U32)(g >> 4) << 4) | (CVI_U32)(b >> 4);
+    case PIXEL_FORMAT_ARGB_1555:
+    default:
+        return 0x8000 | ((CVI_U32)(r >> 3) << 10) | ((CVI_U32)(g >> 3) << 5) | (CVI_U32)(b >> 3);
+    }
+}
+#endif
 
 #if defined(TDL_SUPPORT) && defined(TDL_OBJECT_TRACK_SUPPORT)
 static int app_ipcam_Osd_Ai_Bitmap_Update(char *szStr, BITMAP_S *pstBitmap, CVI_U32 color)
@@ -873,27 +897,91 @@ static int app_ipcam_ObjsRectInfo_Update(RGN_HANDLE OsdcHandle, int iOsdcIndex)
     if (iOsdcIndex == 0 && g_pstOsdcCfg->bShowHumanKeypointRect[iOsdcIndex]) {
         app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(&g_objMetaHumanKeypoint);
         if (g_objMetaHumanKeypoint.size > 0 && g_objMetaHumanKeypoint.info != NULL) {
-            // APP_PROF_LOG_PRINT(LEVEL_INFO, "obj_meta.size:%d\n", g_objMetaHumanKeypoint.size);
+            APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S *pstHumanKeypointCfg = app_ipcam_Ai_Human_Keypoint_Param_Get();
+            CVI_U32 kp_color = COLOR_RED(0);
+            CVI_U32 point_half = 4;
+            CVI_U32 line_width = 4;
+            float kp_score_threshold = 0.5f;
+
+            if (pstHumanKeypointCfg != NULL) {
+                kp_color = GetOsdcColorFromRgb(g_pstOsdcCfg->format[iOsdcIndex],
+                    pstHumanKeypointCfg->color_r, pstHumanKeypointCfg->color_g, pstHumanKeypointCfg->color_b);
+                point_half = (pstHumanKeypointCfg->point_size > 0) ? pstHumanKeypointCfg->point_size : point_half;
+                line_width = (pstHumanKeypointCfg->line_width > 0) ? pstHumanKeypointCfg->line_width : line_width;
+            }
+
             for (i = 0; i < g_objMetaHumanKeypoint.size; i++) {
-                for (int j = 0; j < 17; j++) {
+                /* 画框：直接使用模型输出的 box 信息。 */
+                if (OsdcObjsNum >= OSDC_OBJS_MAX) {
+                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
+                    break;
+                }
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X =
+                    (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].box.x1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y =
+                    (int)(g_stHumanKeypointRectRatio.ScaleY * g_objMetaHumanKeypoint.info[i].box.y1);
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width =
+                    (int)(g_stHumanKeypointRectRatio.ScaleX * (g_objMetaHumanKeypoint.info[i].box.x2 - g_objMetaHumanKeypoint.info[i].box.x1));
+                pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height =
+                    (int)(g_stHumanKeypointRectRatio.ScaleY * (g_objMetaHumanKeypoint.info[i].box.y2 - g_objMetaHumanKeypoint.info[i].box.y1));
+                pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = line_width;
+                pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = kp_color;
+                pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_FALSE;
+                pstObjAttr[OsdcObjsNum].enObjType = RGN_CMPR_RECT;
+                OsdcObjsNum++;
+
+                /* 画线：根据关键点数量选择骨架。 */
+                /* keypoint_yolov8pose_person17_384_640_INT8_cv181x.cvimodel: 返回的是人形 COCO 17 关键点数量，19 条骨架连线*/
+                for (int k = 0; k < 19; k++) {
+                    int kps1 = g_stHumanKeypointSkeleton[k][0];
+                    int kps2 = g_stHumanKeypointSkeleton[k][1];
+
+                    if (g_objMetaHumanKeypoint.info[i].landmark_properity[kps1].score < kp_score_threshold ||
+                        g_objMetaHumanKeypoint.info[i].landmark_properity[kps2].score < kp_score_threshold) {
+                        continue;
+                    }
                     if (OsdcObjsNum >= OSDC_OBJS_MAX) {
                         APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
                         break;
                     }
-                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X = (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].landmark_properity[j].x) - 8;
-                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y = (int)(g_stHumanKeypointRectRatio.ScaleY * (g_objMetaHumanKeypoint.info[i].landmark_properity[j].y-4)) - 8;
-                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = 16 ;
-                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = 16 ;
-                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = 8;
-                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = COLOR_RED(0);
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X =
+                        (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].landmark_properity[kps1].x);
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y =
+                        (int)(g_stHumanKeypointRectRatio.ScaleY * g_objMetaHumanKeypoint.info[i].landmark_properity[kps1].y);
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width =
+                        (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].landmark_properity[kps2].x);
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height =
+                        (int)(g_stHumanKeypointRectRatio.ScaleY * g_objMetaHumanKeypoint.info[i].landmark_properity[kps2].y);
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = line_width;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = kp_color;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_FALSE;
+                    pstObjAttr[OsdcObjsNum].enObjType = RGN_CMPR_LINE;
+                    OsdcObjsNum++;
+                }
+
+                /* 画点：按关键点数量绘制。 */
+                for (CVI_U32 j = 0; j < 17; j++) {
+                    if (g_objMetaHumanKeypoint.info[i].landmark_properity[j].score < kp_score_threshold) {
+                        continue;
+                    }
+                    if (OsdcObjsNum >= OSDC_OBJS_MAX) {
+                        APP_PROF_LOG_PRINT(LEVEL_ERROR, "OsdcObjsNum(%d) > OSDC_OBJS_MAX(%d)!\n", OsdcObjsNum, OSDC_OBJS_MAX);
+                        break;
+                    }
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32X =
+                        (int)(g_stHumanKeypointRectRatio.ScaleX * g_objMetaHumanKeypoint.info[i].landmark_properity[j].x) - point_half;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.s32Y =
+                        (int)(g_stHumanKeypointRectRatio.ScaleY * g_objMetaHumanKeypoint.info[i].landmark_properity[j].y) - point_half;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Width = point_half * 2;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.stRect.u32Height = point_half * 2;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Thick = point_half;
+                    pstObjAttr[OsdcObjsNum].stRgnRect.u32Color = kp_color;
                     pstObjAttr[OsdcObjsNum].stRgnRect.u32IsFill = CVI_TRUE;
                     pstObjAttr[OsdcObjsNum].enObjType = RGN_CMPR_RECT;
 
                     OsdcObjsNum++;
                 }
             }
-            // APP_PROF_LOG_PRINT(LEVEL_INFO, "ScaleX = %f, ScaleY = %f\n",g_stHumanKeypointRectRatio.ScaleX,g_stHumanKeypointRectRatio.ScaleY);
-            // APP_PROF_LOG_PRINT(LEVEL_INFO, "x = %f, y = %f\n",g_objMetaHumanKeypoint.info[0].landmark_properity[0].x,g_objMetaHumanKeypoint.info[0].landmark_properity[0].y);
             TDL_ReleaseObjectMeta(&g_objMetaHumanKeypoint);
         }
     }
@@ -1145,8 +1233,10 @@ static int app_ipcam_ObjRectRatio_Set(void)
     #ifdef TDL_HUMAN_KEYPOINT_SUPPORT
     APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S *pstHumanKeypointCfg = app_ipcam_Ai_Human_Keypoint_Param_Get();
     _NULL_POINTER_CHECK_(pstHumanKeypointCfg, -1);
-    g_stHumanKeypointRectRatio.ScaleX = g_stHumanKeypointRectRatio.ScaleY =
-        fmax(((float)stOdecSize.u32Width / (float)pstHumanKeypointCfg->u32GrpWidth), ((float)stOdecSize.u32Height / (float)pstHumanKeypointCfg->u32GrpHeight));
+    g_stHumanKeypointRectRatio.VpssChn_W = pstHumanKeypointCfg->u32GrpWidth;
+    g_stHumanKeypointRectRatio.VpssChn_H = pstHumanKeypointCfg->u32GrpHeight;
+    g_stHumanKeypointRectRatio.ScaleX = (float)stOdecSize.u32Width / (float)g_stHumanKeypointRectRatio.VpssChn_W;
+    g_stHumanKeypointRectRatio.ScaleY = (float)stOdecSize.u32Height / (float)g_stHumanKeypointRectRatio.VpssChn_H;
     #endif
 
     /* set AI Object Track rect-ratio */

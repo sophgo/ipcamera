@@ -34,6 +34,11 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_KEYPOINT_FACE_V2),y)
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/keypoint_face_v2_64_64_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
 endif
 
+ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_KEYPOINT_YOLOV8POSE_PERSON),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv181x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/keypoint_yolov8pose_person17_384_640_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
+endif
+
 ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_YOLOV8N_DET_FACE_HAND_PERSON_PET),y)
 	@mkdir -p $(APP_INSTALL_DIR)/cv181x/
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/yolov8n_det_face_head_person_pet_384_640_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
@@ -170,5 +175,4 @@ endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_SBM_CV1812H_GC4653),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/sbm/cv1812h_gc4653.ini $(APP_INSTALL_DIR)/param_config.ini
 endif
-
 

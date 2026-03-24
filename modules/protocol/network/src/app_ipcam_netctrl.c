@@ -424,9 +424,7 @@ static int ImagePage_Get_Sharpen(void)
     }
 
     if (stDRCAttr.Enable && (stDRCAttr.enOpType == OP_TYPE_MANUAL)) {
-#ifndef __CV184X__
-    s_sharpenn = stDRCAttr.stManual.GlobalGain;
-#endif
+        s_sharpenn = stDRCAttr.stManual.GlobalGain;
     }
 
     return s_sharpenn;
@@ -449,9 +447,7 @@ static int ImagePage_Set_Sharpness(int value)
 
     stDRCAttr.Enable = CVI_TRUE;
     stDRCAttr.enOpType = OP_TYPE_MANUAL;
-#ifndef __CV184X__
     stDRCAttr.stManual.GlobalGain = (CVI_U8)s_sharpenn;
-#endif
 
     ret = CVI_ISP_SetSharpenAttr(viPipe, &stDRCAttr);
     if (ret != CVI_SUCCESS) {
@@ -469,7 +465,6 @@ static int ImagePage_Get_2DNR(void)
 static int ImagePage_Set_2DNR(int value)
 {
     printf("enter: %s, %d\n", __func__, value);
-#ifndef __CV184X__
     CVI_S32 ret;
     ISP_NR_ATTR_S  NrAttr;
     s_noise2d = value;
@@ -491,7 +486,7 @@ static int ImagePage_Set_2DNR(int value)
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_SetTNRAttr failed\n");
     }
-#endif
+
     return 0;
 }
 
@@ -510,12 +505,12 @@ static int ImagePage_Set_3DNR(int value)
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_GetTNRAttr failed\n");
     }
-#ifndef __CV184X__
+
     for (int i = 0; i < ISP_AUTO_ISO_STRENGTH_NUM; i++) {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "TnrStrength0[%d]=%d\n", i, nioseTnrAttr.stAuto.TnrStrength0[i]);
         nioseTnrAttr.stAuto.TnrStrength0[i] = s_noise3d;
     }
-#endif
+
     ret = CVI_ISP_SetTNRAttr(0, &nioseTnrAttr);
     if (ret != CVI_SUCCESS) {
         printf("CVI_ISP_SetTNRAttr failed\n");
@@ -608,11 +603,7 @@ static int ImagePage_Get_RedGain(void)
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
-#ifndef __CV184X__
-    s_redGain = stRadialShadingGainLutAttr.RLscGainLut[i].RGain
-else
-    s_redGain = stRadialShadingGainLutAttr.GGain[0];
-#endif
+    s_redGain = stRadialShadingGainLutAttr.RLscGainLut[i].RGain;
 #endif
     return s_redGain;
 }
@@ -627,15 +618,11 @@ static int ImagePage_Set_RedGain(int value)
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
-#ifndef __CV184X__
+
     for(int i = 0;i < ISP_RLSC_COLOR_TEMPERATURE_SIZE ;i++){
         stRadialShadingGainLutAttr.RLscGainLut[i].RGain = s_redGain;
     }
-else
-    for(int i = 0; i < ISP_RLSC_WINDOW_SIZE; i++){
-        stRadialShadingGainLutAttr.GGain[i] = s_redGain;
-    }
-#endif
+
     CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
 #endif
     return 0;
@@ -649,11 +636,7 @@ static int ImagePage_Get_BlueGain(void)
     int viPipe = pstViParamCfg->astPipeInfo[0].aPipe[0];
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
-#ifndef __CV184X__
-    s_blueGain = stRadialShadingGainLutAttr.RLscGainLut[0].BGain
-else
-    s_blueGain = stRadialShadingGainLutAttr.GGain[0];
-#endif
+    s_blueGain = stRadialShadingGainLutAttr.RLscGainLut[0].BGain;
 #endif
     return s_blueGain;
 }
@@ -669,15 +652,10 @@ static int ImagePage_Set_BlueGain(int value)
 
     CVI_ISP_GetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
 
-#ifndef __CV184X__
     for(int i = 0;i < ISP_RLSC_COLOR_TEMPERATURE_SIZE ;i++){
         stRadialShadingGainLutAttr.RLscGainLut[i].BGain = s_blueGain;
     }
-else
-    for(int i = 0; i < ISP_RLSC_WINDOW_SIZE; i++){
-        stRadialShadingGainLutAttr.GGain[i] = s_blueGain;
-    }
-#endif
+
     CVI_ISP_SetRadialShadingGainLutAttr(viPipe, &stRadialShadingGainLutAttr);
 #endif
     return 0;
@@ -690,7 +668,6 @@ static int ImagePage_Get_Defog_Enable(void)
 
 static int ImagePage_Set_Defog_Enable(int value)
 {
-#ifndef __CV184X__
     CVI_S32 ret;
     VI_PIPE viPipe = 0;
     ISP_DEHAZE_ATTR_S dehazeAttr;
@@ -706,25 +683,22 @@ static int ImagePage_Set_Defog_Enable(int value)
     } else {
         printf("shutter\n");
     }
-#endif
+
     return 0;
 }
 
 static int ImagePage_Get_Defog(void)
 {
-#ifndef __CV184X__
     VI_PIPE viPipe = 0;
     ISP_DEHAZE_ATTR_S dehazeAttr;
     CVI_ISP_GetDehazeAttr(viPipe, &dehazeAttr);
     s_defog = dehazeAttr.stAuto.Strength[0];
-#endif
 
     return s_defog;
 }
 
 static int ImagePage_Set_Defog(int value)
 {
-#ifndef __CV184X__
     VI_PIPE viPipe = 0;
     ISP_DEHAZE_ATTR_S dehazeAttr;
     printf("enter: %s, %d\n", __func__, value);
@@ -739,7 +713,7 @@ static int ImagePage_Set_Defog(int value)
     } else {
         printf("Defog hasen't enable\n");
     }
-#endif
+
     return 0;
 }
 
@@ -1029,20 +1003,16 @@ static int ImagePage_Set_KeepColor(int value)
 
 static int ImagePage_Get_Dis(void)
 {
-#ifndef __CV184X__
     ISP_DIS_ATTR_S stDisAttr;
 
     CVI_ISP_GetDisAttr(0, &stDisAttr);
     printf("stDisAttr.enable = %d\n", stDisAttr.enable);
 
     return stDisAttr.enable;
-#endif
-    return 0;
 }
 
 static int ImagePage_Set_Dis(int value)
 {
-#ifndef __CV184X__
     printf("enter: %s, %d\n", __func__, value);
     ISP_DIS_ATTR_S stDisAttr;
 
@@ -1050,8 +1020,6 @@ static int ImagePage_Set_Dis(int value)
     stDisAttr.enable = value;
 
     return CVI_ISP_SetDisAttr(0, &stDisAttr);
-#endif
-    return 0;
 }
 
 

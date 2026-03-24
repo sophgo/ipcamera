@@ -94,8 +94,12 @@ static void app_ipcam_Ai_Param_dump(void)
         g_pstHumanKeypointCfg->bEnable, g_pstHumanKeypointCfg->VpssGrp, g_pstHumanKeypointCfg->VpssChn);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "model_w=%d model_h=%d bSkip=%d threshold=%f\n",
         g_pstHumanKeypointCfg->u32GrpWidth, g_pstHumanKeypointCfg->u32GrpHeight, g_pstHumanKeypointCfg->bVpssPreProcSkip, g_pstHumanKeypointCfg->threshold);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, " model_id=%d model_path=%s\n",
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "model_id=%d model_path=%s\n",
         g_pstHumanKeypointCfg->model_id, g_pstHumanKeypointCfg->model_path);
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "color_r=%u color_g=%u color_b=%u point_size=%u line_width=%u\n",
+        g_pstHumanKeypointCfg->color_r, g_pstHumanKeypointCfg->color_g,
+        g_pstHumanKeypointCfg->color_b, g_pstHumanKeypointCfg->point_size,
+        g_pstHumanKeypointCfg->line_width);
 }
 /**
  * 深拷贝 TDLObject 结构体
@@ -230,7 +234,7 @@ static CVI_VOID *Thread_Human_Keypoint_PROC(CVI_VOID *arg)
             usleep(100*1000);
             continue;
         }
-        image_handle = TDL_WrapFrame((void*)&stfdFrame, false);
+        image_handle = TDL_WrapFrame((void*)&stfdFrame, false, false);
 
         pthread_mutex_unlock(&g_HumanKeypointStatusMutex);
 
@@ -238,8 +242,17 @@ static CVI_VOID *Thread_Human_Keypoint_PROC(CVI_VOID *arg)
         memset(&obj_meta, 0, sizeof(TDLObject));
 
         TDL_Detection(g_HumanKeypointAiHandle, g_pstHumanKeypointCfg->model_id, image_handle, &obj_meta);
-        // APP_PROF_LOG_PRINT(LEVEL_ERROR, "Human Keypoint Detect obj: %d \n", obj_meta.size);
+        /* 输出检测结果信息（TRACE 级别） */
+        for (uint32_t i = 0; i < obj_meta.size; i++) {
+            APP_PROF_LOG_PRINT(LEVEL_TRACE, "Human Keypoint Detect obj: %d box: %f %f %f %f\n",
+                obj_meta.info[i].class_id, obj_meta.info[i].box.x1, obj_meta.info[i].box.y1,
+                obj_meta.info[i].box.x2, obj_meta.info[i].box.y2);
+            for (uint32_t j = 0; j < obj_meta.info[i].landmark_size; j++) {
+                APP_PROF_LOG_PRINT(LEVEL_TRACE, "Human Keypoint Detect landmark: %d %f %f\n", j, obj_meta.info[i].landmark_properity[j].x, obj_meta.info[i].landmark_properity[j].y);
+            }
+        }
         APP_PROF_LOG_PRINT(LEVEL_TRACE, "Human Keypoint Detect process takes %d\n", g_HumanKeypointProc);
+
         s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stfdFrame);
         if (s32Ret != CVI_SUCCESS)
         {

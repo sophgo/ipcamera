@@ -14,6 +14,17 @@ const char *vdec_demode[VIDEO_MODE_BUTT] = {
     [VIDEO_MODE_COMPAT] = "VIDEO_MODE_COMPAT"
 };
 
+const char *vdec_input_type[APP_VDEC_INPUT_BUTT] = {
+    [APP_VDEC_INPUT_NONE] = "APP_VDEC_INPUT_NONE",
+    [APP_VDEC_INPUT_FILE] = "APP_VDEC_INPUT_FILE",
+    [APP_VDEC_INPUT_RTSP] = "APP_VDEC_INPUT_RTSP"
+};
+
+const char *vdec_rtsp_transport[APP_RTSP_TRANS_BUTT] = {
+    [APP_RTSP_TRANS_UDP] = "APP_RTSP_TRANS_UDP",
+    [APP_RTSP_TRANS_TCP] = "APP_RTSP_TRANS_TCP"
+};
+
 int Load_Param_Vdec(const char *file)
 {
     int ret = 0;
@@ -38,17 +49,70 @@ int Load_Param_Vdec(const char *file)
         snprintf(tmp_section, sizeof(tmp_section), "vdecchn%d", i);
         Vdec->astVdecChnCfg.VdecChn = i;
         Vdec->astVdecChnCfg.bEnable = ini_getl(tmp_section, "bEnable", 0, file);
+        Vdec->astVdecChnCfg.input_type = APP_VDEC_INPUT_NONE;
+        Vdec->astVdecChnCfg.rtsp_transport = APP_RTSP_TRANS_TCP;
+        memset(Vdec->astVdecChnCfg.decode_file_name, 0, sizeof(Vdec->astVdecChnCfg.decode_file_name));
+        memset(Vdec->astVdecChnCfg.rtsp_url, 0, sizeof(Vdec->astVdecChnCfg.rtsp_url));
         if (!Vdec->astVdecChnCfg.bEnable)
         {
             APP_PROF_LOG_PRINT(LEVEL_INFO, "Vdec_chn[%d] not enable!\n", i);
             continue;
         }
-        
+
         Vdec->astVdecChnCfg.u32Width  = ini_getl(tmp_section, "width", 0, file);
         Vdec->astVdecChnCfg.u32Height = ini_getl(tmp_section, "height", 0, file);
 
-        ini_gets(tmp_section, "decode_filename", " ", tmp_buff, PARAM_STRING_LEN, file);
-        strncpy(Vdec->astVdecChnCfg.decode_file_name, tmp_buff, PARAM_STRING_LEN);
+        ini_gets(tmp_section, "input_type", " ", str_name, PARAM_STRING_NAME_LEN, file);
+        ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vdec_input_type,
+            APP_VDEC_INPUT_BUTT, &enum_num);
+        if (ret != CVI_SUCCESS || enum_num == APP_VDEC_INPUT_NONE) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "[%s][input_type] invalid: %s\n", tmp_section, str_name);
+            Vdec->astVdecChnCfg.bEnable = CVI_FALSE;
+            Vdec->astVdecChnCfg.input_type = APP_VDEC_INPUT_NONE;
+            continue;
+        }
+        Vdec->astVdecChnCfg.input_type = enum_num;
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][input_type] Convert string name [%s] to enum number [%d].\n",
+            tmp_section, str_name, enum_num);
+
+        if (Vdec->astVdecChnCfg.input_type == APP_VDEC_INPUT_FILE) {
+            ini_gets(tmp_section, "decode_filename", " ", tmp_buff, PARAM_STRING_LEN, file);
+            strncpy(Vdec->astVdecChnCfg.decode_file_name, tmp_buff, PARAM_STRING_LEN);
+            if (Vdec->astVdecChnCfg.decode_file_name[0] == '\0') {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "[%s][decode_filename] empty, disable vdec.\n", tmp_section);
+                Vdec->astVdecChnCfg.bEnable = CVI_FALSE;
+                Vdec->astVdecChnCfg.input_type = APP_VDEC_INPUT_NONE;
+                continue;
+            }
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s] vdec input file: %s\n",
+                tmp_section, Vdec->astVdecChnCfg.decode_file_name);
+        } else if (Vdec->astVdecChnCfg.input_type == APP_VDEC_INPUT_RTSP) {
+            ini_gets(tmp_section, "rtsp_url", " ", tmp_buff, PARAM_STRING_LEN, file);
+            strncpy(Vdec->astVdecChnCfg.rtsp_url, tmp_buff, PARAM_STRING_LEN);
+            if (Vdec->astVdecChnCfg.rtsp_url[0] == '\0') {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "[%s][rtsp_url] empty, disable vdec.\n", tmp_section);
+                Vdec->astVdecChnCfg.bEnable = CVI_FALSE;
+                Vdec->astVdecChnCfg.input_type = APP_VDEC_INPUT_NONE;
+                continue;
+            }
+            ini_gets(tmp_section, "rtsp_transport", " ", str_name, PARAM_STRING_NAME_LEN, file);
+            ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vdec_rtsp_transport,
+                APP_RTSP_TRANS_BUTT, &enum_num);
+            if (ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_WARN, "[%s][rtsp_transport] invalid: %s, use tcp.\n",
+                    tmp_section, str_name);
+                enum_num = APP_RTSP_TRANS_TCP;
+            }
+            Vdec->astVdecChnCfg.rtsp_transport = enum_num;
+            if (ret == CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][rtsp_transport] Convert string name [%s] to enum number [%d].\n",
+                    tmp_section, str_name, enum_num);
+            }
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s] vdec input rtsp: %s transport:%s(%d)\n",
+                tmp_section, Vdec->astVdecChnCfg.rtsp_url,
+                (Vdec->astVdecChnCfg.rtsp_transport == APP_RTSP_TRANS_UDP) ? "udp" : "tcp",
+                Vdec->astVdecChnCfg.rtsp_transport);
+        }
 
         ini_gets(tmp_section, "de_type", " ", str_name, PARAM_STRING_NAME_LEN, file);
         ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, payload_type, PT_BUTT, &enum_num);
@@ -98,8 +162,6 @@ int Load_Param_Vdec(const char *file)
         
         Vdec->astVdecChnCfg.astChnParam.u32DisplayFrameNum = ini_getl(tmp_section, "vdec_disp_frm_num", 0, file);
         Vdec->PicVbPool = ini_getl(tmp_section, "PicVbPool", 0, file);
-        Vdec->VpssGrp   = ini_getl(tmp_section, "vpss_grp", 0, file);
-        Vdec->VpssChn   = ini_getl(tmp_section, "vpss_chn", 0, file);
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading vdec config ------------------> done \n\n");

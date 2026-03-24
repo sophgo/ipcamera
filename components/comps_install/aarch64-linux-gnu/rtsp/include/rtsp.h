@@ -75,9 +75,28 @@ typedef struct RTSP_MEDIA_INFO {
     RTSP_EVENT_CALLBACK *cb;
 } RTSP_MEDIA_INFO_S;
 
+typedef enum RTSP_TRANSPORT {
+    RTSP_TRANS_UDP = 0,
+    RTSP_TRANS_TCP,
+    RTSP_TRANS_BUTT
+} RTSP_TRANSPORT_E;
+
+typedef struct RTSP_CLIENT_ATTR {
+    char url[256];
+    char username[MAX_RTSP_NAME_LEN];
+    char password[MAX_RTSP_NAME_LEN];
+    RTSP_TRANSPORT_E transport;
+    int32_t timeout_ms;
+    int32_t max_frame_size;
+} RTSP_CLIENT_ATTR_S;
+
 int32_t RTSP_SendFrame(void *hdl, RTSP_FRAME_S *frame);
 int32_t RTSP_Create(void **hdl, RTSP_INFO_S *info, RTSP_MEDIA_INFO_S *media_info);
 int32_t RTSP_Destroy(void *hdl);
+int32_t RTSP_ClientCreate(void **hdl, RTSP_CLIENT_ATTR_S *attr);
+int32_t RTSP_ClientDestroy(void *hdl);
+int32_t RTSP_RecvFrame(void *hdl, RTSP_FRAME_S *frame, int32_t timeout_ms);
+void RTSP_ReleaseFrame(void *hdl, RTSP_FRAME_S *frame);
 
 #ifdef __cplusplus
 }

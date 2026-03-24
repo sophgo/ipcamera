@@ -1,19 +1,10 @@
 # VDEC_SOFT
 DEFS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -DVDEC_SOFT
 INCS-$(CONFIG_MODULE_MEDIA_DECSOFT) += -I$(APP_PREBUILT_DIR)/ffmpeg6.0/include
-ifeq ($(SOC_SEGMENT), CV184X)
-INCS-y += -I$(MW_PATH)/include -I$(ISP_INC) -I$(MW_PATH)/include/isp
-else
 INCS-y += -I$(MW_PATH)/include -I$(MW_PATH)/include/linux -I$(ISP_INC) -I$(MW_PATH)/include/isp/$(SOC_NICK_NAME_LOWER)
-endif
 # DISPLAY
 ifneq ($(SOC_SEGMENT), CV180X)
   INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel/$(SOC_NICK_NAME_LOWER)
-  DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
-endif
-
-ifeq ($(SOC_SEGMENT), CV184X)
-  INCS-$(CONFIG_MODULE_DISPLAY) += -I$(MW_PATH)/component/panel
   DEFS-$(CONFIG_MODULE_DISPLAY) += -DDISPLAY
 endif
 
@@ -106,9 +97,7 @@ DEFS-$(CONFIG_MODULE_AKYCLOUD)    += -DAKYCLOUD_SUPPORT
 
 # SENSOR
 INCS-y += -I$(SENSOR_LIST_INC)
-ifneq ($(SOC_SEGMENT), CV184X)
 include $(SENSOR_LIST_INC)/Kbuild
-endif
 DEFS-y += $(KBUILD_DEFINES)
 
 GDB_DEBUG = 0
@@ -172,10 +161,6 @@ ifeq ("$(SOC_SEGMENT)", "CV181X")
 endif
 ifeq ("$(SOC_SEGMENT)", "CV180X")
   CFLAGS += -D__CV180X__
-endif
-
-ifeq ("$(SOC_SEGMENT)", "CV184X")
-  CFLAGS += -D__CV184X__
 endif
 
 CFLAGS += -std=gnu11 -g -Wall -Wextra -Werror -fPIC -ffunction-sections -fdata-sections -Wl,--gc-sections

@@ -1,11 +1,7 @@
 #ifndef __APP_IPCAM_VDEC_SOFT_H__
 #define __APP_IPCAM_VDEC_SOFT_H__
 
-#ifndef __CV184X__
 #include "linux/cvi_type.h"
-#else
-#include "cvi_type.h"
-#endif
 #include <linux/cvi_common.h>
 #include <libavcodec/codec_id.h>
 #include <libavcodec/packet.h>
