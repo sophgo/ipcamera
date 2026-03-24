@@ -179,7 +179,9 @@ static CVI_VOID GetTimeStr(const struct tm *pstTime, char *pazStr, CVI_S32 s32Ma
 // #endif
 // }
 // #endif
+
 #ifdef AI_SUPPORT
+#ifdef OBJECT_TRACK_SUPPORT
 static int app_ipcam_Osd_Ai_Bitmap_Update(char *szStr, BITMAP_S *pstBitmap, CVI_U32 color)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
@@ -377,6 +379,7 @@ static CVI_S32 app_ipcam_Osd_ObjectTrack_CenterBox_Add(
     return CVI_SUCCESS;
 }
 #endif
+#endif
 
 int app_ipcam_Osd_Bitmap_Update(char *szStr, BITMAP_S *pstBitmap)
 {
@@ -444,8 +447,6 @@ int app_ipcam_Osd_Bitmap_Update(char *szStr, BITMAP_S *pstBitmap)
 
     return s32Ret;
 }
-
-
 
 CVI_S32 app_ipcam_Rgn_Mst_LoadBmp(
     const char *filename,
