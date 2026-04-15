@@ -74,6 +74,11 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_TRACKING_FEARTACK),y)
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/tracking_feartrack_128_128_256_256_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
 endif
 
+ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_FASTSAM_SEG),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv181x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/fastsam_seg_320_320_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
+endif
+
 ifeq ($(CONFIG_RESOURCE_INSTALL_TDL_CV181X_YOLOV8N_DET_PERSON_VEHICLE),y)
 	@mkdir -p $(APP_INSTALL_DIR)/cv181x/
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/181x/yolov8n_det_person_vehicle_384_640_INT8_cv181x.cvimodel $(APP_INSTALL_DIR)/cv181x/
@@ -175,4 +180,3 @@ endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_SBM_CV1812H_GC4653),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/sbm/cv1812h_gc4653.ini $(APP_INSTALL_DIR)/param_config.ini
 endif
-

@@ -98,6 +98,12 @@ config RESOURCE_INSTALL_TDL_CV181X_TRACKING_FEARTACK
 	help
 		"support install 181x tracking_feartrack"
 
+config RESOURCE_INSTALL_TDL_CV181X_FASTSAM_SEG
+	bool "install fastsam_seg"
+	default n
+	help
+		"support install 181x fastsam_seg"
+
 endmenu
 
 endmenu

@@ -29,6 +29,7 @@ int Load_Param_Ai_OBJECT_TRACK(const char * file)
     Ai->threshold_occluded      = ini_getf(tmp_section, "threshold_occluded", 0.1, file);
     Ai->threshold_reappear      = ini_getf(tmp_section, "threshold_reappear", 2.0, file);
     Ai->lost_timeout_seconds    = ini_getl(tmp_section, "lost_timeout_seconds", 5, file);
+    Ai->search_type             = ini_getl(tmp_section, "search_type", TDL_FASTSAM, file);
 
     ini_gets(tmp_section, "model_id_det", " ", str_name, PARAM_STRING_NAME_LEN, file);
     ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, ai_supported_model, TDL_MODEL_MAX, &enum_num);
@@ -53,6 +54,9 @@ int Load_Param_Ai_OBJECT_TRACK(const char * file)
 
     ini_gets(tmp_section, "model_path_sot", " ", tmp_buff, 128, file);
     strncpy(Ai->model_path_sot, tmp_buff, 128);
+
+    ini_gets(tmp_section, "model_path_sam", " ", tmp_buff, 128, file);
+    strncpy(Ai->model_path_sam, tmp_buff, 128);
 
     ini_gets(tmp_section, "model_path_cfg", " ", tmp_buff, 128, file);
     strncpy(Ai->model_path_cfg, tmp_buff, 128);

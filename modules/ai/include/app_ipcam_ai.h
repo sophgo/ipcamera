@@ -142,10 +142,12 @@ typedef struct APP_PARAM_AI_OBJECT_TRACK_CFG_T
     TDLModel model_id_sot;
     char model_path_det[MODEL_PATH_LEN];
     char model_path_sot[MODEL_PATH_LEN];
+    char model_path_sam[MODEL_PATH_LEN];
     char model_path_cfg[MODEL_PATH_LEN];
     float threshold_occluded;
     float threshold_reappear;
     CVI_U32 lost_timeout_seconds;
+    TDLTargetSearchTypeE search_type;
 } APP_PARAM_AI_OBJECT_TRACK_CFG_S;
 
 #if defined(AUDIO_SUPPORT) && defined(TDL_SOUND_CLS)
@@ -263,6 +265,7 @@ CVI_VOID app_ipcam_Ai_Object_Track_ProcStatus_Set(CVI_BOOL flag);
 int app_ipcam_Ai_Object_Track_Start(void);
 int app_ipcam_Ai_Object_Track_Stop(void);
 CVI_VOID app_ipcam_Ai_Object_Track_ObjDrawInfo_Get(TDLObject *pstAiObj);
+CVI_VOID app_ipcam_Ai_Object_Track_DefaultBox_Get(int32_t box[4]);
 APP_PARAM_OBJECT_TRACK_MODE app_ipcam_Ai_Object_Track_Mode_Get(void);
 #endif
 
