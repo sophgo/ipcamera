@@ -408,1042 +408,6 @@ static CVI_VOID app_ipcam_RawDump_Unload(CVI_VOID)
 }
 #endif
 
-static ISP_SNS_OBJ_S *app_ipcam_SnsObj_Get(SENSOR_TYPE_E enSnsType)
-{
-    switch (enSnsType) {
-#ifdef SNS0_CVSENS_CV2003
-    case SENSOR_CVSENS_CV2003:
-        return &stSnsCV2003_Obj;
-#endif
-#ifdef SNS0_CVSENS_CV2003_1L_SLAVE
-    case SENSOR_CVSENS_CV2003_1L_SLAVE:
-        return &stSnsCV2003_1L_SLAVE_Obj;
-#endif
-#ifdef SNS0_CVSENS_CV2003_1L_SLAVE1
-    case SENSOR_CVSENS_CV2003_1L_SLAVE1:
-        return &stSnsCV2003_1L_SLAVE1_Obj;
-#endif
-#ifdef SNS0_CVSENS_CV4001
-    case SENSOR_CVSENS_CV4001:
-        return &stSnsCV4001_Obj;
-#endif
-#ifdef SNS0_GCORE_GC1054
-    case SENSOR_GCORE_GC1054:
-        return &stSnsGc1054_Obj;
-#endif
-#ifdef SNS0_GCORE_GC2053
-    case SENSOR_GCORE_GC2053:
-        return &stSnsGc2053_Obj;
-#endif
-#ifdef SNS0_GCORE_GC2053_1L
-    case SENSOR_GCORE_GC2053_1L:
-        return &stSnsGc2053_1l_Obj;
-#endif
-#ifdef SNS1_GCORE_GC2053_SLAVE
-    case SENSOR_GCORE_GC2053_SLAVE:
-        return &stSnsGc2053_Slave_Obj;
-#endif
-#ifdef SNS0_GCORE_GC1084
-    case SENSOR_GCORE_GC1084:
-        return &stSnsGc1084_Obj;
-#endif
-#ifdef SNS1_GCORE_GC1084_SLAVE
-    case SENSOR_GCORE_GC1084_SLAVE:
-        return &stSnsGc1084_Slave_Obj;
-#endif
-#ifdef SNS1_GCORE_GC1084_SLAVE1
-    case SENSOR_GCORE_GC1084_SLAVE1:
-        return &stSnsGc1084_Slave1_Obj;
-#endif
-#ifdef SNS1_GCORE_GC1084_SLAVE2
-    case SENSOR_GCORE_GC1084_SLAVE2:
-        return &stSnsGc1084_Slave2_Obj;
-#endif
-#ifdef SNS0_GCORE_GC2093
-    case SENSOR_GCORE_GC2093:
-        return &stSnsGc2093_Obj;
-#endif
-#ifdef SNS1_GCORE_GC2093_SLAVE
-    case SENSOR_GCORE_GC2093_SLAVE:
-        return &stSnsGc2093_Slave_Obj;
-#endif
-#ifdef SNS0_GCORE_GC4023
-    case SENSOR_GCORE_GC4023:
-        return &stSnsGc4023_Obj;
-#endif
-#ifdef SNS0_GCORE_GC4653
-    case SENSOR_GCORE_GC4653:
-        return &stSnsGc4653_Obj;
-#endif
-#ifdef SNS1_GCORE_GC4653_SLAVE
-    case SENSOR_GCORE_GC4653_SLAVE:
-        return &stSnsGc4653_Slave_Obj;
-#endif
-#ifdef SNS0_NEXTCHIP_N5
-    case SENSOR_NEXTCHIP_N5:
-        return &stSnsN5_Obj;
-#endif
-#ifdef SNS0_NEXTCHIP_N6
-    case SENSOR_NEXTCHIP_N6:
-        return &stSnsN6_Obj;
-#endif
-#ifdef SNS0_OV_OV5647
-    case SENSOR_OV_OV5647:
-return &stSnsOv5647_Obj;
-#endif
-
-#ifdef SNS0_OV_OV9282
-    case SENSOR_OV_OV9282:
-    return &stSnsOv9282_Obj;
-#endif
-
-#ifdef SNS0_OV_OV9282_SLAVE
-    case SENSOR_OV_OV9282_SLAVE:
-    return &stSnsOv9282_Obj;
-#endif
-
-#ifdef SNS0_OV_OS04E10
-    case SENSOR_OV_OS04E10:
-return &stSnsOs04e10_Obj;
-#endif
-
-#ifdef SNS0_OV_OS04E10_SLAVE
-    case SENSOR_OV_OS04E10_SLAVE:
-return &stSnsOs04e10_Obj;
-#endif
-
-#ifdef SNS0_OV_OS05A20
-    case SENSOR_OV_OS05A20:
-    return &stSnsOs05a20_Obj;
-#endif
-
-#ifdef SNS0_OV_OS08A20
-    case SENSOR_OV_OS08A20:
-        return &stSnsOs08a20_Obj;
-#endif
-#ifdef SNS1_OV_OS08A20_SLAVE
-    case SENSOR_OV_OS08A20_SLAVE:
-        return &stSnsOs08a20_Slave_Obj;
-#endif
-#ifdef PICO_384
-    case SENSOR_PICO_384:
-        return &stSnsPICO384_Obj;
-#endif
-#ifdef SNS0_PICO_640
-    case SENSOR_PICO_640:
-        return &stSnsPICO640_Obj;
-#endif
-#ifdef SNS1_PIXELPLUS_PR2020
-    case SENSOR_PIXELPLUS_PR2020:
-        return &stSnsPR2020_Obj;
-#endif
-#ifdef SNS0_PIXELPLUS_PR2100
-    case SENSOR_PIXELPLUS_PR2100:
-        return &stSnsPR2100_Obj;
-#endif
-#ifdef SNS0_SMS_SC1330
-    case SENSOR_SMS_SC1330:
-        return &stSnsSC1330_Obj;
-#endif
-#ifdef SNS0_SMS_SC1330_SLAVE
-    case SENSOR_SMS_SC1330_SLAVE:
-        return &stSnsSC1330_Obj;
-#endif
-#ifdef SNS0_SMS_SC1330_1L
-    case SENSOR_SMS_SC1330_1L:
-        return &stSnsSC1330_Obj;
-#endif
-#ifdef SNS0_SMS_SC1330_1L_SLAVE
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-        return &stSnsSC1330_Obj;
-#endif
-#ifdef SNS0_SMS_SC1346_1L
-    case SENSOR_SMS_SC1346_1L:
-    case SENSOR_SMS_SC1346_1L_60:
-        return &stSnsSC1346_1L_Obj;
-#endif
-#ifdef SNS0_SMS_SC200AI
-    case SENSOR_SMS_SC200AI:
-        return &stSnsSC200AI_Obj;
-#endif
-#ifdef SNS0_SMS_SC2331_1L
-    case SENSOR_SMS_SC2331_1L:
-        return &stSnsSC2331_1L_Obj;
-#endif
-#ifdef SNS1_SMS_SC2331_1L_SLAVE
-    case SENSOR_SMS_SC2331_1L_SLAVE:
-        return &stSnsSC2331_1L_Slave_Obj;
-#endif
-#ifdef SNS2_SMS_SC2331_1L_SLAVE1
-    case SENSOR_SMS_SC2331_1L_SLAVE1:
-        return &stSnsSC2331_1L_Slave1_Obj;
-#endif
-#ifdef SNS0_SMS_SC2335
-    case SENSOR_SMS_SC2335:
-        return &stSnsSC2335_Obj;
-#endif
-#ifdef SNS0_SMS_SC2336
-    case SENSOR_SMS_SC2336:
-        return &stSnsSC2336_Obj;
-#endif
-#ifdef SNS0_SMS_SC2336_1L
-    case SENSOR_SMS_SC2336_1L:
-        return &stSnsSC2336_1L_Obj;
-#endif
-#ifdef SNS1_SMS_SC2336_SLAVE
-    case SENSOR_SMS_SC2336_SLAVE:
-        return &stSnsSC2336_Slave_Obj;
-#endif
-#ifdef SNS2_SMS_SC2336_SLAVE1
-    case SENSOR_SMS_SC2336_SLAVE1:
-        return &stSnsSC2336_Slave1_Obj;
-#endif
-#ifdef SNS0_SMS_SC2336P
-    case SENSOR_SMS_SC2336P:
-        return &stSnsSC2336P_Obj;
-#endif
-#ifdef SNS0_SMS_SC2336P_1L
-    case SENSOR_SMS_SC2336P_1L:
-        return &stSnsSC2336P_1L_Obj;
-#endif
-#ifdef SNS0_SMS_SC3335
-    case SENSOR_SMS_SC3335:
-        return &stSnsSC3335_Obj;
-#endif
-#ifdef SNS1_SMS_SC3335_SLAVE
-    case SENSOR_SMS_SC3335_SLAVE:
-        return &stSnsSC3335_Slave_Obj;
-#endif
-#ifdef SNS0_SMS_SC3336
-    case SENSOR_SMS_SC3336:
-        return &stSnsSC3336_Obj;
-#endif
-#ifdef SNS0_SMS_SC3336_1L
-    case SENSOR_SMS_SC3336_1L:
-        return &stSnsSC3336_1L_Obj;
-#endif
-#ifdef SNS0_SMS_SC3336_1L_SLAVE
-    case SENSOR_SMS_SC3336_1L_SLAVE:
-        return &stSnsSC3336_1L_Slave_Obj;
-#endif
-#ifdef SNS0_SMS_SC401AI
-    case SENSOR_SMS_SC401AI:
-        return &stSnsSC401AI_Obj;
-#endif
-#ifdef SNS0_SMS_SC438AI
-    case SENSOR_SMS_SC438AI:
-        return &stSnsSC438AI_Obj;
-#endif
-#ifdef SNS0_SMS_SC438AI_SLAVE
-    case SENSOR_SMS_SC438AI_SLAVE:
-        return &stSnsSC438AI_Obj;
-#endif
-
-#ifdef SNS0_SMS_SC501AI_2L
-    case SENSOR_SMS_SC501AI_2L:
-        return &stSnsSC501AI_2L_Obj;
-#endif
-
-#ifdef SNS0_SMS_SC4210
-    case SENSOR_SMS_SC4210:
-        return &stSnsSC4210_Obj;
-#endif
-#ifdef SNS0_SMS_SC8238
-    case SENSOR_SMS_SC8238:
-        return &stSnsSC8238_Obj;
-#endif
-#ifdef SNS0_SMS_SC531AI_2L
-    case SENSOR_SMS_SC531AI_2L:
-        return &stSnsSC531AI_2L_Obj;
-#endif
-#ifdef SNS0_SMS_SC5336_2L
-    case SENSOR_SMS_SC5336_2L:
-        return &stSnsSC5336_2L_Obj;
-#endif
-#ifdef SNS0_SMS_SC4336
-    case SENSOR_SMS_SC4336:
-        return &stSnsSC4336_Obj;
-#endif
-#ifdef SNS0_SMS_SC4336P
-    case SENSOR_SMS_SC4336P:
-        return &stSnsSC4336P_Obj;
-#endif
-#ifdef SNS0_SMS_SC4336P_SLAVE
-    case SENSOR_SMS_SC4336P_SLAVE:
-        return &stSnsSC4336P_SLAVE_Obj;
-#endif
-#ifdef SNS0_SOI_F23
-    case SENSOR_SOI_F23:
-        return &stSnsF23_Obj;
-#endif
-#ifdef SNS0_SOI_F35
-    case SENSOR_SOI_F35:
-        return &stSnsF35_Obj;
-#endif
-#ifdef SNS1_SOI_F35_SLAVE
-    case SENSOR_SOI_F35_SLAVE:
-        return &stSnsF35_Slave_Obj;
-#endif
-#ifdef SNS0_SOI_H65
-    case SENSOR_SOI_H65:
-        return &stSnsH65_Obj;
-#endif
-#ifdef SNS0_SOI_K06
-    case SENSOR_SOI_K06:
-        return &stSnsK06_Obj;
-#endif
-#ifdef SNS0_SOI_Q03P
-    case SENSOR_SOI_Q03P:
-        return &stSnsQ03P_Obj;
-#endif
-#ifdef SNS0_SONY_IMX290_2L
-    case SENSOR_SONY_IMX290_2L:
-        return &stSnsImx290_2l_Obj;
-#endif
-#ifdef SNS0_SONY_IMX307
-    case SENSOR_SONY_IMX307:
-        return &stSnsImx307_Obj;
-#endif
-#ifdef SNS0_SONY_IMX307_2L
-    case SENSOR_SONY_IMX307_2L:
-        return &stSnsImx307_2l_Obj;
-#endif
-#ifdef SNS1_SONY_IMX307_SLAVE
-    case SENSOR_SONY_IMX307_SLAVE:
-        return &stSnsImx307_Slave_Obj;
-#endif
-#ifdef SNS0_SONY_IMX307_SUBLVDS
-    case SENSOR_SONY_IMX307_SUBLVDS:
-        return &stSnsImx307_Sublvds_Obj;
-#endif
-#ifdef SNS0_SONY_IMX327
-    case SENSOR_SONY_IMX327:
-        return &stSnsImx327_Obj;
-#endif
-#ifdef SNS0_SONY_IMX327_2L
-    case SENSOR_SONY_IMX327_2L:
-        return &stSnsImx327_2l_Obj;
-#endif
-#ifdef SNS1_SONY_IMX327_SLAVE
-    case SENSOR_SONY_IMX327_SLAVE:
-        return &stSnsImx327_Slave_Obj;
-#endif
-#ifdef SNS0_SONY_IMX327_SUBLVDS
-    case SENSOR_SONY_IMX327_SUBLVDS:
-        return &stSnsImx327_Sublvds_Obj;
-#endif
-#ifdef SNS0_SONY_IMX334
-    case SENSOR_SONY_IMX334:
-        return &stSnsImx334_Obj;
-#endif
-#ifdef SNS0_SONY_IMX335
-    case SENSOR_SONY_IMX335:
-        return &stSnsImx335_Obj;
-#endif
-#ifdef SNS0_SONY_IMX347
-    case SENSOR_SONY_IMX347:
-        return &stSnsImx347_Obj;
-#endif
-#ifdef SNS0_SONY_IMX385
-    case SENSOR_SONY_IMX385:
-        return &stSnsImx385_Obj;
-#endif
-#ifdef SNS0_VIVO_MCS369
-    case SENSOR_VIVO_MCS369:
-        return &stSnsMCS369_Obj;
-#endif
-#ifdef SNS0_VIVO_MCS369Q
-    case SENSOR_VIVO_MCS369Q:
-        return &stSnsMCS369Q_Obj;
-#endif
-#ifdef SNS0_VIVO_MM308M2
-    case SENSOR_VIVO_MM308M2:
-        return &stSnsMM308M2_Obj;
-#endif
-#ifdef SENSOR_ID_MIS2008
-    case SENSOR_IMGDS_MIS2008:
-        return &stSnsMIS2008_Obj;
-#endif
-#ifdef SENSOR_ID_MIS2008_1L
-    case SENSOR_IMGDS_MIS2008_1L:
-        return &stSnsMIS2008_1L_Obj;
-#endif
-    default:
-        return CVI_NULL;
-    }
-}
-
-CVI_S32 app_ipcam_Vi_DevAttr_Get(SENSOR_TYPE_E enSnsType, VI_DEV_ATTR_S *pstViDevAttr)
-{
-    CVI_S32 s32Ret = CVI_SUCCESS;
-
-    memcpy(pstViDevAttr, &vi_dev_attr_base, sizeof(VI_DEV_ATTR_S));
-
-    switch (enSnsType) {
-    case SENSOR_CVSENS_CV2003:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE1:
-    case SENSOR_CVSENS_CV4001:
-    case SENSOR_GCORE_GC1054:
-    case SENSOR_GCORE_GC2053:
-    case SENSOR_GCORE_GC2053_1L:
-    case SENSOR_GCORE_GC2053_SLAVE:
-    case SENSOR_GCORE_GC2093:
-    case SENSOR_GCORE_GC4023:
-    case SENSOR_GCORE_GC2093_SLAVE:
-    case SENSOR_OV_OV5647:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
-        break;
-    case SENSOR_GCORE_GC1084:
-    case SENSOR_GCORE_GC1084_SLAVE:
-    case SENSOR_GCORE_GC1084_SLAVE1:
-    case SENSOR_GCORE_GC1084_SLAVE2:
-    case SENSOR_GCORE_GC4653:
-    case SENSOR_GCORE_GC4653_SLAVE:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_GR;
-        break;
-    case SENSOR_NEXTCHIP_N5:
-        pstViDevAttr->enIntfMode = VI_MODE_BT656;
-        pstViDevAttr->enDataSeq = VI_DATA_SEQ_UYVY;
-        pstViDevAttr->enInputDataType = VI_DATA_TYPE_YUV;
-        break;
-    case SENSOR_NEXTCHIP_N6:
-        pstViDevAttr->enDataSeq = VI_DATA_SEQ_UYVY;
-        pstViDevAttr->enInputDataType = VI_DATA_TYPE_YUV;
-        break;
-    case SENSOR_OV_OS08A20:
-    case SENSOR_OV_OS08A20_SLAVE:
-    case SENSOR_OV_OS04E10:
-    case SENSOR_OV_OS04E10_SLAVE:
-    case SENSOR_OV_OS05A20:
-    case SENSOR_OV_OV9282:
-    case SENSOR_OV_OV9282_SLAVE:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_BG;
-        break;
-    case SENSOR_PICO_384:
-    case SENSOR_PICO_640:
-        break;
-    case SENSOR_PIXELPLUS_PR2020:
-        pstViDevAttr->enIntfMode = VI_MODE_BT656;
-        pstViDevAttr->enDataSeq = VI_DATA_SEQ_UYVY;
-        pstViDevAttr->enInputDataType = VI_DATA_TYPE_YUV;
-        break;
-    case SENSOR_PIXELPLUS_PR2100:
-        pstViDevAttr->enIntfMode = VI_MODE_MIPI_YUV422;
-        pstViDevAttr->enDataSeq = VI_DATA_SEQ_UYVY;
-        pstViDevAttr->enInputDataType = VI_DATA_TYPE_YUV;
-        break;
-    case SENSOR_SMS_SC1330:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC1330_1L:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-    case SENSOR_SMS_SC1346_1L:
-    case SENSOR_SMS_SC1346_1L_60:
-    case SENSOR_SMS_SC200AI:
-    case SENSOR_SMS_SC2331_1L:
-    case SENSOR_SMS_SC2331_1L_SLAVE:
-    case SENSOR_SMS_SC2331_1L_SLAVE1:
-    case SENSOR_SMS_SC2335:
-    case SENSOR_SMS_SC2336:
-    case SENSOR_SMS_SC2336_SLAVE:
-    case SENSOR_SMS_SC2336_SLAVE1:
-    case SENSOR_SMS_SC2336_1L:
-    case SENSOR_SMS_SC2336P:
-    case SENSOR_SMS_SC2336P_1L:
-    case SENSOR_SMS_SC3335:
-    case SENSOR_SMS_SC3335_SLAVE:
-    case SENSOR_SMS_SC3336:
-    case SENSOR_SMS_SC3336_1L:
-    case SENSOR_SMS_SC3336_1L_SLAVE:
-    case SENSOR_SMS_SC401AI:
-    case SENSOR_SMS_SC501AI_2L:
-    case SENSOR_SMS_SC4210:
-    case SENSOR_SMS_SC8238:
-    case SENSOR_SMS_SC531AI_2L:
-    case SENSOR_SMS_SC5336_2L:
-    case SENSOR_SMS_SC4336:
-    case SENSOR_SMS_SC4336P:
-    case SENSOR_SMS_SC4336P_SLAVE:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_BG;
-        break;
-    case SENSOR_SOI_F23:
-    case SENSOR_SOI_F35:
-    case SENSOR_SOI_F35_SLAVE:
-    case SENSOR_SOI_H65:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_BG;
-        break;
-    case SENSOR_SOI_K06:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_GB;
-        break;
-    case SENSOR_SOI_Q03P:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_BG;
-        break;
-    case SENSOR_SONY_IMX290_2L:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_BG;
-        break;
-    case SENSOR_SONY_IMX307:
-    case SENSOR_SONY_IMX307_2L:
-    case SENSOR_SONY_IMX307_SLAVE:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
-        break;
-    case SENSOR_SONY_IMX307_SUBLVDS:
-        pstViDevAttr->enIntfMode = VI_MODE_LVDS;
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
-        break;
-    case SENSOR_SONY_IMX327:
-    case SENSOR_SONY_IMX327_2L:
-    case SENSOR_SONY_IMX327_SLAVE:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
-        break;
-    case SENSOR_SONY_IMX327_SUBLVDS:
-        pstViDevAttr->enIntfMode = VI_MODE_LVDS;
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
-        break;
-    case SENSOR_SONY_IMX334:
-    case SENSOR_SONY_IMX335:
-    case SENSOR_SONY_IMX347:
-    case SENSOR_SONY_IMX385:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
-        break;
-    case SENSOR_VIVO_MCS369:
-    case SENSOR_VIVO_MCS369Q:
-    case SENSOR_VIVO_MM308M2:
-        pstViDevAttr->enIntfMode = VI_MODE_BT1120_STANDARD;
-        pstViDevAttr->enInputDataType = VI_DATA_TYPE_YUV;
-        break;
-    case SENSOR_IMGDS_MIS2008:
-    case SENSOR_IMGDS_MIS2008_1L:
-        pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
-        break;
-    default:
-        s32Ret = CVI_FAILURE;
-        break;
-    }
-    return s32Ret;
-}
-
-CVI_S32 app_ipcam_Vi_PipeAttr_Get(SENSOR_TYPE_E enSnsType, VI_PIPE_ATTR_S *pstViPipeAttr)
-{
-    CVI_S32 s32Ret = CVI_SUCCESS;
-
-    memcpy(pstViPipeAttr, &vi_pipe_attr_base, sizeof(VI_PIPE_ATTR_S));
-
-    switch (enSnsType) {
-    case SENSOR_CVSENS_CV2003:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE1:
-    case SENSOR_CVSENS_CV4001:
-    case SENSOR_GCORE_GC1054:
-    case SENSOR_GCORE_GC2053:
-    case SENSOR_GCORE_GC2053_1L:
-    case SENSOR_OV_OV5647:
-    case SENSOR_GCORE_GC2053_SLAVE:
-    case SENSOR_GCORE_GC1084:
-    case SENSOR_GCORE_GC1084_SLAVE:
-    case SENSOR_GCORE_GC1084_SLAVE1:
-    case SENSOR_GCORE_GC1084_SLAVE2:
-    case SENSOR_GCORE_GC2093:
-    case SENSOR_GCORE_GC2093_SLAVE:
-    case SENSOR_GCORE_GC4023:
-    case SENSOR_GCORE_GC4653:
-    case SENSOR_GCORE_GC4653_SLAVE:
-        break;
-    case SENSOR_NEXTCHIP_N5:
-    case SENSOR_NEXTCHIP_N6:
-        pstViPipeAttr->bYuvBypassPath = CVI_TRUE;
-        break;
-    case SENSOR_OV_OS08A20:
-    case SENSOR_OV_OS08A20_SLAVE:
-    case SENSOR_OV_OS04E10:
-    case SENSOR_OV_OS04E10_SLAVE:
-    case SENSOR_OV_OS05A20:
-    case SENSOR_OV_OV9282:
-    case SENSOR_OV_OV9282_SLAVE:
-        break;
-    case SENSOR_PICO_384:
-    case SENSOR_PICO_640:
-    case SENSOR_PIXELPLUS_PR2020:
-    case SENSOR_PIXELPLUS_PR2100:
-        pstViPipeAttr->bYuvBypassPath = CVI_TRUE;
-        break;
-    case SENSOR_SMS_SC1330:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC1330_1L:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-    case SENSOR_SMS_SC1346_1L:
-    case SENSOR_SMS_SC1346_1L_60:
-    case SENSOR_SMS_SC200AI:
-    case SENSOR_SMS_SC2331_1L:
-    case SENSOR_SMS_SC2331_1L_SLAVE:
-    case SENSOR_SMS_SC2331_1L_SLAVE1:
-    case SENSOR_SMS_SC2335:
-    case SENSOR_SMS_SC2336:
-    case SENSOR_SMS_SC2336_SLAVE:
-    case SENSOR_SMS_SC2336_SLAVE1:
-    case SENSOR_SMS_SC2336_1L:
-    case SENSOR_SMS_SC2336P:
-    case SENSOR_SMS_SC2336P_1L:
-    case SENSOR_SMS_SC3335:
-    case SENSOR_SMS_SC3335_SLAVE:
-    case SENSOR_SMS_SC3336:
-    case SENSOR_SMS_SC3336_1L:
-    case SENSOR_SMS_SC3336_1L_SLAVE:
-    case SENSOR_SMS_SC401AI:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
-    case SENSOR_SMS_SC501AI_2L:
-    case SENSOR_SMS_SC4210:
-    case SENSOR_SMS_SC8238:
-    case SENSOR_SMS_SC531AI_2L:
-    case SENSOR_SMS_SC5336_2L:
-    case SENSOR_SMS_SC4336:
-    case SENSOR_SMS_SC4336P:
-    case SENSOR_SMS_SC4336P_SLAVE:
-    case SENSOR_SOI_F23:
-    case SENSOR_SOI_F35:
-    case SENSOR_SOI_F35_SLAVE:
-    case SENSOR_SOI_H65:
-    case SENSOR_SOI_K06:
-    case SENSOR_SOI_Q03P:
-    case SENSOR_SONY_IMX290_2L:
-    case SENSOR_SONY_IMX307:
-    case SENSOR_SONY_IMX307_2L:
-    case SENSOR_SONY_IMX307_SLAVE:
-    case SENSOR_SONY_IMX307_SUBLVDS:
-    case SENSOR_SONY_IMX327:
-    case SENSOR_SONY_IMX327_2L:
-    case SENSOR_SONY_IMX327_SLAVE:
-    case SENSOR_SONY_IMX327_SUBLVDS:
-    case SENSOR_SONY_IMX334:
-    case SENSOR_SONY_IMX335:
-    case SENSOR_SONY_IMX347:
-    case SENSOR_SONY_IMX385:
-    case SENSOR_IMGDS_MIS2008:
-    case SENSOR_IMGDS_MIS2008_1L:
-        break;
-    case SENSOR_VIVO_MCS369:
-    case SENSOR_VIVO_MCS369Q:
-    case SENSOR_VIVO_MM308M2:
-        pstViPipeAttr->bYuvBypassPath = CVI_TRUE;
-        break;
-    default:
-        s32Ret = CVI_FAILURE;
-        break;
-    }
-    return s32Ret;
-}
-
-CVI_S32 app_ipcam_Vi_ChnAttr_Get(SENSOR_TYPE_E enSnsType, VI_CHN_ATTR_S *pstViChnAttr)
-{
-    CVI_S32 s32Ret = CVI_SUCCESS;
-
-    memcpy(pstViChnAttr, &vi_chn_attr_base, sizeof(VI_CHN_ATTR_S));
-
-    switch (enSnsType) {
-    case SENSOR_CVSENS_CV2003:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE1:
-    case SENSOR_CVSENS_CV4001:
-    case SENSOR_GCORE_GC1054:
-    case SENSOR_OV_OV5647:
-    case SENSOR_GCORE_GC2053:
-    case SENSOR_GCORE_GC2053_1L:
-    case SENSOR_GCORE_GC2053_SLAVE:
-    case SENSOR_GCORE_GC1084:
-    case SENSOR_GCORE_GC1084_SLAVE:
-    case SENSOR_GCORE_GC1084_SLAVE1:
-    case SENSOR_GCORE_GC1084_SLAVE2:
-    case SENSOR_GCORE_GC2093:
-    case SENSOR_GCORE_GC2093_SLAVE:
-    case SENSOR_GCORE_GC4023:
-    case SENSOR_GCORE_GC4653:
-    case SENSOR_GCORE_GC4653_SLAVE:
-        break;
-    case SENSOR_NEXTCHIP_N5:
-    case SENSOR_NEXTCHIP_N6:
-        pstViChnAttr->enPixelFormat = PIXEL_FORMAT_YUV_PLANAR_422;
-        break;
-    case SENSOR_OV_OS08A20:
-    case SENSOR_OV_OS08A20_SLAVE:
-    case SENSOR_OV_OS04E10:
-    case SENSOR_OV_OS04E10_SLAVE:
-    case SENSOR_OV_OS05A20:
-    case SENSOR_OV_OV9282:
-    case SENSOR_OV_OV9282_SLAVE:
-        break;
-    case SENSOR_PICO_384:
-    case SENSOR_PICO_640:
-    case SENSOR_PIXELPLUS_PR2020:
-    case SENSOR_PIXELPLUS_PR2100:
-        pstViChnAttr->enPixelFormat = PIXEL_FORMAT_YUV_PLANAR_422;
-        break;
-    case SENSOR_SMS_SC1330:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC1330_1L:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-    case SENSOR_SMS_SC1346_1L:
-    case SENSOR_SMS_SC1346_1L_60:
-    case SENSOR_SMS_SC200AI:
-    case SENSOR_SMS_SC2331_1L:
-    case SENSOR_SMS_SC2331_1L_SLAVE:
-    case SENSOR_SMS_SC2331_1L_SLAVE1:
-    case SENSOR_SMS_SC2335:
-    case SENSOR_SMS_SC2336:
-    case SENSOR_SMS_SC2336_SLAVE:
-    case SENSOR_SMS_SC2336_SLAVE1:
-    case SENSOR_SMS_SC2336_1L:
-    case SENSOR_SMS_SC2336P:
-    case SENSOR_SMS_SC2336P_1L:
-    case SENSOR_SMS_SC3335:
-    case SENSOR_SMS_SC3335_SLAVE:
-    case SENSOR_SMS_SC3336:
-    case SENSOR_SMS_SC3336_1L:
-    case SENSOR_SMS_SC3336_1L_SLAVE:
-    case SENSOR_SMS_SC401AI:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
-    case SENSOR_SMS_SC501AI_2L:
-    case SENSOR_SMS_SC4210:
-    case SENSOR_SMS_SC8238:
-    case SENSOR_SMS_SC531AI_2L:
-    case SENSOR_SMS_SC5336_2L:
-    case SENSOR_SMS_SC4336:
-    case SENSOR_SMS_SC4336P:
-    case SENSOR_SMS_SC4336P_SLAVE:
-    case SENSOR_SOI_F23:
-    case SENSOR_SOI_F35:
-    case SENSOR_SOI_F35_SLAVE:
-    case SENSOR_SOI_H65:
-    case SENSOR_SOI_K06:
-    case SENSOR_SOI_Q03P:
-    case SENSOR_SONY_IMX290_2L:
-    case SENSOR_SONY_IMX307:
-    case SENSOR_SONY_IMX307_2L:
-    case SENSOR_SONY_IMX307_SLAVE:
-    case SENSOR_SONY_IMX307_SUBLVDS:
-    case SENSOR_SONY_IMX327:
-    case SENSOR_SONY_IMX327_2L:
-    case SENSOR_SONY_IMX327_SLAVE:
-    case SENSOR_SONY_IMX327_SUBLVDS:
-    case SENSOR_SONY_IMX334:
-    case SENSOR_SONY_IMX335:
-    case SENSOR_SONY_IMX347:
-    case SENSOR_SONY_IMX385:
-    case SENSOR_IMGDS_MIS2008:
-    case SENSOR_IMGDS_MIS2008_1L:
-        break;
-    case SENSOR_VIVO_MCS369:
-    case SENSOR_VIVO_MCS369Q:
-    case SENSOR_VIVO_MM308M2:
-        pstViChnAttr->enPixelFormat = PIXEL_FORMAT_YUV_PLANAR_422;
-        break;
-    default:
-        s32Ret = CVI_FAILURE;
-        break;
-    }
-    return s32Ret;
-}
-
-CVI_S32 app_ipcam_Isp_InitAttr_Get(SENSOR_TYPE_E enSnsType, WDR_MODE_E enWDRMode, ISP_INIT_ATTR_S *pstIspInitAttr)
-{
-    CVI_S32 s32Ret = CVI_SUCCESS;
-
-    memset(pstIspInitAttr, 0, sizeof(ISP_INIT_ATTR_S));
-
-    switch (enSnsType) {
-    case SENSOR_CVSENS_CV2003:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE1:
-    case SENSOR_CVSENS_CV4001:
-    case SENSOR_GCORE_GC1054:
-    case SENSOR_GCORE_GC2053:
-    case SENSOR_GCORE_GC2053_1L:
-    case SENSOR_OV_OS05A20:
-    case SENSOR_OV_OV5647:
-    case SENSOR_OV_OV9282:
-    case SENSOR_OV_OV9282_SLAVE:
-    case SENSOR_GCORE_GC2053_SLAVE:
-    case SENSOR_GCORE_GC1084:
-    case SENSOR_GCORE_GC1084_SLAVE:
-    case SENSOR_GCORE_GC1084_SLAVE1:
-    case SENSOR_GCORE_GC1084_SLAVE2:
-    case SENSOR_GCORE_GC2093:
-    case SENSOR_GCORE_GC2093_SLAVE:
-    case SENSOR_GCORE_GC4023:
-    case SENSOR_GCORE_GC4653:
-    case SENSOR_GCORE_GC4653_SLAVE:
-    case SENSOR_NEXTCHIP_N5:
-    case SENSOR_NEXTCHIP_N6:
-        break;
-    case SENSOR_OV_OS08A20:
-    case SENSOR_OV_OS08A20_SLAVE:
-    case SENSOR_OV_OS04E10:
-    case SENSOR_OV_OS04E10_SLAVE:
-        if (enWDRMode == WDR_MODE_2To1_LINE) {
-            pstIspInitAttr->enL2SMode = SNS_L2S_MODE_FIX;
-        }
-        break;
-    case SENSOR_PICO_384:
-    case SENSOR_PICO_640:
-    case SENSOR_PIXELPLUS_PR2020:
-    case SENSOR_PIXELPLUS_PR2100:
-    case SENSOR_SMS_SC1330:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC1330_1L:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-    case SENSOR_SMS_SC1346_1L:
-    case SENSOR_SMS_SC1346_1L_60:
-    case SENSOR_SMS_SC200AI:
-    case SENSOR_SMS_SC2331_1L:
-    case SENSOR_SMS_SC2331_1L_SLAVE:
-    case SENSOR_SMS_SC2331_1L_SLAVE1:
-    case SENSOR_SMS_SC2335:
-    case SENSOR_SMS_SC2336:
-    case SENSOR_SMS_SC2336_SLAVE:
-    case SENSOR_SMS_SC2336_SLAVE1:
-    case SENSOR_SMS_SC2336_1L:
-    case SENSOR_SMS_SC2336P:
-    case SENSOR_SMS_SC2336P_1L:
-    case SENSOR_SMS_SC3335:
-    case SENSOR_SMS_SC3335_SLAVE:
-    case SENSOR_SMS_SC3336:
-    case SENSOR_SMS_SC3336_1L:
-    case SENSOR_SMS_SC3336_1L_SLAVE:
-    case SENSOR_SMS_SC401AI:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
-    case SENSOR_SMS_SC501AI_2L:
-    case SENSOR_SMS_SC4210:
-    case SENSOR_SMS_SC8238:
-    case SENSOR_SMS_SC531AI_2L:
-    case SENSOR_SMS_SC5336_2L:
-    case SENSOR_SMS_SC4336:
-    case SENSOR_SMS_SC4336P:
-    case SENSOR_SMS_SC4336P_SLAVE:
-    case SENSOR_SOI_F23:
-    case SENSOR_IMGDS_MIS2008:
-    case SENSOR_IMGDS_MIS2008_1L:
-        break;
-    case SENSOR_SOI_F35:
-    case SENSOR_SOI_F35_SLAVE:
-        if (enWDRMode == WDR_MODE_2To1_LINE) {
-            pstIspInitAttr->enL2SMode = SNS_L2S_MODE_FIX;
-        }
-        break;
-    case SENSOR_SOI_H65:
-    case SENSOR_SOI_K06:
-    case SENSOR_SOI_Q03P:
-    case SENSOR_SONY_IMX290_2L:
-    case SENSOR_SONY_IMX307:
-    case SENSOR_SONY_IMX307_2L:
-    case SENSOR_SONY_IMX307_SLAVE:
-    case SENSOR_SONY_IMX307_SUBLVDS:
-    case SENSOR_SONY_IMX327:
-    case SENSOR_SONY_IMX327_2L:
-    case SENSOR_SONY_IMX327_SLAVE:
-    case SENSOR_SONY_IMX327_SUBLVDS:
-    case SENSOR_SONY_IMX334:
-    case SENSOR_SONY_IMX335:
-    case SENSOR_SONY_IMX347:
-    case SENSOR_SONY_IMX385:
-    case SENSOR_VIVO_MCS369:
-    case SENSOR_VIVO_MCS369Q:
-    case SENSOR_VIVO_MM308M2:
-        break;
-    default:
-        s32Ret = CVI_FAILURE;
-        break;
-    }
-    return s32Ret;
-}
-
-CVI_S32 app_ipcam_Isp_PubAttr_Get(SENSOR_TYPE_E enSnsType, ISP_PUB_ATTR_S *pstIspPubAttr)
-{
-    CVI_S32 s32Ret = CVI_SUCCESS;
-
-    memcpy(pstIspPubAttr, &isp_pub_attr_base, sizeof(ISP_PUB_ATTR_S));
-    //FPS
-    switch (enSnsType) {
-    case SENSOR_SMS_SC1346_1L_60:
-        pstIspPubAttr->f32FrameRate = 60;
-        break;
-    case SENSOR_SMS_SC1330:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC1330_1L:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
-        pstIspPubAttr->f32FrameRate = 30;
-        break;
-    case SENSOR_OV_OS05A20:
-    case SENSOR_OV_OV9282:
-    case SENSOR_OV_OV9282_SLAVE:
-        pstIspPubAttr->f32FrameRate = 15;
-        break;
-    default:
-        pstIspPubAttr->f32FrameRate = 25;
-        break;
-    }
-    switch (enSnsType) {
-    case SENSOR_CVSENS_CV2003:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE:
-    case SENSOR_CVSENS_CV2003_1L_SLAVE1:
-    case SENSOR_CVSENS_CV4001:
-    case SENSOR_GCORE_GC1054:
-    case SENSOR_GCORE_GC2053:
-    case SENSOR_GCORE_GC2053_1L:
-    case SENSOR_GCORE_GC2053_SLAVE:
-    case SENSOR_GCORE_GC2093:
-    case SENSOR_GCORE_GC4023:
-    case SENSOR_GCORE_GC2093_SLAVE:
-        pstIspPubAttr->enBayer = BAYER_RGGB;
-        break;
-    case SENSOR_GCORE_GC1084:
-    case SENSOR_GCORE_GC1084_SLAVE:
-    case SENSOR_GCORE_GC1084_SLAVE1:
-    case SENSOR_GCORE_GC1084_SLAVE2:
-    case SENSOR_GCORE_GC4653:
-    case SENSOR_GCORE_GC4653_SLAVE:
-        pstIspPubAttr->enBayer = BAYER_GRBG;
-        break;
-    case SENSOR_NEXTCHIP_N5:
-    case SENSOR_NEXTCHIP_N6:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_OV_OS08A20:
-    case SENSOR_OV_OS08A20_SLAVE:
-    case SENSOR_OV_OV5647:
-    case SENSOR_OV_OS04E10:
-    case SENSOR_OV_OS04E10_SLAVE:
-    case SENSOR_OV_OS05A20:
-    case SENSOR_OV_OV9282:
-    case SENSOR_OV_OV9282_SLAVE:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_PICO_384:
-    case SENSOR_PICO_640:
-    case SENSOR_PIXELPLUS_PR2020:
-    case SENSOR_PIXELPLUS_PR2100:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_SMS_SC1330:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC1330_1L:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-    case SENSOR_SMS_SC1346_1L:
-    case SENSOR_SMS_SC1346_1L_60:
-    case SENSOR_SMS_SC200AI:
-    case SENSOR_SMS_SC2331_1L:
-    case SENSOR_SMS_SC2331_1L_SLAVE:
-    case SENSOR_SMS_SC2331_1L_SLAVE1:
-    case SENSOR_SMS_SC2335:
-    case SENSOR_SMS_SC2336:
-    case SENSOR_SMS_SC2336_SLAVE:
-    case SENSOR_SMS_SC2336_SLAVE1:
-    case SENSOR_SMS_SC2336_1L:
-    case SENSOR_SMS_SC2336P:
-    case SENSOR_SMS_SC2336P_1L:
-    case SENSOR_SMS_SC3335:
-    case SENSOR_SMS_SC3335_SLAVE:
-    case SENSOR_SMS_SC3336:
-    case SENSOR_SMS_SC3336_1L:
-    case SENSOR_SMS_SC3336_1L_SLAVE:
-    case SENSOR_SMS_SC401AI:
-    case SENSOR_SMS_SC501AI_2L:
-    case SENSOR_SMS_SC4210:
-    case SENSOR_SMS_SC8238:
-    case SENSOR_SMS_SC531AI_2L:
-    case SENSOR_SMS_SC5336_2L:
-    case SENSOR_SMS_SC4336:
-    case SENSOR_SMS_SC4336P:
-    case SENSOR_SMS_SC4336P_SLAVE:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_SOI_F23:
-    case SENSOR_SOI_F35:
-    case SENSOR_SOI_F35_SLAVE:
-    case SENSOR_SOI_H65:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_SOI_K06:
-        pstIspPubAttr->enBayer = BAYER_GBRG;
-        break;
-    case SENSOR_SOI_Q03P:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_SONY_IMX290_2L:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_SONY_IMX307:
-    case SENSOR_SONY_IMX307_2L:
-    case SENSOR_SONY_IMX307_SLAVE:
-    case SENSOR_SONY_IMX307_SUBLVDS:
-    case SENSOR_SONY_IMX327:
-    case SENSOR_SONY_IMX327_2L:
-    case SENSOR_SONY_IMX327_SLAVE:
-    case SENSOR_SONY_IMX327_SUBLVDS:
-    case SENSOR_SONY_IMX334:
-    case SENSOR_SONY_IMX335:
-    case SENSOR_SONY_IMX347:
-    case SENSOR_SONY_IMX385:
-        pstIspPubAttr->enBayer = BAYER_RGGB;
-        break;
-    case SENSOR_VIVO_MCS369:
-    case SENSOR_VIVO_MCS369Q:
-    case SENSOR_VIVO_MM308M2:
-        pstIspPubAttr->enBayer = BAYER_BGGR;
-        break;
-    case SENSOR_IMGDS_MIS2008:
-    case SENSOR_IMGDS_MIS2008_1L:
-        pstIspPubAttr->enBayer = BAYER_RGGB;
-        break;
-    default:
-        s32Ret = CVI_FAILURE;
-        break;
-    }
-    switch (enSnsType) {
-    case SENSOR_SMS_SC1330_1L:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-        pstIspPubAttr->u8LaneNum = 1;
-        break;
-    case SENSOR_OV_OS04E10:
-    case SENSOR_OV_OS04E10_SLAVE:
-    case SENSOR_OV_OS05A20:
-    case SENSOR_OV_OV9282:
-    case SENSOR_OV_OV9282_SLAVE:
-    case SENSOR_SMS_SC1330:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC438AI:
-    case SENSOR_SMS_SC438AI_SLAVE:
-        pstIspPubAttr->u8LaneNum = 2;
-        break;
-    default:
-        pstIspPubAttr->u8LaneNum = 4;
-        break;
-    }
-    switch (enSnsType) {
-    case SENSOR_OV_OS04E10_SLAVE:
-    case SENSOR_OV_OV9282_SLAVE:
-    case SENSOR_SMS_SC1330_SLAVE:
-    case SENSOR_SMS_SC1330_1L_SLAVE:
-    case SENSOR_SMS_SC438AI_SLAVE:
-        pstIspPubAttr->u8EnableMaster = 0;
-        break;
-    case SENSOR_OV_OS04E10:
-    case SENSOR_OV_OV9282:
-        pstIspPubAttr->u8EnableMaster = 1;
-        break;
-    default:
-        pstIspPubAttr->u8EnableMaster = 2;
-        break;
-    }
-    return s32Ret;
-}
-
 int app_ipcam_Vi_framerate_Set(VI_PIPE ViPipe, CVI_S32 framerate)
 {
     ISP_PUB_ATTR_S pubAttr = {0};
@@ -1460,8 +424,6 @@ int app_ipcam_Vi_framerate_Set(VI_PIPE ViPipe, CVI_S32 framerate)
 int app_ipcam_Vi_Sensor_Start(void)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
-
-    CVI_S32 s32SnsId;
     VI_PIPE ViPipe;
 
     ISP_SNS_OBJ_S *pfnSnsObj = CVI_NULL;
@@ -1471,41 +433,53 @@ int app_ipcam_Vi_Sensor_Start(void)
     ALG_LIB_S ae_lib;
     ALG_LIB_S awb_lib;
     ISP_SENSOR_EXP_FUNC_S isp_sensor_exp_func;
-    ISP_PUB_ATTR_S stPubAttr;
     ISP_CMOS_SENSOR_IMAGE_MODE_S isp_cmos_sensor_image_mode;
+    SNS_INI_CFG_S *pstSnsCfg = &g_pstViCtx->stSensorCfg.sns_ini_cfg;
+    SNS_CFG_S *SnsCfg = &g_pstViCtx->stSensorCfg.sns_cfg;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
 
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
+        s32Ret = cvi_sns_getsnsobj(i, &g_pstViCtx->stSensorCfg);
+        APP_IPCAM_CHECK_RET(s32Ret, "cvi_sns_getsnsobj(%d) failed!\n", i);
+
+        s32Ret = cvi_sns_getispattr(i, &g_pstViCtx->stSensorCfg);
+        APP_IPCAM_CHECK_RET(s32Ret, "cvi_sns_getispattr(%d) failed!\n", i);
+
+        s32Ret = cvi_sns_getdevattr(i, &g_pstViCtx->stSensorCfg);
+        APP_IPCAM_CHECK_RET(s32Ret, "cvi_sns_getdevattr(%d) failed!\n", i);
+
+        s32Ret = cvi_sns_getsize(i, &g_pstViCtx->stSensorCfg);
+        APP_IPCAM_CHECK_RET(s32Ret, "cvi_sns_getsize(%d) failed!\n", i);
+
+        s32Ret = cvi_sns_getyuvbypass(i, &g_pstViCtx->stSensorCfg);
+        APP_IPCAM_CHECK_RET(s32Ret, "cvi_sns_getyuvbypass(%d) failed!\n", i);
+
+        s32Ret = cvi_sns_getsnswdrattr(i, &g_pstViCtx->stSensorCfg);
+        APP_IPCAM_CHECK_RET(s32Ret, "cvi_sns_getsnswdrattr(%d) failed!\n", i);
+
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
         ViPipe = pstPipeCfg->aPipe[0];
-        s32SnsId = pstSnsCfg->s32SnsId;
 
-        if (s32SnsId >= VI_MAX_DEV_NUM) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "invalid sensor id: %d\n", s32SnsId);
-            return CVI_FAILURE;
-        }
-
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "enSnsType enum: %d\n", pstSnsCfg->enSnsType);
-        pfnSnsObj = app_ipcam_SnsObj_Get(pstSnsCfg->enSnsType);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "enSnsType enum: %x\n", pstSnsCfg->enSnsType[i]);
+        pfnSnsObj = g_pstViCtx->stSensorCfg.sns_cfg.pstSnsObj[i];
         if (pfnSnsObj == CVI_NULL) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR,"sensor obj(%d) is null\n", ViPipe);
             return CVI_FAILURE;
         }
 
         memset(&rx_init_attr, 0, sizeof(RX_INIT_ATTR_S));
-        rx_init_attr.MipiDev       = pstSnsCfg->MipiDev;
-        if (pstSnsCfg->bMclkEn) {
+        rx_init_attr.MipiDev       = pstSnsCfg->MipiDev[i];
+        if (pstSnsCfg->stMclkAttr[i].bMclkEn) {
             rx_init_attr.stMclkAttr.bMclkEn = CVI_TRUE;
-            rx_init_attr.stMclkAttr.u8Mclk  = pstSnsCfg->u8Mclk;
+            rx_init_attr.stMclkAttr.u8Mclk  = pstSnsCfg->stMclkAttr[i].u8Mclk;
         }
 
-        for (CVI_U32 i = 0; i < (CVI_U32)sizeof(rx_init_attr.as16LaneId)/sizeof(CVI_S16); i++) {
-            rx_init_attr.as16LaneId[i] = pstSnsCfg->as16LaneId[i];
+        for (CVI_U32 j = 0; j < (CVI_U32)sizeof(rx_init_attr.as16LaneId)/sizeof(CVI_S16); j++) {
+            rx_init_attr.as16LaneId[j] = pstSnsCfg->as16LaneId[i][j];
         }
-        for (CVI_U32 i = 0; i < (CVI_U32)sizeof(rx_init_attr.as8PNSwap)/sizeof(CVI_S8); i++) {
-            rx_init_attr.as8PNSwap[i] = pstSnsCfg->as8PNSwap[i];
+        for (CVI_U32 j = 0; j < (CVI_U32)sizeof(rx_init_attr.as8PNSwap)/sizeof(CVI_S8); j++) {
+            rx_init_attr.as8PNSwap[j] = pstSnsCfg->as8PNSwap[i][j];
         }
 
         if (pfnSnsObj->pfnPatchRxAttr) {
@@ -1513,24 +487,23 @@ int app_ipcam_Vi_Sensor_Start(void)
             APP_IPCAM_CHECK_RET(s32Ret, "pfnPatchRxAttr(%d) failed!\n", ViPipe);
         }
 
-        s32Ret = app_ipcam_Isp_InitAttr_Get(pstSnsCfg->enSnsType, pstChnCfg->enWDRMode, &isp_init_attr);
-        APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Isp_InitAttr_Get(%d) failed!\n", ViPipe);
-
-        isp_init_attr.u16UseHwSync = pstSnsCfg->bHwSync;
+        memset(&isp_init_attr, 0, sizeof(ISP_INIT_ATTR_S));
+        isp_init_attr.u16UseHwSync = pstSnsCfg->u8HwSync[i];
+        isp_init_attr.enL2SMode = g_pstViCtx->stSensorCfg.pstInitAttr.enL2SMode;
         if (pfnSnsObj->pfnSetInit) {
             s32Ret = pfnSnsObj->pfnSetInit(ViPipe, &isp_init_attr);
             APP_IPCAM_CHECK_RET(s32Ret, "pfnSetInit(%d) failed!\n", ViPipe);
         }
 
         memset(&sns_bus_info, 0, sizeof(ISP_SNS_COMMBUS_U));
-        sns_bus_info.s8I2cDev = (pstSnsCfg->s32BusId >= 0) ? (CVI_S8)pstSnsCfg->s32BusId : 0x3;
+        sns_bus_info.s8I2cDev = (pstSnsCfg->s32BusId[i] >= 0) ? (CVI_S8)pstSnsCfg->s32BusId[i] : 0x3;
         if (pfnSnsObj->pfnSetBusInfo) {
             s32Ret = pfnSnsObj->pfnSetBusInfo(ViPipe, sns_bus_info);
             APP_IPCAM_CHECK_RET(s32Ret, "pfnSetBusInfo(%d) failed!\n", ViPipe);
         }
 
         if (pfnSnsObj->pfnPatchI2cAddr) {
-            pfnSnsObj->pfnPatchI2cAddr(ViPipe, pstSnsCfg->s32I2cAddr);
+            pfnSnsObj->pfnPatchI2cAddr(ViPipe, pstSnsCfg->s32SnsI2cAddr[i]);
         }
 
         awb_lib.s32Id = ViPipe;
@@ -1543,18 +516,12 @@ int app_ipcam_Vi_Sensor_Start(void)
         }
 
         memset(&isp_cmos_sensor_image_mode, 0, sizeof(ISP_CMOS_SENSOR_IMAGE_MODE_S));
-        if(app_ipcam_Isp_PubAttr_Get(pstSnsCfg->enSnsType, &stPubAttr) != CVI_SUCCESS)
-        {
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "Can't get sns attr\n");
-            return CVI_FALSE;
-        }
         isp_cmos_sensor_image_mode.u16Width  = pstChnCfg->u32Width;
         isp_cmos_sensor_image_mode.u16Height = pstChnCfg->u32Height;
-        isp_cmos_sensor_image_mode.f32Fps    = stPubAttr.f32FrameRate;
-        isp_cmos_sensor_image_mode.u8LaneNum = stPubAttr.u8LaneNum;
-        isp_cmos_sensor_image_mode.u8EnableMaster = stPubAttr.u8EnableMaster;
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "sensor %d, Width %d, Height %d, FPS %f, wdrMode %d, pfnSnsObj %p\n",
-                s32SnsId,
+        isp_cmos_sensor_image_mode.f32Fps    = SnsCfg->f32FrameRate[i];
+        isp_cmos_sensor_image_mode.u8LaneNum = SnsCfg->u8LaneNumber[i];
+        isp_cmos_sensor_image_mode.u8EnableMaster = SnsCfg->u8EnMasterMode[i];;
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "Width %d, Height %d, FPS %f, wdrMode %d, pfnSnsObj %p\n",
                 isp_cmos_sensor_image_mode.u16Width, isp_cmos_sensor_image_mode.u16Height,
                 isp_cmos_sensor_image_mode.f32Fps, pstChnCfg->enWDRMode,
                 pfnSnsObj);
@@ -1580,13 +547,13 @@ int app_ipcam_Vi_Mipi_Start(void)
     VI_PIPE ViPipe;
     ISP_SNS_OBJ_S *pfnSnsObj = CVI_NULL;
     SNS_COMBO_DEV_ATTR_S combo_dev_attr;
+    SNS_INI_CFG_S *pstSnsCfg = &g_pstViCtx->stSensorCfg.sns_ini_cfg;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
         ViPipe = pstPipeCfg->aPipe[0];
 
-        pfnSnsObj = app_ipcam_SnsObj_Get(pstSnsCfg->enSnsType);
+        pfnSnsObj = g_pstViCtx->stSensorCfg.sns_cfg.pstSnsObj[i];
         if (pfnSnsObj == CVI_NULL) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR,"sensor obj(%d) is null\n", ViPipe);
             return CVI_FAILURE;
@@ -1596,30 +563,30 @@ int app_ipcam_Vi_Mipi_Start(void)
         if (pfnSnsObj->pfnGetRxAttr) {
             s32Ret = pfnSnsObj->pfnGetRxAttr(ViPipe, &combo_dev_attr);
             APP_IPCAM_CHECK_RET(s32Ret, "pfnGetRxAttr(%d) failed!\n", ViPipe);
-            pstSnsCfg->MipiDev = combo_dev_attr.devno;
+            pstSnsCfg->MipiDev[i] = combo_dev_attr.devno;
             APP_PROF_LOG_PRINT(LEVEL_INFO, "sensor %d devno %d\n", i, ViPipe);
         }
         SNS_RST_CONFIG pstSnsrstInfo;
-        pstSnsrstInfo.devno = pstSnsCfg->MipiDev;
-        pstSnsrstInfo.gpio_pin = pstSnsCfg->s32RstPin;
-        pstSnsrstInfo.gpio_active = pstSnsCfg->s32RstActive;
+        pstSnsrstInfo.devno = pstSnsCfg->MipiDev[i];
+        pstSnsrstInfo.gpio_pin = pstSnsCfg->s32RstPin[i];
+        pstSnsrstInfo.gpio_active = 0;
         s32Ret = CVI_MIPI_SetSensorReset(&pstSnsrstInfo, 1);
         s32Ret = CVI_MIPI_SetMipiReset(ViPipe, 1);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_MIPI_SetMipiReset(%d) failed!\n", ViPipe);
-        if ((pstSnsCfg->enSnsType == SENSOR_VIVO_MCS369) ||
-            (pstSnsCfg->enSnsType == SENSOR_VIVO_MCS369Q)) {
+        if ((pstSnsCfg->enSnsType[i] == VIVO_MCS369_2M_30FPS_12BIT) ||
+            (pstSnsCfg->enSnsType[i] == VIVO_MCS369Q_4M_30FPS_12BIT)) {
             CVI_MIPI_SetClkEdge(ViPipe, 0);
         }
         if (combo_dev_attr.input_mode == INPUT_MODE_MIPI) {
-            if (pstSnsCfg->bHsettlen) {
+            if (pstSnsCfg->bHsettlen[i]) {
                 combo_dev_attr.mipi_attr.dphy.enable = 1;
-                combo_dev_attr.mipi_attr.dphy.hs_settle = pstSnsCfg->u8Hsettle;
+                combo_dev_attr.mipi_attr.dphy.hs_settle = pstSnsCfg->u8Hsettle[i];
             }
         }
         if (combo_dev_attr.input_mode == INPUT_MODE_MIPI ||
             combo_dev_attr.input_mode == INPUT_MODE_SUBLVDS ||
             combo_dev_attr.input_mode == INPUT_MODE_HISPI) {
-                combo_dev_attr.cif_mode = pstSnsCfg->s32ModeId;
+                combo_dev_attr.cif_mode = pstSnsCfg->enSnsMode;
         }
         s32Ret = CVI_MIPI_SetMipiAttr(ViPipe, (CVI_VOID*)&combo_dev_attr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_MIPI_SetMipiAttr(%d) failed!\n", ViPipe);
@@ -1640,26 +607,35 @@ int app_ipcam_Vi_Mipi_Start(void)
 int app_ipcam_Vi_Dev_Start(void)
 {
     CVI_S32 s32Ret;
-
-    VI_PIPE     ViPipe;
-    VI_DEV         ViDev;
-    VI_DEV_ATTR_S  stViDevAttr;
+    VI_PIPE ViPipe;
+    VI_DEV ViDev;
+    VI_DEV_ATTR_S stViDevAttr;
+    SNS_CFG_S *pstSnsCfg = &g_pstViCtx->stSensorCfg.sns_cfg;
+    SNS_INI_CFG_S *pstSnsIniCfg = &g_pstViCtx->stSensorCfg.sns_ini_cfg;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
+
+        memset(&stViDevAttr, 0, sizeof(VI_DEV_ATTR_S));
+        memcpy(&stViDevAttr, &vi_dev_attr_base, sizeof(VI_DEV_ATTR_S));
         ViPipe = pstPipeCfg->aPipe[0];
         ViDev = ViPipe;
-        app_ipcam_Vi_DevAttr_Get(pstSnsCfg->enSnsType, &stViDevAttr);
 
-        stViDevAttr.stSize.u32Width     = pstChnCfg->u32Width;
-        stViDevAttr.stSize.u32Height    = pstChnCfg->u32Height;
-        stViDevAttr.stWDRAttr.enWDRMode = pstChnCfg->enWDRMode;
+        stViDevAttr.stSize.u32Width        = pstChnCfg->u32Width;
+        stViDevAttr.stSize.u32Height       = pstChnCfg->u32Height;
+        stViDevAttr.stWDRAttr.u32CacheLine = pstChnCfg->u32Height;
+        stViDevAttr.stWDRAttr.enWDRMode    = pstChnCfg->enWDRMode;
+        stViDevAttr.enBayerFormat          = pstSnsCfg->enBayerFormat[i];
+        stViDevAttr.enDataSeq              = (VI_YUV_DATA_SEQ_E)pstSnsCfg->enYuvFormat[i];
+        stViDevAttr.enInputDataType        = (VI_DATA_TYPE_E)pstSnsCfg->enFormatMode[i];
+        stViDevAttr.enIntfMode             = (VI_INTF_MODE_E)pstSnsCfg->enInterFaceMode[i];
+        stViDevAttr.enWorkMode             = (VI_WORK_MODE_E)pstSnsCfg->enChnMode[i];
+
         s32Ret = CVI_VI_SetDevAttr(ViDev, &stViDevAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetDevAttr(%d) failed!\n", ViDev);
         VI_DEV_BIND_PIPE_S stViDevBindAttr;
-        stViDevBindAttr.PipeId[0] = (CVI_S32)pstSnsCfg->MipiDev;
+        stViDevBindAttr.PipeId[0] = (CVI_S32)pstSnsIniCfg->MipiDev[i];;
         stViDevBindAttr.u32Num = 1;
         s32Ret = CVI_VI_SetDevBindAttr(ViDev, &stViDevBindAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetDevBindAttr(%d) failed!\n", ViDev);
@@ -1702,12 +678,11 @@ int app_ipcam_Vi_Pipe_Start(void)
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
 
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         APP_PARAM_PIPE_CFG_T *psPipeCfg = &g_pstViCtx->astPipeInfo[i];
 
-        s32Ret = app_ipcam_Vi_PipeAttr_Get(pstSnsCfg->enSnsType, &stViPipeAttr);
-        APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Vi_PipeAttr_Get failed!\n");
+        memset(&stViPipeAttr, 0, sizeof(VI_PIPE_ATTR_S));
+        memcpy(&stViPipeAttr, &vi_pipe_attr_base, sizeof(VI_PIPE_ATTR_S));
 
         stViPipeAttr.u32MaxW = pstChnCfg->u32Width;
         stViPipeAttr.u32MaxH = pstChnCfg->u32Height;
@@ -1827,16 +802,16 @@ CVI_U8 app_ipcam_Framerate_Get(CVI_U8 viPipe)
 int app_ipcam_Vi_Isp_Init(void)
 {
     CVI_S32 s32Ret;
-    VI_PIPE              ViPipe;
-    ISP_PUB_ATTR_S       stPubAttr;
+    VI_PIPE ViPipe;
+    ISP_PUB_ATTR_S stPubAttr;
     ISP_STATISTICS_CFG_S stsCfg;
-    ISP_BIND_ATTR_S      stBindAttr;
-    ALG_LIB_S            stAeLib;
-    ALG_LIB_S            stAwbLib;
+    ISP_BIND_ATTR_S stBindAttr;
+    ALG_LIB_S stAeLib;
+    ALG_LIB_S stAwbLib;
+    SNS_CFG_S *pstSnsCfg = &g_pstViCtx->stSensorCfg.sns_cfg;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
 
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
         ViPipe = pstPipeCfg->aPipe[0];
@@ -1863,8 +838,8 @@ int app_ipcam_Vi_Isp_Init(void)
         s32Ret = CVI_ISP_MemInit(ViPipe);
         APP_IPCAM_CHECK_RET(s32Ret, "Init Ext memory fail, ViPipe[%d]\n", ViPipe);
 
-        s32Ret = app_ipcam_Isp_PubAttr_Get(pstSnsCfg->enSnsType, &stPubAttr);
-        APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Isp_PubAttr_Get(%d) failed!\n", ViPipe);
+        memset(&stPubAttr, 0, sizeof(ISP_PUB_ATTR_S));
+        memcpy(&stPubAttr, &isp_pub_attr_base, sizeof(ISP_PUB_ATTR_S));
 
         stPubAttr.stWndRect.s32X = 0;
         stPubAttr.stWndRect.s32Y = 0;
@@ -1873,7 +848,8 @@ int app_ipcam_Vi_Isp_Init(void)
         stPubAttr.stSnsSize.u32Width  = pstChnCfg->u32Width;
         stPubAttr.stSnsSize.u32Height = pstChnCfg->u32Height;
         stPubAttr.f32FrameRate        = pstChnCfg->f32Fps;
-        stPubAttr.enWDRMode           = pstSnsCfg->enWDRMode;
+        stPubAttr.enWDRMode           = pstSnsCfg->enWDRMode[i];
+        stPubAttr.enBayer             = (ISP_BAYER_FORMAT_E)pstSnsCfg->enBayerFormat[i];
         s32Ret = CVI_ISP_SetPubAttr(ViPipe, &stPubAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "SetPubAttr fail, ViPipe[%d]\n", ViPipe);
 
@@ -1976,11 +952,10 @@ int app_ipcam_Vi_Isp_DeInit(void)
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
 
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
         ViPipe = pstPipeCfg->aPipe[0];
 
-        pfnSnsObj = app_ipcam_SnsObj_Get(pstSnsCfg->enSnsType);
+        pfnSnsObj = g_pstViCtx->stSensorCfg.sns_cfg.pstSnsObj[i];
         if (pfnSnsObj == CVI_NULL) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR,"sensor obj(%d) is null\n", ViPipe);
             return CVI_FAILURE;
@@ -2055,6 +1030,7 @@ int app_ipcam_Vi_Isp_Start(void)
     pthread_attr_t attr;
 
     VI_PIPE ViPipe;
+    SNS_CFG_S *pstSnsCfg = &g_pstViCtx->stSensorCfg.sns_cfg;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
@@ -2071,7 +1047,6 @@ int app_ipcam_Vi_Isp_Start(void)
 
     VI_DEV_ATTR_S pstDevAttr;
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
         ViPipe = pstPipeCfg->aPipe[0];
         CVI_VI_GetDevAttr(ViPipe, &pstDevAttr);
@@ -2081,7 +1056,7 @@ int app_ipcam_Vi_Isp_Start(void)
             return s32Ret;
         }
 
-        s32Ret = app_ipcam_Vi_framerate_Set(ViPipe, pstSnsCfg->s32Framerate);
+        s32Ret = app_ipcam_Vi_framerate_Set(ViPipe, pstSnsCfg->f32FrameRate[i]);
         if (s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vi_framerate_Set failed with %#x!\n", s32Ret);
             return s32Ret;
@@ -2147,29 +1122,25 @@ int app_ipcam_Vi_Chn_Start(void)
 
     VI_PIPE        ViPipe;
     VI_CHN         ViChn;
-    VI_DEV_ATTR_S  stViDevAttr;
     VI_CHN_ATTR_S  stViChnAttr;
     ISP_SNS_OBJ_S  *pstSnsObj = CVI_NULL;
+    SNS_INI_CFG_S *pstSnsCfg = &g_pstViCtx->stSensorCfg.sns_ini_cfg;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
 
-        APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
         APP_PARAM_CHN_CFG_T *pstChnCfg = &g_pstViCtx->astChnInfo[i];
         APP_PARAM_PIPE_CFG_T *pstPipeCfg = &g_pstViCtx->astPipeInfo[i];
         ViPipe = pstPipeCfg->aPipe[0];
         ViChn = pstChnCfg->s32ChnId;
 
-        pstSnsObj = app_ipcam_SnsObj_Get(pstSnsCfg->enSnsType);
+        pstSnsObj = g_pstViCtx->stSensorCfg.sns_cfg.pstSnsObj[i];
         if (pstSnsObj == CVI_NULL) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "sensor obj(%d) is null\n", ViPipe);
             return CVI_FAILURE;
         }
 
-        s32Ret = app_ipcam_Vi_DevAttr_Get(pstSnsCfg->enSnsType, &stViDevAttr);
-        APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Vi_DevAttr_Get(%d) failed!\n", ViPipe);
-
-        s32Ret = app_ipcam_Vi_ChnAttr_Get(pstSnsCfg->enSnsType, &stViChnAttr);
-        APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Vi_ChnAttr_Get(%d) failed!\n", ViPipe);
+        memset(&stViChnAttr, 0, sizeof(VI_CHN_ATTR_S));
+        memcpy(&stViChnAttr, &vi_chn_attr_base, sizeof(VI_CHN_ATTR_S));
 
         stViChnAttr.stSize.u32Width  = pstChnCfg->u32Width;
         stViChnAttr.stSize.u32Height = pstChnCfg->u32Height;
@@ -2179,9 +1150,9 @@ int app_ipcam_Vi_Chn_Start(void)
         stViChnAttr.u32Depth         = 0; // depth
 
         /* fill the sensor orientation */
-        if (pstSnsCfg->u8Orien <= 3) {
-            stViChnAttr.bMirror = pstSnsCfg->u8Orien & 0x1;
-            stViChnAttr.bFlip = pstSnsCfg->u8Orien & 0x2;
+        if (pstSnsCfg->u8Orien[i] <= 3) {
+            stViChnAttr.bMirror = pstSnsCfg->u8Orien[i] & 0x1;
+            stViChnAttr.bFlip = pstSnsCfg->u8Orien[i] & 0x2;
         }
 
         s32Ret = CVI_VI_SetChnAttr(ViPipe, ViChn, &stViChnAttr);

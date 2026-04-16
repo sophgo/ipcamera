@@ -2,21 +2,14 @@
 #define __APP_IPCAM_AI_H__
 
 #include "cvi_type.h"
-// #if defined(CVI_TDL_SUPPORT)
-#include "cvi_tdl.h"
-#include "cvi_tdl_app.h"
-// #else
-// #include "cviai.h"
-// #include "app/cviai_app.h"
-// #include "app_ipcam_ai_wrapper.h"
-// #endif
+#include "tdl_sdk.h"
+#include "tdl_utils.h"
 #include "cvi_comm_video.h"
 #include "cvi_vpss.h"
 #include "app_ipcam_comm.h"
 #include "app_ipcam_vi.h"
 #include "app_ipcam_vpss.h"
 #include "app_ipcam_venc.h"
-#include "cvi_ive.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -50,119 +43,73 @@ __attribute__ ((always_inline)) inline void AutoUnLock(void *mutex) {
         pthread_mutex_unlock(&mutex);                                \
     } while(0)
 
-typedef CVI_S32 (*pfpInferenceFunc)(cvitdl_handle_t handle, VIDEO_FRAME_INFO_S *frame, CVI_TDL_SUPPORTED_MODEL_E model_index, cvtdl_object_t *obj);
-typedef CVI_S32 (*pfpFaceInferenceFunc)(cvitdl_handle_t handle, VIDEO_FRAME_INFO_S *frame, CVI_TDL_SUPPORTED_MODEL_E model_index, cvtdl_face_t *obj);
-typedef CVI_S32 (*pfpRescaleFunc)(const VIDEO_FRAME_INFO_S *frame, cvtdl_object_t *obj);
+typedef CVI_S32 (*pfpInferenceFunc)(TDLHandle handle, const TDLModel model_id, TDLImage image_handle, TDLObject *obj);
+typedef CVI_S32 (*pfpFaceInferenceFunc)(TDLHandle handle, const TDLModel model_id, TDLImage image_handle, TDLFace *obj);
+typedef CVI_S32 (*pfpRescaleFunc)(const TDLImage image_handle, TDLObject *obj);
 
-
+typedef struct APP_PARAM_AI_MD_CFG_T {
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+	CVI_U32 u32GrpHeight;
+    CVI_U32 threshold;
+    CVI_U32 u32BgUpPeriod;
+    CVI_U32 miniArea;
+} APP_PARAM_AI_MD_CFG_S;
 
 
 typedef struct APP_PARAM_AI_CRY_CFG_T {
     CVI_BOOL bEnable;
-    CVI_TDL_SUPPORTED_MODEL_E model_id;
+    TDLModel model_id;
     CVI_U32 application_scene;
     char model_path[MODEL_PATH_LEN];
 } APP_PARAM_AI_CRY_CFG_S;
 
 typedef struct APP_PARAM_AI_PD_CFG_T {
     CVI_BOOL bEnable;
-    CVI_BOOL Intrusion_bEnable;
-    CVI_BOOL capture_enable;
-    CVI_S32 capture_frames;
+    // CVI_BOOL Intrusion_bEnable;
+    // CVI_BOOL capture_enable;
+    // CVI_S32 capture_frames;
     VPSS_GRP VpssGrp;
     VPSS_CHN VpssChn;
     CVI_U32 u32GrpWidth;
 	CVI_U32 u32GrpHeight;
-    CVI_U32 model_size_w;
-    CVI_U32 model_size_h;
-    CVI_U32 region_stRect_x1;
-    CVI_U32 region_stRect_y1;
-    CVI_U32 region_stRect_x2;
-    CVI_U32 region_stRect_y2;
-    CVI_U32 region_stRect_x3;
-    CVI_U32 region_stRect_y3;
-    CVI_U32 region_stRect_x4;
-    CVI_U32 region_stRect_y4;
-    CVI_U32 region_stRect_x5;
-    CVI_U32 region_stRect_y5;
-    CVI_U32 region_stRect_x6;
-    CVI_U32 region_stRect_y6;
-    CVI_BOOL bVpssPreProcSkip;
+    // CVI_U32 model_size_w;
+    // CVI_U32 model_size_h;
+    // CVI_U32 region_stRect_x1;
+    // CVI_U32 region_stRect_y1;
+    // CVI_U32 region_stRect_x2;
+    // CVI_U32 region_stRect_y2;
+    // CVI_U32 region_stRect_x3;
+    // CVI_U32 region_stRect_y3;
+    // CVI_U32 region_stRect_x4;
+    // CVI_U32 region_stRect_y4;
+    // CVI_U32 region_stRect_x5;
+    // CVI_U32 region_stRect_y5;
+    // CVI_U32 region_stRect_x6;
+    // CVI_U32 region_stRect_y6;
+    // CVI_BOOL bVpssPreProcSkip;
     float threshold;
-    CVI_TDL_SUPPORTED_MODEL_E model_id;
+    TDLModel model_id;
     char model_path[MODEL_PATH_LEN];
-    cvtdl_service_brush_t rect_brush;
 } APP_PARAM_AI_PD_CFG_S;
-
-typedef struct APP_PARAM_AI_HD_CFG_T {
-    CVI_BOOL bEnable;
-    VPSS_GRP VpssGrp;
-    VPSS_CHN VpssChn;
-    CVI_U32 u32GrpWidth;
-	CVI_U32 u32GrpHeight;
-    VB_POOL attach_pool;
-    CVI_BOOL bVpssPreProcSkip;
-    float threshold;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_hd;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_hdkey;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_hr;
-    char model_path_hd[MODEL_PATH_LEN];
-    char model_path_hdkey[MODEL_PATH_LEN];
-    char model_path_hr[MODEL_PATH_LEN];
-} APP_PARAM_AI_HD_CFG_S;
-
-typedef struct APP_PARAM_AI_CONSUMER_COUNTING_CFG_T {
-    CVI_BOOL bEnable;
-    VPSS_GRP VpssGrp;
-    VPSS_CHN VpssChn;
-    VB_POOL attach_pool;
-    CVI_U32 u32GrpWidth;
-	CVI_U32 u32GrpHeight;
-    CVI_BOOL bVpssPreProcSkip;
-    CVI_TDL_SUPPORTED_MODEL_E model_id;
-    float threshold;
-    CVI_U32 CountDirMode;
-    CVI_S32 A_x;
-    CVI_S32 A_y;
-    CVI_S32 B_x;
-    CVI_S32 B_y;
-    char model_path_count[MODEL_PATH_LEN];
-} APP_PARAM_AI_CONSUMER_COUNTING_CFG_S;
 
 typedef struct APP_PARAM_AI_FD_CFG_T {
     CVI_BOOL FD_bEnable;
-    CVI_BOOL FR_bEnable;
-    CVI_BOOL MASK_bEnable;
-    CVI_BOOL CAPTURE_bEnable;
-    CVI_BOOL FACE_AE_bEnable;
     VPSS_GRP VpssGrp;
     VPSS_CHN VpssChn;
-    VB_POOL FdPoolId;
     CVI_U32 u32GrpWidth;
-    CVI_U32 u32GrpHeight;
-    CVI_U32 model_size_w;
-    CVI_U32 model_size_h;
-    CVI_BOOL bVpssPreProcSkip;
+	CVI_U32 u32GrpHeight;
     float threshold_fd;
-    float threshold_fr;
-    float threshold_mask;
-    CVI_U32 thr_size_min;
-    CVI_U32 thr_size_max;
-    float thr_laplacian;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_fd;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_fr;
-    CVI_TDL_SUPPORTED_MODEL_E model_id_mask;
+    TDLModel model_id_fd;
     char model_path_fd[MODEL_PATH_LEN];
-    char model_path_capture[MODEL_PATH_LEN];
-    char model_path_fr[MODEL_PATH_LEN];
-    char model_path_mask[MODEL_PATH_LEN];
-    cvtdl_service_brush_t rect_brush;
 } APP_PARAM_AI_FD_CFG_S;
 
 typedef struct APP_PARAM_AI_FACE_AE_CFG_T {
     CVI_BOOL bEnable;
     CVI_U32 Face_ae_restore_time;
-    CVI_U32 Face_target_Luma;
+	CVI_U32 Face_target_Luma;
     CVI_U32 Face_target_Luma_L_range;
     CVI_U32 Face_target_Luma_H_range;
     CVI_U32 Face_target_Evbias_L_range;
@@ -186,9 +133,72 @@ typedef struct APP_PARAM_AI_IR_FD_CFG_T {
     char model_path_fd[MODEL_PATH_LEN];
     char model_path_ln[MODEL_PATH_LEN];
     char model_path_fr[MODEL_PATH_LEN];
+} APP_PARAM_AI_IR_FD_CFG_S;
 
-}APP_PARAM_AI_IR_FD_CFG_S;
+typedef struct APP_PARAM_AI_HUMAN_KEYPOINT_CFG_T {
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 model_size_w;
+    CVI_U32 model_size_h;
+    CVI_BOOL bVpssPreProcSkip;
+    float threshold;
+    TDLModel model_id;
+    char model_path[MODEL_PATH_LEN];
+    // cvtdl_service_brush_t rect_brush;
+} APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S;
 
+typedef struct APP_PARAM_AI_OBJECT_TRACK_CFG_T
+{
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+    CVI_U32 u32GrpHeight;
+    TDLModel model_id_det;
+    TDLModel model_id_sot;
+    char model_path_det[MODEL_PATH_LEN];
+    char model_path_sot[MODEL_PATH_LEN];
+    char model_path_cfg[MODEL_PATH_LEN];
+    float threshold_occluded;
+    float threshold_reappear;
+    CVI_U32 lost_timeout_seconds;
+    TDLTargetSearchTypeE search_type;
+} APP_PARAM_AI_OBJECT_TRACK_CFG_S;
+
+typedef struct APP_PARAM_AI_IMG_TXT_CLIP_CFG_T
+{
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+    CVI_U32 u32GrpHeight;
+    TDLModel model_id_img;
+    TDLModel model_id_txt;
+    char model_path_img[MODEL_PATH_LEN];
+    char model_path_txt[MODEL_PATH_LEN];
+    char model_path_cfg[MODEL_PATH_LEN];
+    char txt_dir[MODEL_PATH_LEN];
+} APP_PARAM_AI_IMG_TXT_CLIP_S;
+
+typedef enum { DETECTION = 0, TRACKING = 1 } APP_PARAM_OBJECT_TRACK_MODE;
+
+typedef struct APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S {
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    float threshold;
+    TDLModel detect_model_id;
+    char detect_model_path[MODEL_PATH_LEN];
+    TDLModel keypoint_model_id;
+    char keypoint_model_path[MODEL_PATH_LEN];
+    TDLModel classify_model_id;
+    char classify_model_path[MODEL_PATH_LEN];
+    char model_path_cfg[MODEL_PATH_LEN];
+    CVI_BOOL bEnableClassification;  // 是否启用手势分类
+} APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S;
+
+#ifdef PD_SUPPORT
 /* Personnel detection function */
 APP_PARAM_AI_PD_CFG_S *app_ipcam_Ai_PD_Param_Get(void);
 CVI_VOID app_ipcam_Ai_PD_ProcStatus_Set(CVI_BOOL flag);
@@ -198,24 +208,13 @@ CVI_BOOL app_ipcam_Ai_PD_Pause_Get(void);
 int app_ipcam_Ai_PD_Rect_Draw(VIDEO_FRAME_INFO_S *pstVencFrame);
 int app_ipcam_Ai_PD_Start(void);
 int app_ipcam_Ai_PD_Stop(void);
-int app_ipcam_Ai_PD_ObjDrawInfo_Get(cvtdl_object_t *pstAiObj);
+int app_ipcam_Ai_PD_ObjDrawInfo_Get(TDLObject *pstAiObj);
 CVI_U32 app_ipcam_Ai_PD_ProcFps_Get(void);
 CVI_S32 app_ipcam_Ai_PD_ProcTime_Get(void);
 CVI_S32 app_ipcam_Pd_threshold_Set(float threshold);
 CVI_S32 app_ipcam_Ai_Pd_Intrusion_Init(void);
 CVI_U32 app_ipcam_Ai_PD_ProcIntrusion_Num_Get(void);
 CVI_S32 app_ipcam_Ai_PD_StatusGet(void);
-
-#ifdef HAND_DETECT_SUPPORT
-/* Hand detection function */
-APP_PARAM_AI_HD_CFG_S *app_ipcam_Ai_HD_Param_Get(void);
-CVI_VOID app_ipcam_Ai_HD_ProcStatus_Set(CVI_BOOL flag);
-CVI_BOOL app_ipcam_Ai_HD_ProcStatus_Get(void);
-CVI_VOID app_ipcam_Ai_HD_Pause_Set(CVI_BOOL flag);
-CVI_BOOL app_ipcam_Ai_HD_Pause_Get(void);
-int app_ipcam_Ai_HD_Start(void);
-int app_ipcam_Ai_HD_Stop(void);
-int app_ipcam_Ai_HD_ObjDrawInfo_Get(cvtdl_object_t *pstAiObj);
 #endif
 
 #ifdef FACE_SUPPORT
@@ -228,7 +227,7 @@ CVI_BOOL app_ipcam_Ai_FD_Pause_Get(void);
 int app_ipcam_Ai_FD_Rect_Draw(VIDEO_FRAME_INFO_S *pstVencFrame);
 int app_ipcam_Ai_FD_Start(void);
 int app_ipcam_Ai_FD_Stop(void);
-int app_ipcam_Ai_FD_ObjDrawInfo_Get(cvtdl_face_t *pstAiObj);
+int app_ipcam_Ai_FD_ObjDrawInfo_Get(TDLFace *pstAiObj);
 CVI_U32 app_ipcam_Ai_FD_ProcFps_Get(void);
 CVI_S32 app_ipcam_Ai_FD_ProcTime_Get(void);
 #endif
@@ -242,8 +241,25 @@ CVI_S32 app_ipcam_Ai_IR_FD_UnRegister(char * gallery_name);
 CVI_S32 app_ipcam_Ai_IR_FD_Register(char * galler_name);
 #endif
 
-#if defined AUDIO_SUPPORT && defined AI_BABYCRY_SUPPORT
+/* motion detection function */
+APP_PARAM_AI_MD_CFG_S *app_ipcam_Ai_MD_Param_Get(void);
+CVI_VOID app_ipcam_Ai_MD_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_MD_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_MD_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_MD_Pause_Get(void);
+// int app_ipcam_Ai_MD_Rect_Draw(VIDEO_FRAME_INFO_S *pstVencFrame);
+int app_ipcam_Ai_MD_Start(void);
+int app_ipcam_Ai_MD_Stop(void);
+int app_ipcam_Ai_MD_ObjDrawInfo_Get(TDLObject *pstMdObj);
+CVI_U32 app_ipcam_Ai_MD_ProcFps_Get(void);
+CVI_S32 app_ipcam_Ai_MD_ProcTime_Get(void);
+CVI_VOID app_ipcam_Ai_MD_Thresold_Set(CVI_U32 value);
+CVI_U32 app_ipcam_Ai_MD_Thresold_Get(void);
+CVI_S32 app_ipcam_Ai_MD_StatusGet(void);
+// CVI_VOID app_ipcam_Ai_MD_obj_Free(cvimd_object_t *pstMdObj);
+
 /* baby_cry detection function */
+#ifdef AUDIO_SUPPORT
 typedef enum {
     BABY_CRY = 0,
     AUDIO_ORDER = 1,
@@ -259,30 +275,66 @@ int app_ipcam_Ai_Cry_Start(void);
 CVI_S32 app_ipcam_Ai_Cry_StatusGet(void);
 #endif
 
-#ifdef CONSUMER_COUNTING_SUPPORT
-/* Consumer Counting function */
-APP_PARAM_AI_CONSUMER_COUNTING_CFG_S *app_ipcam_Ai_Consumer_Counting_Param_Get(void);
-int app_ipcam_Ai_Consumer_Counting_Start(void);
-int app_ipcam_Ai_Consumer_Counting_Stop(void);
-int app_ipcam_Ai_Consumer_Counting_ObjDrawInfo_Get(cvtdl_object_t *pstAiObjHead, cvtdl_object_t *pstAiObjPed);
-CVI_U32 app_ipcam_Ai_Consumer_Counting_ProcFps_Get(void);
-CVI_VOID app_ipcam_Ai_Consumer_Counting_ProcStatus_Set(CVI_BOOL flag);
-CVI_BOOL app_ipcam_Ai_Consumer_Counting_ProcStatus_Get(void);
-CVI_VOID app_ipcam_Ai_Consumer_Counting_Pause_Set(CVI_BOOL flag);
-CVI_BOOL app_ipcam_Ai_Consumer_Counting_Pause_Get(void);
-CVI_VOID app_ipcam_Ai_Consumer_Counting_People_Num_Get(CVI_S32 *cur_num, CVI_S32 *entry_num, CVI_S32 *miss_num);
-#endif
-
 #ifdef FACE_SUPPORT
 /* face ae */
-CVI_VOID app_ipcam_Ai_FD_AEStart(VIDEO_FRAME_INFO_S *pstFrame, cvtdl_face_t *pstFace);
-
-/* face capture*/
-CVI_S32 app_ipcam_Ai_Face_Capture_Init(cvitdl_handle_t *handle);
-CVI_S32 app_ipcam_Ai_Face_Capture(VIDEO_FRAME_INFO_S *stfdFrame,cvtdl_face_t *capture_face);
-CVI_S32 app_ipcam_Ai_Face_Capture_Stop(void);
+// CVI_VOID app_ipcam_Ai_FD_AEStart(VIDEO_FRAME_INFO_S *pstFrame, TDLFace *pstFace);
+// /* face capture*/
+// CVI_S32 app_ipcam_Ai_Face_Capture_Init(TDLHandle *handle);
+// CVI_S32 app_ipcam_Ai_Face_Capture(VIDEO_FRAME_INFO_S *stfdFrame, TDLFace *capture_face);
+// CVI_S32 app_ipcam_Ai_Face_Capture_Stop(void);
 #endif
 
+#ifdef HUMAN_KEYPOINT_SUPPORT
+/* Human Keypoint Detection function */
+APP_PARAM_AI_HUMAN_KEYPOINT_CFG_S *app_ipcam_Ai_Human_Keypoint_Param_Get(void);
+CVI_VOID app_ipcam_Ai_Human_Keypoint_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Human_Keypoint_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Human_Keypoint_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Human_Keypoint_Pause_Get(void);
+int app_ipcam_Ai_Human_Keypoint_Start(void);
+int app_ipcam_Ai_Human_Keypoint_Stop(void);
+int app_ipcam_Ai_Human_Keypoint_ObjDrawInfo_Get(TDLObject *pstAiObj);
+CVI_S32 app_ipcam_Human_Keypoint_threshold_Set(float threshold);
+CVI_S32 app_ipcam_Ai_Human_Keypoint_StatusGet(void);
+#endif
+
+#ifdef OBJECT_TRACK_SUPPORT
+APP_PARAM_AI_OBJECT_TRACK_CFG_S *app_ipcam_Ai_Object_Track_Param_Get(void);
+CVI_BOOL app_ipcam_Ai_Object_Track_Pause_Get(void);
+CVI_VOID app_ipcam_Ai_Object_Track_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Object_Track_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Object_Track_ProcStatus_Set(CVI_BOOL flag);
+int app_ipcam_Ai_Object_Track_Start(void);
+int app_ipcam_Ai_Object_Track_Stop(void);
+CVI_VOID app_ipcam_Ai_Object_Track_ObjDrawInfo_Get(TDLObject *pstAiObj);
+APP_PARAM_OBJECT_TRACK_MODE app_ipcam_Ai_Object_Track_Mode_Get(void);
+CVI_VOID app_ipcam_Ai_Object_Track_DefaultBox_Get(int32_t box[4]);
+#endif
+
+#ifdef KEYPOINT_HAND_GESTURE_SUPPORT
+/* Keypoint Hand Gesture Detection function */
+APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S *app_ipcam_Ai_Keypoint_Hand_Gesture_Param_Get(void);
+CVI_VOID app_ipcam_Ai_Keypoint_Hand_Gesture_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Keypoint_Hand_Gesture_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Keypoint_Hand_Gesture_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Keypoint_Hand_Gesture_Pause_Get(void);
+int app_ipcam_Ai_Keypoint_Hand_Gesture_Start(void);
+int app_ipcam_Ai_Keypoint_Hand_Gesture_Stop(void);
+int app_ipcam_Ai_Keypoint_Hand_Gesture_ObjDrawInfo_Get(TDLObject *pstAiObj);
+CVI_S32 app_ipcam_Keypoint_Hand_Gesture_threshold_Set(float threshold);
+CVI_S32 app_ipcam_Ai_Keypoint_Hand_Gesture_StatusGet(void);
+#endif
+
+#ifdef IMG_TXT_CLIP_SUPPORT
+APP_PARAM_AI_IMG_TXT_CLIP_S *app_ipcam_Ai_Img_Txt_Clip_Param_Get(void);
+CVI_BOOL app_ipcam_Ai_Img_Txt_Clip_Pause_Get(void);
+CVI_VOID app_ipcam_Ai_Img_Txt_Clip_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Img_Txt_Clip_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Img_Txt_Clip_ProcStatus_Set(CVI_BOOL flag);
+int app_ipcam_Ai_Img_Txt_Clip_Start(void);
+int app_ipcam_Ai_Img_Txt_Clip_Stop(void);
+CVI_VOID app_ipcam_Ai_Img_Txt_Clip_ObjDrawInfo_Get(TDLObject *pstAiObj);
+#endif
 
 #ifdef __cplusplus
 }

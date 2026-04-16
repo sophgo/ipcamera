@@ -189,6 +189,13 @@ config MODULE_AI_BABYCRY
 	help
 		enable ai babycry in applicant
 
+config MODULE_AI_OBJECT_TRACK
+	bool "enable module ai object track"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai object track in applicant
+
 config MODULE_AI_CONSUMER_COUNTING
 	bool "enable module ai consumer counting"
 	default n

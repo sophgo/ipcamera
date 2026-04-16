@@ -9,13 +9,15 @@ LIBS-$(CONFIG_MODULE_IRCUT)                       += -lapp_ircut
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_pwm
 
-LIBS-$(CONFIG_MODULE_AI_MD)                       += -lapp_md
-LIBS-$(CONFIG_MODULE_AI_PD)                       += -lapp_ai_pd
-LIBS-$(CONFIG_MODULE_AI_HAND_DETECT)              += -lapp_ai_hand_detect
 LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_ai_fd_cace
+LIBS-$(CONFIG_MODULE_AI_PD)                       += -lapp_ai_pd
+LIBS-$(CONFIG_MODULE_AI_MD)                       += -lapp_ai_md
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_ai_irface
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_ai_babycry
-LIBS-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)        += -lapp_ai_consumer_counting
+LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_ai_human_keypoint_detect
+LIBS-$(CONFIG_MODULE_AI_OBJECT_TRACK)             += -lapp_ai_object_track
+LIBS-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)    += -lapp_ai_keypoint_hand_gesture
+LIBS-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)             += -lapp_ai_img_txt_clip
 
 LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
@@ -28,8 +30,8 @@ LIBS-$(CONFIG_MODULE_MEDIA_GDC)                   += -lapp_media_gdc
 LIBS-$(CONFIG_MODULE_MEDIA_VENC)                  += -lapp_media_venc
 LIBS-$(CONFIG_MODULE_MEDIA_OSD)                   += -lapp_media_osd
 LIBS-$(CONFIG_MODULE_MEDIA_VO)                    += -lapp_media_vo
-LIBS-$(CONFIG_MODULE_MEDIA_VDEC)                   += -lapp_media_vdec
-LIBS-$(CONFIG_MODULE_MEDIA_VDECSOFT)               += -lapp_media_vdecsoft
+LIBS-$(CONFIG_MODULE_MEDIA_VDEC)                  += -lapp_media_vdec
+LIBS-$(CONFIG_MODULE_MEDIA_VDECSOFT)              += -lapp_media_vdecsoft
 LIBS-$(CONFIG_MODULE_CVIUAC)                      += -lapp_cvi_uac
 LIBS-$(CONFIG_MODULE_CVIUVC)                      += -lapp_cvi_uvc
 LIBS-$(CONFIG_MODULE_MEDIA_STITCH)                += -lapp_media_stitch
@@ -51,11 +53,13 @@ LIBS-$(CONFIG_MODULE_MEDIA_DPU)                   += -lapp_paramparse_dpu
 LIBS-$(CONFIG_MODULE_AI)                          += -lapp_paramparse_ai
 LIBS-$(CONFIG_MODULE_AI_MD)                       += -lapp_paramparse_ai_md
 LIBS-$(CONFIG_MODULE_AI_PD)                       += -lapp_paramparse_ai_pd
-LIBS-$(CONFIG_MODULE_AI_HAND_DETECT)              += -lapp_paramparse_ai_hd
 LIBS-$(CONFIG_MODULE_AI_FD_FACE)                  += -lapp_paramparse_ai_face
 LIBS-$(CONFIG_MODULE_AI_IRFAECE)                  += -lapp_paramparse_ai_ir_face
 LIBS-$(CONFIG_MODULE_AI_BABYCRY)                  += -lapp_paramparse_ai_babycry
-LIBS-$(CONFIG_MODULE_AI_CONSUMER_COUNTING)        += -lapp_paramparse_ai_consumer_counting
+LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_paramparse_ai_human_keypoint_detect
+LIBS-$(CONFIG_MODULE_AI_OBJECT_TRACK)             += -lapp_paramparse_ai_object_track
+LIBS-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)    += -lapp_paramparse_ai_keypoint_hand_gesture
+LIBS-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)             += -lapp_paramparse_ai_img_txt_clip
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_paramparse_frmbuf
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
@@ -96,18 +100,16 @@ LIBS-$(CONFIG_MODULE_CVIUAC) += -lcvi_dnvqe -lcvi_ssp2
 LIBS-$(CONFIG_MODULE_CVIUAC)  += -laacdec2 -laacenc2 -laacsbrdec2 -laacsbrenc2 -laaccomm2
 LIBS-$(CONFIG_MODULE_MEDIA_STITCH)  += -lstitch
 LIBS-$(CONFIG_MODULE_MEDIA_DPU)  += -ldpu -lcvi_ive
-LIBS-$(CONFIG_MODULE_AI_MD) += -L$(TDL_PATH)/install/lib/
-LIBS-$(CONFIG_MODULE_AI_MD) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib/
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/install/SOPHON/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/libsophon/install/libsophon-0.4.9/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/opencv-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/opencv-src/lib/opencv4/3rdparty
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/zlib-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk//build/SOPHON/_deps/curl-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/kaldi-native-fbank-build
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/kissfft-build
 
-ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # MD libs static link
-  MDSDK := -lcvi_md
-  IVE := -lcvi_ive
-  LIBS-$(CONFIG_MODULE_AI_MD) += -Wl,--start-group $(MDSDK) $(IVE) $(TPU) -Wl,--end-group
-else # MD libs dynamic link
-  MDSDK := -lcvi_md
-  IVE := -lcvi_ive
-  LIBS-$(CONFIG_MODULE_AI_MD) += $(MDSDK) $(TPU) $(IVE)
-endif # MD libs static link end
+IVE := -lcvi_ive
 
 ifneq ($(findstring $(TARGET_MACHINE), riscv64-unknown-linux-musl),)
   LIBS-$(CONFIG_MODULE_AI) += -L$(APP_PREBUILT_DIR)/jpegturbo/musl_lib
@@ -122,28 +124,17 @@ else
 endif
 JPEG-TUBRO = -lturbojpeg
 
-LIBS-$(CONFIG_MODULE_AI) += -L$(TDL_PATH)/install/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TDL_PATH)/install/sample/3rd/opencv/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(MW_PATH)/3rdparty/opencv/lib_64
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/libsophon-0.4.9/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_ive_sdk/lib
-ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y) # AI libs static link
-    AISDK += -lgdc -lcvi_tdl -lcvi_tdl_app
-    IVE = -lcvi_ive
-    ifneq ($(wildcard $(OUTPUT_DIR)/tpu_$(SDK_VER)/cvitek_tpu_sdk/libsophon-0.4.9/lib/libbmrt.a),)
-      TPU := -lbmrt -lbmlib -lbmodel
-    else
-      TPU := -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
-    endif
-    OPENCV += -lz -ltegra_hal -lopencv_core -lopencv_imgproc
-  LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(IVE) $(TPU) $(OPENCV) $(JPEG-TUBRO) -Wl,--end-group
+ifeq ($(CONFIG_STATIC_COMPILER_SUPPORT), y)
+AISDK := -ltdl_core-static
+AISDK_AUDIO_DEPS := -lkaldi-native-fbank-core -lkissfft-float
+TPU =  -lbmrt -lbmlib -lbmodel
 else
-    AISDK += -lcvi_tdl -lcvi_tdl_app
-    IVE = -lcvi_ive
-    TPU := -lbmrt -lbmlib
-  LIBS-$(CONFIG_MODULE_AI) += $(AISDK) $(TPU) $(IVE) $(JPEG-TUBRO)
+AISDK := -Wl,-Bdynamic -ltdl_core
+AISDK_AUDIO_DEPS :=
+TPU =  -Wl,-Bdynamic -lbmrt -lbmlib -Wl,-Bstatic
 endif
+OPENCV += -lz -lcurl -ltegra_hal -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -llibopenjp2 -llibpng -llibtiff -llibwebp -littnotify
+LIBS-$(CONFIG_MODULE_AI) += -Wl,--start-group $(AISDK) $(AISDK_AUDIO_DEPS) $(TPU) $(OPENCV) $(JPEG-TUBRO) $(IVE) -Wl,--end-group
 
 LIBS-$(CONFIG_MODULE_PQTOOL) += -Wl,-Bstatic -lcvi_ispd2 -lvo -lisp -lraw_dump -lcvi_json-c
 

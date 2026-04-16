@@ -1920,8 +1920,8 @@ int CVI_IPC_NetCtrlSetCry(APP_CRY_INFO_S pscryinfo)
 #ifdef PD_SUPPORT
 int CVI_IPC_NetCtrlSetPd(APP_PD_INFO_S pspdinfo)
 {
-    CVI_S32 s32Ret = CVI_SUCCESS;
-    APP_PARAM_AI_PD_CFG_S *pstPdInfo = app_ipcam_Ai_PD_Param_Get();
+    // CVI_S32 s32Ret = CVI_SUCCESS;
+    // APP_PARAM_AI_PD_CFG_S *pstPdInfo = app_ipcam_Ai_PD_Param_Get();
     if(app_ipcam_Ai_PD_ProcStatus_Get() != pspdinfo.enabled)
     {
         if (pspdinfo.enabled)
@@ -1936,54 +1936,54 @@ int CVI_IPC_NetCtrlSetPd(APP_PD_INFO_S pspdinfo)
         }
     }
 
-    if (!((pstPdInfo->region_stRect_x1 == pspdinfo.region_stRect_x1) &&
-        (pstPdInfo->region_stRect_y1 == pspdinfo.region_stRect_y1) &&
-        (pstPdInfo->region_stRect_x2 == pspdinfo.region_stRect_x2) &&
-        (pstPdInfo->region_stRect_y2 == pspdinfo.region_stRect_y2) &&
-        (pstPdInfo->region_stRect_x3 == pspdinfo.region_stRect_x3) &&
-        (pstPdInfo->region_stRect_y3 == pspdinfo.region_stRect_y3) &&
-        (pstPdInfo->region_stRect_x4 == pspdinfo.region_stRect_x4) &&
-        (pstPdInfo->region_stRect_y4 == pspdinfo.region_stRect_y4) &&
-        (pstPdInfo->region_stRect_x5 == pspdinfo.region_stRect_x5) &&
-        (pstPdInfo->region_stRect_y5 == pspdinfo.region_stRect_y5) &&
-        (pstPdInfo->region_stRect_x6 == pspdinfo.region_stRect_x6) &&
-        (pstPdInfo->region_stRect_y6 == pspdinfo.region_stRect_y6)) ||
-        (pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)) 
-    {
-        app_ipcam_Ai_PD_Stop();
-        if(pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)
-        {
-            pstPdInfo->Intrusion_bEnable = pspdinfo.Intrusion_enabled;
-        }
-        else{
-            pstPdInfo->region_stRect_x1 = pspdinfo.region_stRect_x1;
-            pstPdInfo->region_stRect_y1 = pspdinfo.region_stRect_y1;
-            pstPdInfo->region_stRect_x2 = pspdinfo.region_stRect_x2;
-            pstPdInfo->region_stRect_y2 = pspdinfo.region_stRect_y2;
-            pstPdInfo->region_stRect_x3 = pspdinfo.region_stRect_x3;
-            pstPdInfo->region_stRect_y3 = pspdinfo.region_stRect_y3;
-            pstPdInfo->region_stRect_x4 = pspdinfo.region_stRect_x4;
-            pstPdInfo->region_stRect_y4 = pspdinfo.region_stRect_y4;
-            pstPdInfo->region_stRect_x5 = pspdinfo.region_stRect_x5;
-            pstPdInfo->region_stRect_y5 = pspdinfo.region_stRect_y5;
-            pstPdInfo->region_stRect_x6 = pspdinfo.region_stRect_x6;
-            pstPdInfo->region_stRect_y6 = pspdinfo.region_stRect_y6;
-        }
-        app_ipcam_Ai_PD_Start();
-        return 0;
-    }
+    // if (!((pstPdInfo->region_stRect_x1 == pspdinfo.region_stRect_x1) &&
+    //     (pstPdInfo->region_stRect_y1 == pspdinfo.region_stRect_y1) &&
+    //     (pstPdInfo->region_stRect_x2 == pspdinfo.region_stRect_x2) &&
+    //     (pstPdInfo->region_stRect_y2 == pspdinfo.region_stRect_y2) &&
+    //     (pstPdInfo->region_stRect_x3 == pspdinfo.region_stRect_x3) &&
+    //     (pstPdInfo->region_stRect_y3 == pspdinfo.region_stRect_y3) &&
+    //     (pstPdInfo->region_stRect_x4 == pspdinfo.region_stRect_x4) &&
+    //     (pstPdInfo->region_stRect_y4 == pspdinfo.region_stRect_y4) &&
+    //     (pstPdInfo->region_stRect_x5 == pspdinfo.region_stRect_x5) &&
+    //     (pstPdInfo->region_stRect_y5 == pspdinfo.region_stRect_y5) &&
+    //     (pstPdInfo->region_stRect_x6 == pspdinfo.region_stRect_x6) &&
+    //     (pstPdInfo->region_stRect_y6 == pspdinfo.region_stRect_y6)) ||
+    //     (pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)) 
+    // {
+    //     app_ipcam_Ai_PD_Stop();
+    //     if(pstPdInfo->Intrusion_bEnable != pspdinfo.Intrusion_enabled)
+    //     {
+    //         pstPdInfo->Intrusion_bEnable = pspdinfo.Intrusion_enabled;
+    //     }
+    //     else{
+    //         pstPdInfo->region_stRect_x1 = pspdinfo.region_stRect_x1;
+    //         pstPdInfo->region_stRect_y1 = pspdinfo.region_stRect_y1;
+    //         pstPdInfo->region_stRect_x2 = pspdinfo.region_stRect_x2;
+    //         pstPdInfo->region_stRect_y2 = pspdinfo.region_stRect_y2;
+    //         pstPdInfo->region_stRect_x3 = pspdinfo.region_stRect_x3;
+    //         pstPdInfo->region_stRect_y3 = pspdinfo.region_stRect_y3;
+    //         pstPdInfo->region_stRect_x4 = pspdinfo.region_stRect_x4;
+    //         pstPdInfo->region_stRect_y4 = pspdinfo.region_stRect_y4;
+    //         pstPdInfo->region_stRect_x5 = pspdinfo.region_stRect_x5;
+    //         pstPdInfo->region_stRect_y5 = pspdinfo.region_stRect_y5;
+    //         pstPdInfo->region_stRect_x6 = pspdinfo.region_stRect_x6;
+    //         pstPdInfo->region_stRect_y6 = pspdinfo.region_stRect_y6;
+    //     }
+    //     app_ipcam_Ai_PD_Start();
+    //     return 0;
+    // }
     
-    if(pstPdInfo->threshold != pspdinfo.threshold)
-    {
-        pstPdInfo->threshold = pspdinfo.threshold;
-        s32Ret = app_ipcam_Pd_threshold_Set(pstPdInfo->threshold);
-        if (s32Ret != CVI_SUCCESS)
-        {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Pd_threshold_Set failed with %#x!\n", s32Ret);
-            return s32Ret;
-        }
-        return 0;
-    }
+    // if(pstPdInfo->threshold != pspdinfo.threshold)
+    // {
+    //     pstPdInfo->threshold = pspdinfo.threshold;
+    //     s32Ret = app_ipcam_Pd_threshold_Set(pstPdInfo->threshold);
+    //     if (s32Ret != CVI_SUCCESS)
+    //     {
+    //         APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Pd_threshold_Set failed with %#x!\n", s32Ret);
+    //         return s32Ret;
+    //     }
+    //     return 0;
+    // }
     return 0;
 }
 #endif
@@ -1993,7 +1993,7 @@ static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
     cJSON* cjsonAiAttr = NULL;
     char* str = NULL;
     #ifdef PD_SUPPORT
-    APP_PARAM_AI_PD_CFG_S *pstPdInfo = app_ipcam_Ai_PD_Param_Get();
+    // APP_PARAM_AI_PD_CFG_S *pstPdInfo = app_ipcam_Ai_PD_Param_Get();
     #endif
     #ifdef MD_SUPPORT
     APP_PARAM_MD_CFG_S *pstMdInfo = app_ipcam_MD_Param_Get();
@@ -2011,21 +2011,21 @@ static int GetAiInfoCallBack(void *param, const char *cmd, const char *val)
     // pd
     #ifdef PD_SUPPORT
     cJSON_AddNumberToObject(cjsonAiAttr, "pd_enable", app_ipcam_Ai_PD_StatusGet());
-    cJSON_AddNumberToObject(cjsonAiAttr, "pd_intrusion_enable", app_ipcam_Ai_PD_StatusGet() ? pstPdInfo->Intrusion_bEnable : 0);
-    cJSON_AddNumberToObject(cjsonAiAttr, "pd_threshold", (int)(pstPdInfo->threshold * 100));
+    // cJSON_AddNumberToObject(cjsonAiAttr, "pd_intrusion_enable", app_ipcam_Ai_PD_StatusGet() ? pstPdInfo->Intrusion_bEnable : 0);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "pd_threshold", (int)(pstPdInfo->threshold * 100));
 
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x1",  pstPdInfo->region_stRect_x1);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y1",  pstPdInfo->region_stRect_y1);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x2",  pstPdInfo->region_stRect_x2);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y2",  pstPdInfo->region_stRect_y2);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x3",  pstPdInfo->region_stRect_x3);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y3",  pstPdInfo->region_stRect_y3);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x4",  pstPdInfo->region_stRect_x4);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y4",  pstPdInfo->region_stRect_y4);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x5",  pstPdInfo->region_stRect_x5);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y5",  pstPdInfo->region_stRect_y5);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_x6",  pstPdInfo->region_stRect_x6);
-    cJSON_AddNumberToObject(cjsonAiAttr, "region_y6",  pstPdInfo->region_stRect_y6);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x1",  pstPdInfo->region_stRect_x1);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y1",  pstPdInfo->region_stRect_y1);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x2",  pstPdInfo->region_stRect_x2);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y2",  pstPdInfo->region_stRect_y2);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x3",  pstPdInfo->region_stRect_x3);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y3",  pstPdInfo->region_stRect_y3);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x4",  pstPdInfo->region_stRect_x4);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y4",  pstPdInfo->region_stRect_y4);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x5",  pstPdInfo->region_stRect_x5);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y5",  pstPdInfo->region_stRect_y5);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_x6",  pstPdInfo->region_stRect_x6);
+    // cJSON_AddNumberToObject(cjsonAiAttr, "region_y6",  pstPdInfo->region_stRect_y6);
     #endif
 
     //cry
@@ -2095,57 +2095,57 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
     PdInfo.threshold = atoi(cjsonObj->valuestring) / 100.0;
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "pd_intrusion_enable");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.Intrusion_enabled = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "pd_intrusion_enable");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.Intrusion_enabled = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x1");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x1 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x1");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x1 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y1");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y1 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y1");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y1 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x2");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x2 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x2");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x2 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y2");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y2 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y2");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y2 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x3");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x3 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x3");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x3 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y3");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y3 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y3");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y3 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x4");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x4 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x4");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x4 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y4");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y4 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y4");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y4 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x5");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x5 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x5");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x5 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y5");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y5 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y5");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y5 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x6");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_x6 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_x6");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_x6 = atoi(cjsonObj->valuestring);
 
-    cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y6");
-    _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
-    PdInfo.region_stRect_y6 = atoi(cjsonObj->valuestring);
+    // cjsonObj = cJSON_GetObjectItem(cjsonParser, "region_y6");
+    // _NULL_POINTER_CHECK_(cjsonObj->valuestring, -1);
+    // PdInfo.region_stRect_y6 = atoi(cjsonObj->valuestring);
     #endif
 
     #ifdef MD_SUPPORT

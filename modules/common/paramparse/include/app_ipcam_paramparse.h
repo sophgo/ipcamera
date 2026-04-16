@@ -49,10 +49,6 @@
 #include "app_ipcam_ai.h"
 #endif
 
-#ifdef MD_SUPPORT
-#include "app_ipcam_md.h"
-#endif
-
 #ifdef RECORD_SUPPORT
 #include "app_ipcam_record.h"
 #endif

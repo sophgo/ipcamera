@@ -6,33 +6,82 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_BITMAP), y)
 	@cp -f $(APP_RESOURCE_DIR)/bitmap/tiger.bmp $(APP_INSTALL_DIR)
 endif
 #CV186AH AI MODEL
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D0_384),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d0-384_cv186x.cvimodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_MODULE_AI),y)
+	@cp -f $(TDL_PATH)/install/SOPHON/configs/model/model_factory.json $(APP_INSTALL_DIR)
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D0_448),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d0-448_cv186x.cvimodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_CLS_ATTRIBUTE_GENDER_AGE_GLASS_EMOTION),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/cls_attribute_gender_age_glass_emotion_112_112_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D1_896),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d1-896_cv186x.cvimodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_FEATURE_CLIP_IMAGE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/feature_clip_image_224_224_W4BF16_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_MOBILEDETV2_PEDESTRIAN_D1_LS_896),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/mobiledetv2-pedestrian-d1-ls-896_cv186x.cvimodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_FEATURE_CLIP_TEXT),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/feature_clip_text_1_77_W4BF16_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_CVIFACE_V6_S_MIX),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/cviface-v6-s_mix_cv186x.bmodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_FEATURE_CVIFACE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/feature_cviface_112_112_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_HAND_DET_QAT_640X384_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/hand_det_qat_640x384_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_KEYPOINT_FACE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/keypoint_face_v2_64_64_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_HAND_KPT_128X128_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/hand_kpt_128x128_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_SCRFD_DET_FACE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/scrfd_det_face_432_768_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_HAND_KPT_CLS9_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/hand_kpt_cls9_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_TRACKING_FEARTRACK),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/tracking_feartrack_128_128_256_256_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
-ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_SCRFD_500M_BNKPS_432X768_INT8),y)
-	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/scrfd_500m_bnkps_432_768_int8_cv186x.bmodel $(APP_INSTALL_DIR)
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_YOLOV8N_DET_MONITOR_PERSON),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/yolov8n_det_monitor_person_256_448_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_YOLOV8N_DET_PERSON_VEHICLE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/yolov8n_det_person_vehicle_384_640_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_CLS_ATTRIBUTE_GENDER_AGE_GLASS_EMOTION),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/cls_attribute_gender_age_glass_emotion_112_112_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_FEATURE_CLIP_IMAGE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/feature_clip_image_224_224_W4BF16_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_FEATURE_CLIP_TEXT),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/feature_clip_text_1_77_W4BF16_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_FEATURE_CVIFACE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/feature_cviface_112_112_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_KEYPOINT_FACE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/keypoint_face_v2_64_64_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_SCRFD_DET_FACE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/scrfd_det_face_432_768_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_TRACKING_FEARTRACK),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/tracking_feartrack_128_128_256_256_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_YOLOV8N_DET_MONITOR_PERSON),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/yolov8n_det_monitor_person_256_448_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_YOLOV8N_DET_PERSON_VEHICLE),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/yolov8n_det_person_vehicle_384_640_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+
 #FILE  RECOVRY
 ifeq ($(CONFIG_RESOURCE_INSTALL_H264_PCM_TEMPLATE),y)
 	@cp -f $(APP_RESOURCE_DIR)/file_recover/h264_pcm_template.bin $(APP_INSTALL_DIR)
