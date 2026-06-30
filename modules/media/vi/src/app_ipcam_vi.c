@@ -1445,6 +1445,9 @@ CVI_S32 app_ipcam_Isp_PubAttr_Get(SAMPLE_SNS_TYPE_E enSnsType, ISP_PUB_ATTR_S *p
     memcpy(pstIspPubAttr, &isp_pub_attr_base, sizeof(ISP_PUB_ATTR_S));
     //FPS
     switch (enSnsType) {
+    case GCORE_GC2093_MIPI_2M_60FPS_10BIT:
+        pstIspPubAttr->f32FrameRate = 60;
+        break;
     default:
         pstIspPubAttr->f32FrameRate = 25;
         break;
@@ -1818,6 +1821,7 @@ int app_ipcam_Vi_Dev_Start(void)
     VI_PIPE     ViPipe;
     VI_DEV         ViDev;
     VI_DEV_ATTR_S  stViDevAttr;
+    ISP_PUB_ATTR_S stPubAttr;
 
     for (CVI_U32 i = 0; i < g_pstViCtx->u32WorkSnsCnt; i++) {
         APP_PARAM_SNS_CFG_T *pstSnsCfg = &g_pstViCtx->astSensorCfg[i];
@@ -1830,6 +1834,8 @@ int app_ipcam_Vi_Dev_Start(void)
         CVI_BOOL bMipiSwitchEn = pstSysCfg->astSwitchCfg.bMipiSwitchEnable;
 
         app_ipcam_Vi_DevAttr_Get(pstSnsCfg->enSnsType, &stViDevAttr);
+        s32Ret = app_ipcam_Isp_PubAttr_Get(pstSnsCfg->enSnsType, &stPubAttr);
+        APP_IPCAM_CHECK_RET(s32Ret, "app_ipcam_Isp_PubAttr_Get(%d) failed!\n", ViPipe);
 
         if (bMipiSwitchEn && 
             (((CVI_U32)ViPipe == pstSysCfg->astSwitchCfg.u32SwitchPipe0) || 
@@ -1841,6 +1847,7 @@ int app_ipcam_Vi_Dev_Start(void)
         stViDevAttr.stSize.u32Width     = pstChnCfg->u32Width;
         stViDevAttr.stSize.u32Height    = pstChnCfg->u32Height;
         stViDevAttr.stWDRAttr.enWDRMode = pstChnCfg->enWDRMode;
+        stViDevAttr.snrFps              = (CVI_U32)stPubAttr.f32FrameRate;
 
         s32Ret = CVI_VI_SetDevAttr(ViDev, &stViDevAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "CVI_VI_SetDevAttr(%d) failed!\n", ViDev);
@@ -2054,7 +2061,9 @@ int app_ipcam_Vi_Isp_Init(void)
         stPubAttr.stWndRect.u32Height = pstChnCfg->u32Height;
         stPubAttr.stSnsSize.u32Width  = pstChnCfg->u32Width;
         stPubAttr.stSnsSize.u32Height = pstChnCfg->u32Height;
-        stPubAttr.f32FrameRate        = pstChnCfg->f32Fps;
+        if (pstChnCfg->f32Fps > 0) {
+            stPubAttr.f32FrameRate = pstChnCfg->f32Fps;
+        }
         stPubAttr.enWDRMode           = pstSnsCfg->enWDRMode;
         s32Ret = CVI_ISP_SetPubAttr(ViPipe, &stPubAttr);
         APP_IPCAM_CHECK_RET(s32Ret, "SetPubAttr fail, ViPipe[%d]\n", ViPipe);
@@ -2291,10 +2300,12 @@ int app_ipcam_Vi_Isp_Start(void)
             return s32Ret;
         }
 
-        s32Ret = app_ipcam_Vi_framerate_Set(ViPipe, pstSnsCfg->s32Framerate);
-        if (s32Ret != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vi_framerate_Set failed with %#x!\n", s32Ret);
-            return s32Ret;
+        if (pstSnsCfg->s32Framerate > 0) {
+            s32Ret = app_ipcam_Vi_framerate_Set(ViPipe, pstSnsCfg->s32Framerate);
+            if (s32Ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Vi_framerate_Set failed with %#x!\n", s32Ret);
+                return s32Ret;
+            }
         }
     }
 
