@@ -198,6 +198,23 @@ typedef struct APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S {
     CVI_BOOL bEnableClassification;  // 是否启用手势分类
 } APP_PARAM_AI_KEYPOINT_HAND_GESTURE_CFG_S;
 
+#ifdef LPR_SUPPORT
+typedef struct APP_PARAM_AI_LPR_CFG_T {
+    CVI_BOOL bEnable;
+    VPSS_GRP VpssGrp;
+    VPSS_CHN VpssChn;
+    CVI_U32 u32GrpWidth;
+    CVI_U32 u32GrpHeight;
+    float threshold;
+    TDLModel model_id_det;
+    char model_path_det[MODEL_PATH_LEN];
+    TDLModel model_id_kp;
+    char model_path_kp[MODEL_PATH_LEN];
+    TDLModel model_id_rec;
+    char model_path_rec[MODEL_PATH_LEN];
+} APP_PARAM_AI_LPR_CFG_S;
+#endif
+
 /* Personnel detection function */
 APP_PARAM_AI_PD_CFG_S *app_ipcam_Ai_PD_Param_Get(void);
 CVI_VOID app_ipcam_Ai_PD_ProcStatus_Set(CVI_BOOL flag);
@@ -332,6 +349,21 @@ CVI_VOID app_ipcam_Ai_Img_Txt_Clip_ProcStatus_Set(CVI_BOOL flag);
 int app_ipcam_Ai_Img_Txt_Clip_Start(void);
 int app_ipcam_Ai_Img_Txt_Clip_Stop(void);
 CVI_VOID app_ipcam_Ai_Img_Txt_Clip_ObjDrawInfo_Get(TDLObject *pstAiObj);
+#endif
+
+#ifdef LPR_SUPPORT
+/* License Plate Recognition function */
+APP_PARAM_AI_LPR_CFG_S *app_ipcam_Ai_LPR_Param_Get(void);
+CVI_VOID app_ipcam_Ai_LPR_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_LPR_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_LPR_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_LPR_Pause_Get(void);
+int app_ipcam_Ai_LPR_Start(void);
+int app_ipcam_Ai_LPR_Stop(void);
+CVI_U32 app_ipcam_Ai_LPR_ProcFps_Get(void);
+CVI_S32 app_ipcam_Ai_LPR_ProcTime_Get(void);
+CVI_S32 app_ipcam_Ai_LPR_StatusGet(void);
+CVI_S32 app_ipcam_Lpr_threshold_Set(float threshold);
 #endif
 
 /*****************************************************************

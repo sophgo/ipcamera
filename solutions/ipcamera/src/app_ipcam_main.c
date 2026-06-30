@@ -162,6 +162,9 @@ static int app_ipcam_Exit(void)
     #ifdef IMG_TXT_CLIP_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Img_Txt_Clip_Stop(), "Img Txt Clip Stop");
     #endif
+    #ifdef LPR_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_LPR_Stop(), "LPR Stop");
+    #endif
     #endif
 
     #ifdef OSDC_SUPPORT
@@ -324,6 +327,10 @@ int main(int argc, char *argv[])
 
     #ifdef IMG_TXT_CLIP_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Img_Txt_Clip_Start(), "Img Txt Clip Stop");
+    #endif
+
+    #ifdef LPR_SUPPORT
+    APP_CHK_RET(app_ipcam_Ai_LPR_Start(), "running AI LPR");
     #endif
     #endif
 

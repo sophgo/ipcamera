@@ -25,6 +25,62 @@
 #include "app_ipcam_panel_i2c.h"
 #include "app_ipcam_vo.h"
 
+static CVI_BOOL app_ipcam_Panel_IsMs7024(const PANEL_TYPE_E enPanelType)
+{
+    switch (enPanelType) {
+    case PANEL_BT656_MS7024_720x480_60:
+    case PANEL_BT656_MS7024_720x480_30:
+    case PANEL_BT656_MS7024_720x576_25:
+    case PANEL_BT656_MS7024_720x576_50:
+        return CVI_TRUE;
+    default:
+        return CVI_FALSE;
+    }
+}
+
+static const CVI_CHAR *app_ipcam_Panel_Ms7024Name_Get(const PANEL_TYPE_E enPanelType)
+{
+    switch (enPanelType) {
+    case PANEL_BT656_MS7024_720x480_60:
+        return "MS7024-720x480-60";
+    case PANEL_BT656_MS7024_720x480_30:
+        return "MS7024-720x480-30";
+    case PANEL_BT656_MS7024_720x576_25:
+        return "MS7024-720x576-25";
+    case PANEL_BT656_MS7024_720x576_50:
+        return "MS7024-720x576-50";
+    default:
+        return "MS7024-unsupported";
+    }
+}
+
+static VO_SYNC_INFO_S app_ipcam_Panel_Ms7024SyncInfo_Get(const PANEL_TYPE_E enPanelType)
+{
+    switch (enPanelType) {
+    case PANEL_BT656_MS7024_720x480_30:
+        return (VO_SYNC_INFO_S){.bSynm = 1, .bIop = 1, .u16FrameRate = 30,
+            .u16Vact = 480, .u16Vbb = 30, .u16Vfb = 9,
+            .u16Hact = 720, .u16Hbb = 60, .u16Hfb = 16,
+            .u16Vpw = 6, .u16Hpw = 62, .bIdv = 0, .bIhs = 0, .bIvs = 0};
+    case PANEL_BT656_MS7024_720x576_25:
+        return (VO_SYNC_INFO_S){.bSynm = 1, .bIop = 1, .u16FrameRate = 25,
+            .u16Vact = 576, .u16Vbb = 39, .u16Vfb = 5,
+            .u16Hact = 720, .u16Hbb = 68, .u16Hfb = 12,
+            .u16Vpw = 5, .u16Hpw = 64, .bIdv = 0, .bIhs = 0, .bIvs = 0};
+    case PANEL_BT656_MS7024_720x576_50:
+        return (VO_SYNC_INFO_S){.bSynm = 1, .bIop = 1, .u16FrameRate = 50,
+            .u16Vact = 576, .u16Vbb = 39, .u16Vfb = 5,
+            .u16Hact = 720, .u16Hbb = 68, .u16Hfb = 12,
+            .u16Vpw = 5, .u16Hpw = 64, .bIdv = 0, .bIhs = 0, .bIvs = 0};
+    case PANEL_BT656_MS7024_720x480_60:
+    default:
+        return (VO_SYNC_INFO_S){.bSynm = 1, .bIop = 1, .u16FrameRate = 60,
+            .u16Vact = 480, .u16Vbb = 30, .u16Vfb = 9,
+            .u16Hact = 720, .u16Hbb = 60, .u16Hfb = 16,
+            .u16Vpw = 6, .u16Hpw = 62, .bIdv = 0, .bIhs = 0, .bIvs = 0};
+    }
+}
+
 CVI_S32 app_ipcam_Panel_PanelDesc_Get(
     const PANEL_TYPE_E* const penPanelType,
     PANEL_DESC_T* const pstPanelDesc,
@@ -195,7 +251,10 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(
         //     break;
 
         case PANEL_BT656_MS7024_720x480_60:
-            pstPanelDesc->pchPanelName = "MS7024-720x480";
+        case PANEL_BT656_MS7024_720x480_30:
+        case PANEL_BT656_MS7024_720x576_25:
+        case PANEL_BT656_MS7024_720x576_50:
+            pstPanelDesc->pchPanelName = app_ipcam_Panel_Ms7024Name_Get(*penPanelType);
             pstPanelDesc->pstDevCfg = NULL;
             pstPanelDesc->pstHsTimingCfg = NULL;
             pstPanelDesc->pstDsiInitCmds = NULL;
@@ -203,10 +262,7 @@ CVI_S32 app_ipcam_Panel_PanelDesc_Get(
             if (pstVoCfg) {
                 pstVoCfg->stVoPubAttr.enIntfType = VO_INTF_BT656;
                 pstVoCfg->stVoPubAttr.enIntfSync = VO_OUTPUT_USER;
-                pstVoCfg->stVoPubAttr.stSyncInfo = (VO_SYNC_INFO_S){.bSynm = 1, .bIop = 1, .u16FrameRate = 60,
-                    .u16Vact = 480, .u16Vbb = 30, .u16Vfb = 9,
-                    .u16Hact = 720, .u16Hbb = 60, .u16Hfb = 16,
-                    .u16Vpw = 6, .u16Hpw = 62, .bIdv = 0, .bIhs = 0, .bIvs = 0};
+                pstVoCfg->stVoPubAttr.stSyncInfo = app_ipcam_Panel_Ms7024SyncInfo_Get(*penPanelType);
             }
             break;
         case PANEL_LVDS_LCM185X56:
@@ -249,13 +305,10 @@ CVI_S32 app_ipcam_Panel_BT_Init(const APP_PARAM_VO_CFG_T* const pstVoCfg, const 
 
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
-    // 选择 BT 面板参数与是否需要 I2C 下发
-    switch (enPanelType) {
-    case PANEL_BT656_MS7024_720x480_60:
+    if (app_ipcam_Panel_IsMs7024(enPanelType)) {
         stBtAttr = stMS7024bt656cfg;
         bNeedI2c = CVI_TRUE;
-        break;
-    default:
+    } else {
         // 其他 BT 面板初始化流程预留
         return CVI_SUCCESS;
     }
@@ -280,7 +333,6 @@ CVI_S32 app_ipcam_Panel_BT_Init(const APP_PARAM_VO_CFG_T* const pstVoCfg, const 
         return ret;
     }
 
-    // I2C 初始化与面板寄存器下发
     if (bNeedI2c) {
         APP_CHK_RET(app_ipcam_Panel_I2c_Init(pstVoCfg->s32VoDev, pstI2cCfg),
                     "app_ipcam_Panel_I2c_Init");
@@ -297,12 +349,9 @@ CVI_S32 app_ipcam_Panel_BT_Deinit(const APP_PARAM_VO_CFG_T* const pstVoCfg, cons
 
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
-    // 选择 BT 面板反初始化行为
-    switch (enPanelType) {
-    case PANEL_BT656_MS7024_720x480_60:
+    if (app_ipcam_Panel_IsMs7024(enPanelType)) {
         bNeedI2c = CVI_TRUE;
-        break;
-    default:
+    } else {
         // 其他 BT 面板反初始化流程预留
         return CVI_SUCCESS;
     }

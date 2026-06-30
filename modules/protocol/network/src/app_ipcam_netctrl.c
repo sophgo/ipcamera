@@ -1957,7 +1957,9 @@ static int SetAiInfoCallBack(void *param, const char *cmd, const char *val)
     APP_PROF_LOG_PRINT(LEVEL_DEBUG,"enter: %s, %s %s\n", __func__, cmd, val);
     char decode[1024] = {0};
     cJSON *cjsonParser = NULL;
-    // cJSON *cjsonObj = NULL;
+#if defined(MD_SUPPORT) || defined(PD_SUPPORT) || (defined(AUDIO_SUPPORT) && defined(AI_BABYCRY_SUPPORT))
+    cJSON *cjsonObj = NULL;
+#endif
     int ret = 0;
     #ifdef PD_SUPPORT
     APP_PD_INFO_S PdInfo = {0};

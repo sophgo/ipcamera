@@ -21,6 +21,7 @@ LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_paramparse_ai_human_k
 LIBS-$(CONFIG_MODULE_AI_OBJECT_TRACK)             += -lapp_paramparse_ai_object_track
 LIBS-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)    += -lapp_paramparse_ai_keypoint_hand_gesture
 LIBS-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)             += -lapp_paramparse_ai_img_txt_clip
+LIBS-$(CONFIG_MODULE_AI_LPR)                      += -lapp_paramparse_ai_lpr
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_paramparse_pwm
@@ -48,6 +49,7 @@ LIBS-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)           += -lapp_ai_human_keypoint_det
 LIBS-$(CONFIG_MODULE_AI_OBJECT_TRACK)             += -lapp_ai_object_track
 LIBS-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)    += -lapp_ai_keypoint_hand_gesture
 LIBS-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)             += -lapp_ai_img_txt_clip
+LIBS-$(CONFIG_MODULE_AI_LPR)                      += -lapp_ai_lpr
 
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_display
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_panel
@@ -82,7 +84,7 @@ endif
 ## MEDIA
 # 双系统
 ifeq ($(DUAL_OS), y)
-LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lawb -lae -laf -lsensor -lmipi -lini
+LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lisp_algo -lawb -lae -laf -lsensor -lmipi -lini
 # 单系统
 else
 LIBS-y += -L$(MW_PATH)/lib -lcvi_bin -lvi -lvpss -lvo -lrgn -lgdc -lvenc -lvdec -lsys -lisp -lisp_algo -lawb -lae -laf -lsensor -lsensor_cfg -lsns_full -lmipi -lini

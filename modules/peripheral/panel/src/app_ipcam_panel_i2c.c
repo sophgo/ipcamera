@@ -148,6 +148,65 @@ static const PANEL_I2C_CMD_T g_ms7024_i2c_init_cmds[] = {
     {.addr = 0x06, .data = 0x0f, .delay_ms = 0},
 };
 
+static CVI_U8 app_ipcam_Panel_Ms7024CmdData_Get(const PANEL_TYPE_E enPanelType, CVI_U8 u8Addr, CVI_U8 u8Data)
+{
+    // What changed: Override MS7024 timing registers per output mode.
+    // Previous behavior: The fixed 720x480@60 I2C sequence was used for every MS7024 panel type.
+    // Impact: 480P30, 576P25, and 576P50 keep the same write order while using mode-specific values.
+    switch (enPanelType) {
+    case PANEL_BT656_MS7024_720x480_30:
+        switch (u8Addr) {
+        case 0x04:
+            return 0x1a;
+        case 0x0e:
+            return 0x56;
+        case 0x21:
+            return 0x08;
+        default:
+            return u8Data;
+        }
+    case PANEL_BT656_MS7024_720x576_25:
+        switch (u8Addr) {
+        case 0x04:
+            return 0x1a;
+        case 0x0e:
+            return 0x56;
+        case 0x31:
+            return 0x53;
+        case 0x33:
+            return 0x79;
+        case 0x35:
+            return 0x6d;
+        case 0x37:
+            return 0x2d;
+        case 0x21:
+            return 0x08;
+        case 0x60:
+            return 0xc3;
+        default:
+            return u8Data;
+        }
+    case PANEL_BT656_MS7024_720x576_50:
+        switch (u8Addr) {
+        case 0x31:
+            return 0x53;
+        case 0x33:
+            return 0x79;
+        case 0x35:
+            return 0x6d;
+        case 0x37:
+            return 0x2d;
+        case 0x60:
+            return 0xc3;
+        default:
+            return u8Data;
+        }
+    case PANEL_BT656_MS7024_720x480_60:
+    default:
+        return u8Data;
+    }
+}
+
 CVI_S32 app_ipcam_Panel_I2c_Init(VO_DEV VoDev, const PANEL_I2C_CFG_T* const pstI2cCfg)
 {
     char dev_file[16] = {0};
@@ -219,10 +278,14 @@ CVI_S32 app_ipcam_Panel_I2c_SendInit(VO_DEV VoDev, const PANEL_TYPE_E enPanelTyp
 
     switch (enPanelType) {
     case PANEL_BT656_MS7024_720x480_60:
-        // MS7024 固定初始化序列
+    case PANEL_BT656_MS7024_720x480_30:
+    case PANEL_BT656_MS7024_720x576_25:
+    case PANEL_BT656_MS7024_720x576_50:
         for (CVI_U32 i = 0; i < ARRAY_SIZE(g_ms7024_i2c_init_cmds); i++) {
-            ret = app_ipcam_Panel_I2c_WriteReg(VoDev, g_ms7024_i2c_init_cmds[i].addr,
-                g_ms7024_i2c_init_cmds[i].data, pstI2cCfg);
+            CVI_U8 u8Data = app_ipcam_Panel_Ms7024CmdData_Get(enPanelType,
+                g_ms7024_i2c_init_cmds[i].addr, g_ms7024_i2c_init_cmds[i].data);
+
+            ret = app_ipcam_Panel_I2c_WriteReg(VoDev, g_ms7024_i2c_init_cmds[i].addr, u8Data, pstI2cCfg);
             if (ret != CVI_SUCCESS) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "i2c_write failed addr=0x%x\n", g_ms7024_i2c_init_cmds[i].addr);
                 return ret;

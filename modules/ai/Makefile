@@ -11,6 +11,7 @@ module-$(CONFIG_MODULE_AI_HUMAN_KEYPOINT)		+= human_keypoint_detect
 module-$(CONFIG_MODULE_AI_OBJECT_TRACK)		    += object_track
 module-$(CONFIG_MODULE_AI_KEYPOINT_HAND_GESTURE)+= keypoint_hand_gesture
 module-$(CONFIG_MODULE_AI_IMG_TXT_CLIP)		    += img_txt_clip
+module-$(CONFIG_MODULE_AI_LPR)				+= lpr
 
 SUBDIRS += $(module-y)
 

@@ -225,6 +225,12 @@ config MODULE_AI_IMG_TXT_CLIP
 	help
 		enable ai img txt clip in applicant
 
+config MODULE_AI_LPR
+	bool "enable module ai lpr"
+	default n
+	depends on MODULE_AI
+	help
+		enable ai license plate recognition in applicant
 config MODULE_PERIPHERAL
 	bool "enable module peripheral"
 	default n
