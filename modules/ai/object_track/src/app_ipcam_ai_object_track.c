@@ -218,7 +218,14 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_Detection failed with %#x!\n", s32Ret);
                 goto loop_cleanup;
             }
-            APP_PROF_LOG_PRINT(LEVEL_DEBUG, "Detect %d objects\n", cur_det_meta.size);
+            // What changed: Gate test-only [OBS] detection count by debug_log_enable.
+            // Previous behavior: Only LEVEL_DEBUG "Detect N objects" existed and was compiled out.
+            // Impact: Production logs stay quiet unless tracking debug is enabled.
+            // Debug params: det_n=detected object count this frame; used to confirm detector running pre-trigger.
+            if (g_pstObjTrackCfg->debug_log_enable) {
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "[OBS] f=%llu det_n=%d\n",
+                                   (unsigned long long)g_frame_id, (int)cur_det_meta.size);
+            }
 
             TDL_ReleaseObjectMeta(&det_obj_meta);
             TDL_CopyObjectMeta(&cur_det_meta, &det_obj_meta);
@@ -299,7 +306,28 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
                goto loop_cleanup;
             }
 
-            if (track_meta.info != NULL) {
+            // What changed: Gate test-only [OBS] SOT score/threshold/pass/box print.
+            // Previous behavior: Only LEVEL_DEBUG "track score lower than threshold" existed and was compiled out.
+            // Impact: Production logs stay quiet unless tracking debug is enabled.
+            // Debug params: f=frame id; score=SOT confidence; thr=ini gate; pass=score>=thr; box=track bbox;
+            //               used to compare threshold tightness and kalman effect across groups.
+            if (g_pstObjTrackCfg->debug_log_enable) {
+                if (track_meta.info != NULL) {
+                    APP_PROF_LOG_PRINT(LEVEL_INFO,
+                        "[OBS] f=%llu score=%.3f thr=%.3f pass=%d box=[%.0f,%.0f,%.0f,%.0f]\n",
+                        (unsigned long long)g_frame_id,
+                        track_meta.info[0].score,
+                        g_pstObjTrackCfg->tracking_score_threshold,
+                        (track_meta.info[0].score >= g_pstObjTrackCfg->tracking_score_threshold) ? 1 : 0,
+                        (float)track_meta.info[0].bbox.x1, (float)track_meta.info[0].bbox.y1,
+                        (float)track_meta.info[0].bbox.x2, (float)track_meta.info[0].bbox.y2);
+                } else {
+                    APP_PROF_LOG_PRINT(LEVEL_INFO,
+                        "[OBS] f=%llu info=NULL(LOST)\n", (unsigned long long)g_frame_id);
+                }
+            }
+            if (track_meta.info != NULL &&
+                track_meta.info[0].score >= g_pstObjTrackCfg->tracking_score_threshold) {
                 SMT_MutexAutoLock(g_Mutex, lock);
                 if (g_stObjDraw.info != NULL) {
                     g_stObjDraw.size = 1;
@@ -311,6 +339,17 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
                     g_stObjDraw.size = 0;
                 }
             } else {
+                if (track_meta.info != NULL) {
+                    // What changed: Log weak tracking scores before lost handling.
+                    // Previous behavior: Low-score tracking boxes had no visibility.
+                    // Impact: Helps tune tracking_score_threshold for board scenes.
+                    // Debug params: score means SOT confidence, used to verify weak-track filtering;
+                    // threshold means ini gate, used to tune lost detection.
+                    APP_PROF_LOG_PRINT(LEVEL_DEBUG,
+                                       "track score %.3f lower than threshold %.3f\n",
+                                       track_meta.info[0].score,
+                                       g_pstObjTrackCfg->tracking_score_threshold);
+                }
                 if (!g_lost_timer_started) {
                     g_lost_start_time = get_time_in_ms();
                     g_lost_timer_started = true;
@@ -389,6 +428,23 @@ static CVI_S32 app_ipcam_Ai_Object_Track_Proc_Init(CVI_VOID)
         return s32Ret;
     } else {
         APP_PROF_LOG_PRINT(LEVEL_INFO, "TDL_OpenModel SOT success !\n");
+    }
+
+    s32Ret = TDL_SetSingleObjectTrackingUseKalman(g_ObjectTrackTDLHandle,
+                                                  g_pstObjTrackCfg->use_kalman);
+    if (s32Ret != CVI_SUCCESS)
+    {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_SetSingleObjectTrackingUseKalman failed with %#x!\n", s32Ret);
+        return s32Ret;
+    }
+
+    if (g_pstObjTrackCfg->debug_log_enable) {
+        APP_PROF_LOG_PRINT(LEVEL_INFO,
+            "[OBS] cfg use_kalman=%d tracking_score_threshold=%.3f search_type=%d kalman_ret=0x%x\n",
+            g_pstObjTrackCfg->use_kalman ? 1 : 0,
+            g_pstObjTrackCfg->tracking_score_threshold,
+            g_pstObjTrackCfg->search_type,
+            s32Ret);
     }
 
     // s32Ret = TDL_SetSotModelThreshold(g_ObjectTrackTDLHandle, g_pstObjTrackCfg->threshold_occluded, g_pstObjTrackCfg->threshold_reappear);

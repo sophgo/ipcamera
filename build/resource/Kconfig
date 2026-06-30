@@ -100,6 +100,12 @@ config RESOURCE_INSTALL_FBM_CV1842HP_WEVB_CV2003_MIPI_SWITCH
 	help
 		"support install fbm cv1842hp_wevb_cv2003_mipi_switch.ini"
 
+config RESOURCE_INSTALL_FBM_CV1843HP_WEVB_OS04A10
+	bool "install fbm cv1843hp_wevb_os04a10"
+	default n
+	help
+		"support install fbm cv1843hp_wevb_os04a10.ini"
+
 
 endmenu
 

@@ -86,3 +86,7 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV1842HP_WEVB_CV2003_MIPI_SWITCH),y)
 	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv1842hp_wevb_cv2003_mipi_switch.ini $(APP_INSTALL_DIR)/param_config.ini
 	@$(call pack_param ,$(APP_RESOURCE_DIR)/parameter/fbm/cv1842hp_wevb_cv2003_mipi_switch.ini)
 endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_FBM_CV1843HP_WEVB_OS04A10),y)
+	@cp -rf $(APP_RESOURCE_DIR)/parameter/fbm/cv1843hp_wevb_os04a10.ini $(APP_INSTALL_DIR)/param_config.ini
+	@$(call pack_param ,$(APP_RESOURCE_DIR)/parameter/fbm/cv1843hp_wevb_os04a10.ini)
+endif

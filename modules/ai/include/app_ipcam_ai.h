@@ -164,6 +164,9 @@ typedef struct APP_PARAM_AI_OBJECT_TRACK_CFG_T
     float threshold_occluded;
     float threshold_reappear;
     TDLTargetSearchTypeE search_type;
+    CVI_BOOL use_kalman;
+    float tracking_score_threshold;
+    CVI_BOOL debug_log_enable;
 } APP_PARAM_AI_OBJECT_TRACK_CFG_S;
 
 typedef struct APP_PARAM_AI_IMG_TXT_CLIP_CFG_T
