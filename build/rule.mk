@@ -148,7 +148,13 @@ ifeq ($(CONFIG_MODULE_CLOUD), y)
   endif
 endif
 
-
+# RECORD
+RECORD_DIR := $(APP_COMPONENTS_INSTALL_DIR)/record
+ifneq ($(wildcard $(SRCTREE)/modules/record/Makefile),)
+RECORD_LIB_DIR := $(TARGET_OUT_DIR)/lib
+else
+RECORD_LIB_DIR := $(RECORD_DIR)/lib
+endif
 
 
 ifeq ($(TARGET_MACHINE), aarch64-linux-gnu)

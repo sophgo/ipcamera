@@ -27,6 +27,7 @@ LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_paramparse_frmbuf
 LIBS-$(CONFIG_MODULE_GPIO)                        += -lapp_paramparse_gpio
 LIBS-$(CONFIG_MODULE_PWM)                         += -lapp_paramparse_pwm
 LIBS-$(CONFIG_MODULE_RTSP)                        += -lapp_paramparse_rtsp
+LIBS-$(CONFIG_MODULE_RTP)                         += -lapp_paramparse_rtp
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_paramparse_record
 LIBS-y += -Wl,--no-whole-archive
 endif
@@ -70,6 +71,7 @@ LIBS-$(CONFIG_MODULE_CVIUVC)                      += -lapp_cvi_uvc
 LIBS-$(CONFIG_MODULE_MEDIA_STITCH)                += -lapp_media_stitch
 LIBS-$(CONFIG_MODULE_MEDIA_GDC)                   += -lapp_media_gdc
 LIBS-$(CONFIG_MODULE_MEDIA_BLACKLIGHT)            += -lapp_media_blacklight
+LIBS-$(CONFIG_MODULE_RTP)                         += -lapp_rtp
 
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_recorder
 LIBS-$(CONFIG_MODULE_RECORD)                      += -lapp_file_recover
@@ -163,6 +165,7 @@ LIBS-$(CONFIG_MODULE_RTSP) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
 LIBS-$(CONFIG_MODULE_RTSP) += -L$(CVI_OSAL_DIR)/lib -lcomp_osal
 
 #RECORD
+LIBS-$(CONFIG_MODULE_RECORD) += -L$(RECORD_LIB_DIR)
 LIBS-$(CONFIG_MODULE_RECORD) += -L$(FFMPEG_LIB_DIR) -lavformat -lavcodec -lavutil -lswresample
 LIBS-$(CONFIG_MODULE_RECORD) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
 

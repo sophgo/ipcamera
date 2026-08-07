@@ -21,6 +21,14 @@ const char *aspect_ratio[ASPECT_RATIO_MAX] = {
     [ASPECT_RATIO_MANUAL] = "ASPECT_RATIO_MANUAL"
 };
 
+static const char *vpss_rotation[ROTATION_MAX] = {
+    [ROTATION_0] = "ROTATION_0",
+    [ROTATION_90] = "ROTATION_90",
+    [ROTATION_180] = "ROTATION_180",
+    [ROTATION_270] = "ROTATION_270",
+    [ROTATION_XY_FLIP] = "ROTATION_XY_FLIP"
+};
+
 
 int Load_Param_Vpss(const char *file)
 {
@@ -130,6 +138,14 @@ int Load_Param_Vpss(const char *file)
             pastVpssChnAttr->u32Width = ini_getl(tmp_section, "width", 0, file);
             pastVpssChnAttr->u32Height = ini_getl(tmp_section, "height", 0, file);
 
+            ini_gets(tmp_section, "rotation", "ROTATION_0", str_name, PARAM_STRING_NAME_LEN, file);
+            ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vpss_rotation, ROTATION_MAX, &enum_num);
+            if (ret != CVI_SUCCESS) {
+                APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][rotation] Fail to convert string name [%s] to enum number!\n", tmp_section, str_name);
+            } else {
+                Vpss->astVpssGrpCfg[grp_idx].aenRotation[chn_idx] = enum_num;
+            }
+
             ini_gets(tmp_section, "video_fmt", " ", str_name, PARAM_STRING_NAME_LEN, file);
             ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, video_format, VIDEO_FORMAT_MAX, &enum_num);
             if (ret != CVI_SUCCESS) {
@@ -197,10 +213,11 @@ int Load_Param_Vpss(const char *file)
             if (Vpss->astVpssGrpCfg[grp_idx].aAttachEn[chn_idx]) {
                 Vpss->astVpssGrpCfg[grp_idx].aAttachPool[chn_idx] = ini_getl(tmp_section, "attach_pool", 0, file);
             }
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "Chn_ID_%d config: sft=%2d dfr=%2d W=%4d H=%4d Depth=%d Mirror=%d Flip=%d V_fmt=%2d P_fmt=%2d\n",
+
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "Chn_ID_%d config: sft=%2d dfr=%2d W=%4d H=%4d Depth=%d Mirror=%d Flip=%d Rotation=%d V_fmt=%2d P_fmt=%2d\n",
                 chn_idx, pastVpssChnAttr->stFrameRate.s32SrcFrameRate, pastVpssChnAttr->stFrameRate.s32DstFrameRate,
                 pastVpssChnAttr->u32Width, pastVpssChnAttr->u32Height, pastVpssChnAttr->u32Depth, pastVpssChnAttr->bMirror, pastVpssChnAttr->bFlip,
-                pastVpssChnAttr->enVideoFormat, pastVpssChnAttr->enPixelFormat);
+                Vpss->astVpssGrpCfg[grp_idx].aenRotation[chn_idx], pastVpssChnAttr->enVideoFormat, pastVpssChnAttr->enPixelFormat);
         }
     }
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading vpss config ------------------> done \n\n");

@@ -73,6 +73,38 @@ void zfifo_uninit(ZFIFO *zfifo)
     }
 }
 
+// What changed: Add a locked snapshot API for ZFIFO capacity and retained data.
+int zfifo_get_status(ZFIFO *zfifo, int *buf_size, int *used_size, int *frame_count)
+{
+    if (zfifo == NULL || buf_size == NULL || used_size == NULL || frame_count == NULL)
+    {
+        return -1;
+    }
+
+    pthread_mutex_lock(&zfifo->mutex);
+    *buf_size = zfifo->buf_size;
+    if (zfifo->end_offset == 0)
+    {
+        *used_size = 0;
+        *frame_count = 0;
+    }
+    else
+    {
+        if (zfifo->end_offset >= zfifo->first_offset)
+        {
+            *used_size = zfifo->end_offset - zfifo->first_offset;
+        }
+        else
+        {
+            *used_size = zfifo->buf_size - zfifo->first_offset + zfifo->end_offset;
+        }
+        *frame_count = zfifo->last_index - zfifo->first_index + 1;
+    }
+    pthread_mutex_unlock(&zfifo->mutex);
+
+    return 0;
+}
+
 ZFIFO_DESC *zfifo_open(ZFIFO *fifo)
 {
     if (fifo == NULL)

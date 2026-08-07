@@ -135,6 +135,14 @@ config MODULE_RTSP
 	help
 		enable rtsp in applicant
 
+config MODULE_RTP
+	bool "enable low latency RTP/UDP video link"
+	default n
+	depends on MODULE_MEDIA && MODULE_MEDIA_VENC && MODULE_MEDIA_DEC
+	select MODULE_PROTOCOL
+	help
+		enable the point-to-point H.264 RTP/UDP TX/RX link
+
 config RTSP_AUDIO_ENABLE
 	bool "enable rtsp audio stream"
 	default n

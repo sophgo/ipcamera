@@ -123,6 +123,8 @@ int Load_Param_Vi(const char *file)
         } else {
             APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][wdrmode] Convert string name [%s] to enum number [%d].\n", tmp_section, str_name, enum_num);
             pViIniCfg->astDevInfo[i].enWDRMode = enum_num;
+            pViIniCfg->astChnInfo[i].enWDRMode = enum_num;
+            pViIniCfg->astSensorCfg[i].enWDRMode = enum_num;
         }
 
         memset(tmp_section, 0, sizeof(tmp_section));

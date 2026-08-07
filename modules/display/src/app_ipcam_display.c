@@ -76,15 +76,15 @@ CVI_S32 app_ipcam_Display_Init(void)
         case VO_INTF_MIPI:
         case VO_INTF_MIPI_SLAVE:
             s32MipiTxFd[vonum] = -1;
-            app_ipcam_MipiTx_Enable(
+            APP_CHK_RET(app_ipcam_MipiTx_Enable(
                 &g_pstDisplayCfg->vo_cfg[vonum].stVoCfg.s32VoDev,
                 stPanelDesc.pchPanelName,
                 stPanelDesc.pstDevCfg,
                 stPanelDesc.pstHsTimingCfg,
                 stPanelDesc.pstDsiInitCmds,
                 &stPanelDesc.s32DsiInitCmdsSize,
-                &s32MipiTxFd[vonum]
-            );
+                &s32MipiTxFd[vonum]),
+                "app_ipcam_MipiTx_Enable");
             break;
         case VO_INTF_BT656:
         case VO_INTF_BT1120:

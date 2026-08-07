@@ -61,6 +61,9 @@ INCS-$(CONFIG_MODULE_RTSP)    += -I$(APP_COMPONENTS_INSTALL_DIR)/osal/include
 DEFS-$(CONFIG_MODULE_RTSP)    += -DRTSP_SUPPORT
 DEFS-$(CONFIG_RTSP_AUDIO_ENABLE) += -DRTSP_AUDIO_ENABLE
 
+#RTP
+DEFS-$(CONFIG_MODULE_RTP)     += -DRTP_SUPPORT
+
 #PQTOOL
 DEFS-$(CONFIG_MODULE_PQTOOL) += -DSUPPORT_ISP_PQTOOL
 
@@ -70,6 +73,11 @@ DEFS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -DRPC_MULTI_PROCESS
 DEFS-$(CONFIG_MODULE_RECORD) += -DRECORD_SUPPORT
 INCS-$(CONFIG_MODULE_RECORD) += -I$(APP_COMPONENTS_INSTALL_DIR)/ringbuffer/include
 INCS-$(CONFIG_MODULE_RECORD) += -I$(APP_PREBUILT_DIR)/ffmpeg/include
+ifneq ($(wildcard $(SRCTREE)/modules/record/include/record/app_ipcam_record.h),)
+RECORD_INCLUDE_DIR := $(SRCTREE)/modules/record/include
+else
+RECORD_INCLUDE_DIR := $(RECORD_DIR)/include
+endif
 
 #STITCH
 DEFS-$(CONFIG_MODULE_MEDIA_STITCH) += -DSTITCH_SUPPORT
@@ -125,12 +133,13 @@ INCS-$(CONFIG_MODULE_CVIUAC)			+= -I$(SRCTREE)/modules/protocol/cvi_uac/include
 INCS-$(CONFIG_MODULE_CVIUVC)			+= -I$(SRCTREE)/modules/protocol/cvi_uvc/include
 INCS-$(CONFIG_MODULE_NETWORK)			+= -I$(SRCTREE)/modules/protocol/network/include
 INCS-$(CONFIG_MODULE_RTSP)				+= -I$(SRCTREE)/modules/protocol/rtsp/include
+INCS-$(CONFIG_MODULE_RTP)				  += -I$(SRCTREE)/modules/protocol/rtp/include
 INCS-$(CONFIG_MODULE_GPIO)				+= -I$(SRCTREE)/modules/peripheral/gpio/include
 INCS-$(CONFIG_MODULE_PWM)				  += -I$(SRCTREE)/modules/peripheral/pwm/include
 INCS-$(CONFIG_MODULE_SDCARD)		  += -I$(SRCTREE)/modules/peripheral/sdcard/include
 INCS-$(CONFIG_MODULE_IRCUT)				+= -I$(SRCTREE)/modules/peripheral/ircut/include
-INCS-$(CONFIG_MODULE_RECORD)			+= -I$(SRCTREE)/modules/record/include/record
-INCS-$(CONFIG_MODULE_RECORD)			+= -I$(SRCTREE)/modules/record/include/file_recover
+INCS-$(CONFIG_MODULE_RECORD)			+= -I$(RECORD_INCLUDE_DIR)/record
+INCS-$(CONFIG_MODULE_RECORD)			+= -I$(RECORD_INCLUDE_DIR)/file_recover
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/display/include
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/peripheral/panel/include
 INCS-$(CONFIG_MODULE_FRMBUF)			+= -I$(SRCTREE)/modules/framebuffer/include/frmbuf

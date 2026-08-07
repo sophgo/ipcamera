@@ -283,6 +283,7 @@ CVI_S32 app_ipcam_Vo_Chn_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 
         APP_CHK_RET(CVI_VO_SetChnAttr(pstVoCfg->stDstChn.s32DevId, i, &stChnAttr), "CVI_VO_SetChnAttr");
         APP_CHK_RET(CVI_VO_EnableChn(pstVoCfg->stDstChn.s32DevId, i), "CVI_VO_EnableChn");
+        APP_CHK_RET(CVI_VO_ShowChn(pstVoCfg->stDstChn.s32DevId, i), "CVI_VO_ShowChn");
     }
 
     return CVI_SUCCESS;

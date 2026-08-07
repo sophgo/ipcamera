@@ -228,12 +228,34 @@ int app_ipcam_Mbuf_ReadFrame(CVI_MBUF_HANDLE readerid, int bKeyFrame, CVI_MEDIA_
     return iRet;
 }
 
+static void app_ipcam_Mbuf_ShowStatus(int mbufId, unsigned int frameIndex)
+{
+    int bufSize = 0;
+    int usedSize = 0;
+    int frameCount = 0;
+
+    if (zfifo_get_status(s_media_fifo[mbufId], &bufSize, &usedSize, &frameCount) != 0)
+    {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Get Mbuf status failed, mbufId:%d.\n", mbufId);
+        return;
+    }
+
+    APP_PROF_LOG_PRINT(LEVEL_WARN,
+        "mbufId:%d capacity=%d bytes used=%d bytes free=%d bytes frames=%d frameIndex=%u\n",
+        mbufId, bufSize, usedSize, bufSize - usedSize, frameCount, frameIndex);
+}
+
 int app_ipcam_Mbuf_Video_WriteFrame(int mbufId, CVI_MEDIA_FRAME_INFO_T *pFrameInfo)
 {
     int iRet = -1;
     if (s_hVideoWriterId[mbufId] && (0 == app_ipcam_Mbuf_Check(mbufId)))
     {
         iRet = app_ipcam_Mbuf_WriteFrame((ZFIFO_DESC *)s_hVideoWriterId[mbufId], pFrameInfo);
+        if (iRet > 0 && access("/tmp/mbuf_debug", F_OK) == 0)
+        {
+            app_ipcam_Mbuf_ShowStatus(mbufId, pFrameInfo->frameParam.frameIndex);
+            remove("/tmp/mbuf_debug");
+        }
     }
     else
     {
@@ -276,6 +298,7 @@ int app_ipcam_Mbuf_Init()
     int iRet = -1;
     int iMbufSize = 0;
 
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "mbuf init ------------------> start\n");
     APP_PARAM_VENC_CTX_S *pstVencCtx = app_ipcam_Venc_Param_Get();
 #ifdef AUDIO_SUPPORT
     APP_PARAM_AUDIO_CFG_T *pstAudioCtx = app_ipcam_Audio_Param_Get();
@@ -295,7 +318,7 @@ int app_ipcam_Mbuf_Init()
 #else
             iMbufSize = (((pstVencCtx->astVencChnCfg[i].u32BitRate / 8) << 10) * CVI_CAMERA_PRE_RECORD_TIMES);
 #endif
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "mbufId:%d iMbufSize %d.\n", pstVencCtx->astVencChnCfg[i].VencChn, iMbufSize);
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "mbufId:%d iMbufSize %d bytes.\n", pstVencCtx->astVencChnCfg[i].VencChn, iMbufSize);
             iRet = app_ipcam_Mbuf_Create(pstVencCtx->astVencChnCfg[i].VencChn, iMbufSize);
             if (iRet)
             {
@@ -328,6 +351,7 @@ endFunc:
         app_ipcam_Mbuf_UnInit();
     }
 
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "mbuf init ------------------> end\n\n");
     return iRet;
 }
 
@@ -346,5 +370,3 @@ int app_ipcam_Mbuf_UnInit()
     }
     return 0;
 }
-
-

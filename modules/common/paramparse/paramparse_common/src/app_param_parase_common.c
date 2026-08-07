@@ -120,6 +120,12 @@ __attribute__((weak)) int Load_Param_Rtsp(const char *file)
     return 0;
 }
 
+__attribute__((weak)) int Load_Param_Rtp(const char *file)
+{
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
+    return 0;
+}
+
 __attribute__((weak)) int Load_Param_Gpio(const char *file)
 {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s defalut param \r\n", __func__);
@@ -467,6 +473,7 @@ int app_ipcam_Param_Load(void)
     APP_CHK_RET(Load_Param_GDC(ParamCfgFile), "Load GDC Param");
     APP_CHK_RET(Load_Param_BlackLight(ParamCfgFile), "Load blacklight Param");
     APP_CHK_RET(Load_Param_Rtsp(ParamCfgFile), "Load RTSP Param");
+    APP_CHK_RET(Load_Param_Rtp(ParamCfgFile), "Load RTP Param");
     APP_CHK_RET(Load_Param_Gpio(ParamCfgFile), "Load GPIO Param");
     APP_CHK_RET(Load_Param_Pwm(ParamCfgFile), "Load PWM Param");
     APP_CHK_RET(Load_Param_Record(ParamCfgFile), "Load Record Param");

@@ -22,6 +22,7 @@ typedef struct APP_VPSS_GRP_CFG_S {
     CVI_BOOL abChnCreate[VPSS_MAX_PHY_CHN_NUM];   /* update by coding */
     VPSS_CHN_ATTR_S astVpssChnAttr[VPSS_MAX_PHY_CHN_NUM];
     VPSS_CROP_INFO_S stVpssChnCropInfo[VPSS_MAX_PHY_CHN_NUM];
+    ROTATION_E aenRotation[VPSS_MAX_PHY_CHN_NUM];
     CVI_U32 aAttachEn[VPSS_MAX_PHY_CHN_NUM];
     CVI_U32	aAttachPool[VPSS_MAX_PHY_CHN_NUM];
     CVI_BOOL bBindMode;

@@ -154,6 +154,14 @@ int app_ipcam_Vpss_Create(VPSS_GRP VpssGrp)
                     goto VPSS_EXIT;
                 }
             }
+
+            if (pstVpssGrpCfg->aenRotation[VpssChn] > ROTATION_0) {
+                s32Ret = CVI_VPSS_SetChnRotation(pstVpssGrpCfg->VpssGrp, VpssChn, pstVpssGrpCfg->aenRotation[VpssChn]);
+                if (s32Ret != CVI_SUCCESS) {
+                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VPSS_SetChnRotation(%d) failed with %#x!\n", VpssChn, s32Ret);
+                    goto VPSS_EXIT;
+                }
+            }
         }
     }
 

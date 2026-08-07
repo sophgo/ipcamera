@@ -17,13 +17,16 @@ const char *vdec_demode[VIDEO_MODE_BUTT] = {
 const char *vdec_input_type[APP_VDEC_INPUT_BUTT] = {
     [APP_VDEC_INPUT_NONE] = "APP_VDEC_INPUT_NONE",
     [APP_VDEC_INPUT_FILE] = "APP_VDEC_INPUT_FILE",
-    [APP_VDEC_INPUT_RTSP] = "APP_VDEC_INPUT_RTSP"
+    [APP_VDEC_INPUT_RTSP] = "APP_VDEC_INPUT_RTSP",
+    [APP_VDEC_INPUT_RTP]  = "APP_VDEC_INPUT_RTP"
 };
 
+#ifdef RTSP_SUPPORT
 const char *vdec_rtsp_transport[APP_RTSP_TRANS_BUTT] = {
     [APP_RTSP_TRANS_UDP] = "APP_RTSP_TRANS_UDP",
     [APP_RTSP_TRANS_TCP] = "APP_RTSP_TRANS_TCP"
 };
+#endif
 
 int Load_Param_Vdec(const char *file)
 {
@@ -50,7 +53,6 @@ int Load_Param_Vdec(const char *file)
         Vdec->astVdecChnCfg.VdecChn = i;
         Vdec->astVdecChnCfg.bEnable = ini_getl(tmp_section, "bEnable", 0, file);
         Vdec->astVdecChnCfg.input_type = APP_VDEC_INPUT_NONE;
-        Vdec->astVdecChnCfg.rtsp_transport = APP_RTSP_TRANS_TCP;
         memset(Vdec->astVdecChnCfg.decode_file_name, 0, sizeof(Vdec->astVdecChnCfg.decode_file_name));
         memset(Vdec->astVdecChnCfg.rtsp_url, 0, sizeof(Vdec->astVdecChnCfg.rtsp_url));
         if (!Vdec->astVdecChnCfg.bEnable)
@@ -86,7 +88,9 @@ int Load_Param_Vdec(const char *file)
             }
             APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s] vdec input file: %s\n",
                 tmp_section, Vdec->astVdecChnCfg.decode_file_name);
-        } else if (Vdec->astVdecChnCfg.input_type == APP_VDEC_INPUT_RTSP) {
+        }
+        else if (Vdec->astVdecChnCfg.input_type == APP_VDEC_INPUT_RTSP) {
+#ifdef RTSP_SUPPORT
             ini_gets(tmp_section, "rtsp_url", " ", tmp_buff, PARAM_STRING_LEN, file);
             strncpy(Vdec->astVdecChnCfg.rtsp_url, tmp_buff, PARAM_STRING_LEN);
             if (Vdec->astVdecChnCfg.rtsp_url[0] == '\0') {
@@ -112,6 +116,7 @@ int Load_Param_Vdec(const char *file)
                 tmp_section, Vdec->astVdecChnCfg.rtsp_url,
                 (Vdec->astVdecChnCfg.rtsp_transport == APP_RTSP_TRANS_UDP) ? "udp" : "tcp",
                 Vdec->astVdecChnCfg.rtsp_transport);
+#endif
         }
 
         ini_gets(tmp_section, "de_type", " ", str_name, PARAM_STRING_NAME_LEN, file);

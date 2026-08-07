@@ -56,4 +56,15 @@ menuconfig:
 	$(MAKE) -f $(SRCTREE)/build/Makefile.kbuild $@
 
 include $(SRCTREE)/build/build.mk
-.PHONY: $(SUBDIRS)
+
+# What changed: Export record libraries and public headers into the target-specific component package.
+RECORD_EXPORT_TARGET_MACHINE := $(shell $(CROSS_COMPILE)gcc -dumpmachine)
+RECORD_EXPORT_COMPONENT_DIR := $(SRCTREE)/components/comps_install/$(RECORD_EXPORT_TARGET_MACHINE)/record
+record_component: .config
+	$(MAKE) -C modules/record
+	@mkdir -p $(RECORD_EXPORT_COMPONENT_DIR)/lib $(RECORD_EXPORT_COMPONENT_DIR)/include
+	@cp -f $(TARGET_OUT_DIR)/lib/libapp_recorder.a $(RECORD_EXPORT_COMPONENT_DIR)/lib/
+	@cp -f $(TARGET_OUT_DIR)/lib/libapp_file_recover.a $(RECORD_EXPORT_COMPONENT_DIR)/lib/
+	@cp -a modules/record/include/. $(RECORD_EXPORT_COMPONENT_DIR)/include/
+
+.PHONY: $(SUBDIRS) record_component

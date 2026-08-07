@@ -1,0 +1,11 @@
+include $(SRCTREE)/build/rule.mk
+
+TARGET_DIR := $(TARGET_OUT_DIR)/lib
+TARGET_A := $(TARGET_DIR)/libapp_rtp.a
+
+SEXT := c
+SDIR += $(CURDIR)/src
+ODIR += $(CURDIR)/obj
+INCS += -I$(CURDIR)/include
+
+include $(SRCTREE)/build/build.mk

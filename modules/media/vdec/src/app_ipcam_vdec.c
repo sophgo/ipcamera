@@ -1,6 +1,6 @@
 #include <sys/prctl.h>
 #include <stdlib.h>
-#include "cvi_sys.h"
+#include <unistd.h>
 #include "cvi_vdec.h"
 
 #include "app_ipcam_comm.h"
@@ -10,7 +10,37 @@
 #include "app_ipcam_rtsp.h"
 #endif
 
+#ifdef RTP_SUPPORT
+#include "app_ipcam_rtp.h"
+#endif
+
+/**************************************************************************
+ *                              M A C R O S                               *
+ **************************************************************************/
+
+#define APP_RTP_VDEC_BUF_FULL_RETRY_MAX 10
+#define APP_RTP_VDEC_BUF_FULL_RETRY_US 1000
+
+/**************************************************************************
+ *                           C O N S T A N T S                            *
+ **************************************************************************/
+
+/**************************************************************************
+ *                          D A T A    T Y P E S                          *
+ **************************************************************************/
+
+/**************************************************************************
+ *                         G L O B A L    D A T A                         *
+ **************************************************************************/
 APP_PARAM_VDEC_CTX_S g_stVdecCtx, *g_pstVdecCtx = &g_stVdecCtx;
+
+/**************************************************************************
+ *                 E X T E R N A L    R E F E R E N C E S                 *
+ **************************************************************************/
+
+/**************************************************************************
+ *               F U N C T I O N    D E C L A R A T I O N S               *
+ **************************************************************************/
 
 APP_PARAM_VDEC_CTX_S *app_ipcam_Vdec_Param_Get() {
     return g_pstVdecCtx;
@@ -23,7 +53,7 @@ APP_VDEC_CHN_CFG_S *app_ipcam_VdecChnCfg_Get() {
 }
 
 CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
-    CVI_S32 s32Ret = CVI_SUCCESS; 
+    CVI_S32 s32Ret = CVI_SUCCESS;
     FILE *fpStrm = NULL;
     CVI_U8 *pu8Buf = NULL;
     CVI_S32 bufSize = 0;
@@ -35,6 +65,14 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
     VDEC_STREAM_S stStream = {0};
     APP_PARAM_VDEC_CTX_S *param = (APP_PARAM_VDEC_CTX_S *)arg;
     APP_VDEC_CHN_CFG_S *pstVdecChnCfg = &param->astVdecChnCfg;
+#ifdef RTP_SUPPORT
+    CVI_U32 u32RtpSendFailCount = 0;
+    CVI_U32 u32RtpBufFullRetry = 0;
+    CVI_U32 u32RtpBufFullRetryCount = 0;
+    CVI_U8 *rtp_frame_data = NULL;
+    CVI_U32 rtp_frame_len = 0;
+    CVI_U64 rtp_frame_pts = 0;
+#endif
 #ifdef RTSP_SUPPORT
     APP_RTSP_CLIENT_HANDLE *rtsp_hdl = NULL;
     APP_RTSP_CLIENT_FRAME_S rtsp_frame;
@@ -92,6 +130,16 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "RTSP support not enabled.\n");
         return (CVI_VOID *)(CVI_FAILURE);
 #endif
+	} else if (pstVdecChnCfg->input_type == APP_VDEC_INPUT_RTP) {
+#ifdef RTP_SUPPORT
+		if (pstVdecChnCfg->astChnAttr.enType != PT_H264) {
+			APP_PROF_LOG_PRINT(LEVEL_ERROR, "RTP input only supports H264.\n");
+			return (CVI_VOID *)(CVI_FAILURE);
+		}
+#else
+		APP_PROF_LOG_PRINT(LEVEL_ERROR, "RTP support is not enabled.\n");
+		return (CVI_VOID *)(CVI_FAILURE);
+#endif
     } else {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "Vdec input_type invalid.\n");
         return (CVI_VOID *)(CVI_FAILURE);
@@ -100,7 +148,9 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
     APP_PROF_LOG_PRINT(LEVEL_INFO, "VdecChn:%d thread_vdec_send_stream running\n", pstVdecChnCfg->VdecChn);
 
     while (param->thread_enable_flag) {
-        usleep(30*1000);
+        // Impact: RTSP starts receiving immediately; static FILE playback remains paced at about 33fps.
+        if (pstVdecChnCfg->input_type == APP_VDEC_INPUT_FILE)
+            usleep(30 * 1000);
 
         /* 文件输入：获取一帧码流并组帧送入 VDEC */
         if (pstVdecChnCfg->input_type == APP_VDEC_INPUT_FILE) {
@@ -114,10 +164,10 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
             }
             /* CV181x VDEC 支持 PT_JPEG/PT_MJPEG/PT_H264
              * CV180x VDEC 支持 PT_JPEG/PT_MJPEG */
-            if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME 
+            if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME
                 && pstVdecChnCfg->astChnAttr.enType == PT_H264) {
                 s32Ret = h264Parse(pu8Buf, &s32ReadLen);
-                if (s32Ret != CVI_SUCCESS) {
+		if (s32Ret != CVI_SUCCESS) {
                     if (s32ReadLen >= bufSize) {
                         APP_PROF_LOG_PRINT(LEVEL_ERROR,"can not find H264 start code! "
                             "s32ReadLen %d, s32UsedBytes %d.!\n",
@@ -126,16 +176,18 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
                         APP_PROF_LOG_PRINT(LEVEL_DEBUG, "No a complete framee! ");
                     }
                 }
-            } else if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME 
+            } else if (pstVdecChnCfg->astChnAttr.enMode == VIDEO_MODE_FRAME
                 && pstVdecChnCfg->astChnAttr.enType == PT_H265) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR,"Don't support H265.\n");
-            } else if (pstVdecChnCfg->astChnAttr.enType == PT_MJPEG 
+            } else if (pstVdecChnCfg->astChnAttr.enType == PT_MJPEG
                 || pstVdecChnCfg->astChnAttr.enType == PT_JPEG) {
                 s32Ret = mjpegParse(pu8Buf, &s32ReadLen, &u32Start);
                 if (s32Ret != CVI_SUCCESS) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR,"can not find JPEG start code! "
                         "s32ReadLen %d, s32UsedBytes %d.!\n",
                         s32ReadLen, s32UsedBytes);
+                    s32UsedBytes = 0;
+                    continue;
                 }
             } else {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "No support enMode:%d, enType:%d.\n"
@@ -174,14 +226,42 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg) {
 #else
             break;
 #endif
+		} else if (pstVdecChnCfg->input_type == APP_VDEC_INPUT_RTP) {
+#ifdef RTP_SUPPORT
+			s32Ret = app_ipcam_Rtp_RecvFrame(pstVdecChnCfg->VdecChn,
+				&rtp_frame_data, &rtp_frame_len, &rtp_frame_pts, 20);
+			if (s32Ret != CVI_SUCCESS)
+				continue;
+			stStream.u64PTS = rtp_frame_pts;
+			stStream.pu8Addr = rtp_frame_data;
+			stStream.u32Len = rtp_frame_len;
+			stStream.bEndOfFrame = CVI_TRUE;
+			stStream.bEndOfStream = CVI_FALSE;
+			stStream.bDisplay = 1;
+			u32RtpBufFullRetry = 0;
+#else
+			break;
+#endif
         } else {
             break;
         }
 
+        // What changed: Add a VENC-style one-shot VDEC frame trace controlled by /tmp/vdec_debug.
+        if (access("/tmp/vdec_debug", F_OK) == 0) {
+            APP_PROF_LOG_PRINT(LEVEL_WARN,
+                "VdecChn(%d) input=%d codec=%d au=%u pts=%llu eof=%d eos=%d timeout=%d\n",
+                pstVdecChnCfg->VdecChn, pstVdecChnCfg->input_type,
+                pstVdecChnCfg->astChnAttr.enType, stStream.u32Len, stStream.u64PTS,
+                stStream.bEndOfFrame, stStream.bEndOfStream,
+                pstVdecChnCfg->input_type == APP_VDEC_INPUT_RTP ? 0 : -1);
+            remove("/tmp/vdec_debug");
+        }
+
 SendAgain:
-        s32Ret = CVI_VDEC_SendStream(pstVdecChnCfg->VdecChn, &stStream, -1);
+        s32Ret = CVI_VDEC_SendStream(pstVdecChnCfg->VdecChn, &stStream,
+            pstVdecChnCfg->input_type == APP_VDEC_INPUT_RTP ? 0 : -1);
         if (s32Ret != CVI_SUCCESS) {
-            APP_PROF_LOG_PRINT(LEVEL_DEBUG,"%d dec chn CVI_VDEC_SendStream err ret=%d\n"
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "%d dec chn CVI_VDEC_SendStream err ret=%d\n"
                 , pstVdecChnCfg->VdecChn, s32Ret);
             if (pstVdecChnCfg->input_type == APP_VDEC_INPUT_RTSP) {
 #ifdef RTSP_SUPPORT
@@ -194,6 +274,30 @@ SendAgain:
                 usleep(1000);
                 continue;
             }
+            if (pstVdecChnCfg->input_type == APP_VDEC_INPUT_RTP) {
+#ifdef RTP_SUPPORT
+                if (s32Ret == CVI_ERR_VDEC_BUF_FULL &&
+                    u32RtpBufFullRetry < APP_RTP_VDEC_BUF_FULL_RETRY_MAX) {
+                    u32RtpBufFullRetry++;
+                    u32RtpBufFullRetryCount++;
+                    if ((u32RtpBufFullRetryCount & 0x1f) == 1) {
+                        APP_PROF_LOG_PRINT(LEVEL_WARN,
+                            "RTP VDEC buffer full au=%u retry=%u total=%u\n",
+                            stStream.u32Len, u32RtpBufFullRetry, u32RtpBufFullRetryCount);
+                    }
+                    usleep(APP_RTP_VDEC_BUF_FULL_RETRY_US);
+                    goto SendAgain;
+                }
+                u32RtpSendFailCount++;
+                if ((u32RtpSendFailCount & 0x1f) == 1) {
+                    APP_PROF_LOG_PRINT(LEVEL_WARN,
+                        "RTP VDEC SendStream failed ret=%#x fail=%u\n", s32Ret,
+                        u32RtpSendFailCount);
+                }
+                app_ipcam_Rtp_DropFrame(pstVdecChnCfg->VdecChn);
+                continue;
+#endif
+            }
             if (!param->thread_enable_flag) {
                 APP_PROF_LOG_PRINT(LEVEL_INFO, "thread_vdec_send_stream stop.\n");
                 break;
@@ -203,7 +307,12 @@ SendAgain:
         } else {
             APP_PROF_LOG_PRINT(LEVEL_DEBUG, "send one frame success. PTS:%llu. \n", u64PTS);
             if (pstVdecChnCfg->input_type == APP_VDEC_INPUT_FILE) {
-                s32UsedBytes = s32UsedBytes + s32ReadLen + u32Start;
+                if (pstVdecChnCfg->astChnAttr.enType == PT_JPEG) {
+                    // Impact: Static JPEG playback continuously decodes valid full images.
+                    s32UsedBytes = 0;
+                } else {
+                    s32UsedBytes = s32UsedBytes + s32ReadLen + u32Start;
+                }
             }
             u64PTS += 1;
         }
@@ -216,7 +325,7 @@ SendAgain:
 #endif
     }
 
-    if ((pstVdecChnCfg->astChnAttr.enType == PT_H264) 
+    if ((pstVdecChnCfg->astChnAttr.enType == PT_H264)
     || (pstVdecChnCfg->astChnAttr.enType == PT_H265)) {
         /* 发送码流结束标志 */
         memset(&stStream, 0, sizeof(VDEC_STREAM_S));
@@ -269,7 +378,7 @@ int app_ipcam_Vdec_Start(void) {
     }
 
     pstVdecCtx->thread_enable_flag = CVI_TRUE;
-    
+
     param.sched_priority = 80;
     pthread_attr_init(&attr);
     pthread_attr_setschedpolicy(&attr, SCHED_RR);
@@ -351,7 +460,7 @@ int app_ipcam_Vdec_Init(void)
     memset(&stPool, 0, sizeof(VDEC_CHN_POOL_S));
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "app_ipcam_Vdec_Init VdecChn:%d.\n", VdecChn);
-    
+
     CVI_VDEC_GetModParam(&stModParam);
     stModParam.enVdecVBSource = VB_SOURCE_USER;
     CVI_VDEC_SetModParam(&stModParam);
@@ -386,7 +495,7 @@ int app_ipcam_Vdec_Init(void)
         return s32Ret;
     }
 
-    stChnParam.enPixelFormat      = pstVdecChnCfg->astChnParam.enPixelFormat; 
+    stChnParam.enPixelFormat      = pstVdecChnCfg->astChnParam.enPixelFormat;
     stChnParam.u32DisplayFrameNum = pstVdecChnCfg->astChnParam.u32DisplayFrameNum;
     /* 设置视频通道参数 */
     s32Ret = CVI_VDEC_SetChnParam(VdecChn, &stChnParam);
@@ -402,7 +511,7 @@ int app_ipcam_Vdec_Init(void)
         return s32Ret;
     }
 
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "Vdec init ------------------> done \n");
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "Vdec init ------------------> done \n\n");
 
     return CVI_SUCCESS;
 }

@@ -13,6 +13,10 @@
 #endif
 #include "cvi_mbuf.h"
 
+#ifdef RTP_SUPPORT
+#include "app_ipcam_rtp.h"
+#endif
+
 #ifdef WEB_SOCKET
 #include "app_ipcam_websocket.h"
 #include "app_ipcam_netctrl.h"
@@ -252,11 +256,14 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_Stitch_UnInit(), "Stitch UnInit");
     #endif
 
-
-
     APP_CHK_RET(app_ipcam_Vpss_DeInit(), "VPSS DeInit");
     APP_CHK_RET(app_ipcam_Venc_Stop(APP_VENC_ALL), "VENC Stop");
     APP_CHK_RET(app_ipcam_Vi_DeInit(), "VI DeInit");
+
+    #ifdef RTP_SUPPORT
+    APP_CHK_RET(app_ipcam_Rtp_DeInit(), "RTP DeInit");
+    #endif
+
     APP_CHK_RET(app_ipcam_Sys_DeInit(), "System DeInit");
 
     APP_CHK_RET(app_ipcam_Mbuf_UnInit(), "UnInit Mbuf");
@@ -345,6 +352,9 @@ int main(int argc, char *argv[])
 
     /* load each moudles parameter from param_config.ini */
     APP_CHK_RET(app_ipcam_Param_Load(), "Load Global Parameter");
+    #ifdef RTP_SUPPORT
+    APP_CHK_RET(app_ipcam_Rtp_Init(), "Init RTP");
+    #endif
 
     APP_CHK_RET(app_ipcam_Mbuf_Init(), "Init Mbuf");
 

@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "cvi_vpss.h"
 #include "errno.h"
 #include "linux/cvi_type.h"
@@ -16,6 +17,10 @@
 
 #include "app_ipcam_osd.h"
 #include "cvi_mbuf.h"
+
+#ifdef RTP_SUPPORT
+#include "app_ipcam_rtp.h"
+#endif
 #ifdef MD_SUPPORT
 #include "app_ipcam_md.h"
 #endif
@@ -1333,18 +1338,18 @@ static void *Thread_Streaming_Proc(void *pArgs)
                 }
             }
 
-            if (CVI_VPSS_GetChnFrame(vpssGrp, vpssChn, &stVencFrame, 3000) != CVI_SUCCESS) {
+            s32Ret = CVI_VPSS_GetChnFrame(vpssGrp, vpssChn, &stVencFrame, 3000);
+            if (s32Ret != CVI_SUCCESS) {
                 continue;
             }
 
-            APP_PROF_LOG_PRINT(LEVEL_DEBUG, "VencChn-%d Get Frame takes %u ms \n",
-                                            VencChn, (GetCurTimeInMsec() - iTime));
-
-            if (CVI_VENC_SendFrame(VencChn, &stVencFrame, 3000) != CVI_SUCCESS) {   /* takes 0~1ms */
+            s32Ret = CVI_VENC_SendFrame(VencChn, &stVencFrame, 3000);
+            if (s32Ret != CVI_SUCCESS) {   /* takes 0~1ms */
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "Venc send frame failed with %#x\n", s32Ret);
                 s32Ret = CVI_VPSS_ReleaseChnFrame(vpssGrp, vpssChn, &stVencFrame);
-                if (s32Ret != CVI_SUCCESS)
+                if (s32Ret != CVI_SUCCESS) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "vpss release Chn-frame failed with:0x%x\n", s32Ret);
+                }
                 continue;
             }
         }
@@ -1378,13 +1383,10 @@ static void *Thread_Streaming_Proc(void *pArgs)
             break;
         }
 
-        ISP_EXP_INFO_S stExpInfo;
-        memset(&stExpInfo, 0, sizeof(stExpInfo));
-        CVI_ISP_QueryExposureInfo(0, &stExpInfo);
-        CVI_S32 timeout = (1000 * 2) / (stExpInfo.u32Fps / 100); //u32Fps = fps * 100
+        CVI_S32 timeout = 2000;
         s32Ret = CVI_VENC_GetStream(VencChn, &stStream, timeout);
         if (s32Ret != CVI_SUCCESS || (0 == stStream.u32PackCount)) {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VENC_GetStream, VencChn(%d) cnt(%d), s32Ret = 0x%X timeout:%d %d\n", VencChn, stStream.u32PackCount, s32Ret, timeout, stExpInfo.u32Fps);
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_VENC_GetStream, VencChn(%d) cnt(%d), s32Ret = 0x%X timeout:%d\n", VencChn, stStream.u32PackCount, s32Ret, timeout);
             free(stStream.pstPack);
             stStream.pstPack = NULL;
 
@@ -1403,25 +1405,33 @@ static void *Thread_Streaming_Proc(void *pArgs)
             pastVencChnCfg->bFirstStreamTCost = CVI_TRUE;
         }
 
+        CVI_U32 u32StreamSize = 0;
+        for (CVI_U32 i = 0; i < stStream.u32PackCount; i++)
+        {
+            u32StreamSize += stStream.pstPack[i].u32Len - stStream.pstPack[i].u32Offset;
+        }
+
+        // Impact: Normal streaming has no periodic diagnostic output.
+        if (access("/tmp/venc_debug", F_OK) == 0) {
+            APP_PROF_LOG_PRINT(LEVEL_WARN, "VencChn(%d) pack_count=%u stream_size=%u bytes seq=%u\n",
+                VencChn, stStream.u32PackCount, u32StreamSize, stStream.u32Seq);
+            remove("/tmp/venc_debug");
+        }
+
         if ((1 == stStream.u32PackCount) && (stStream.pstPack[0].u32Len > P_MAX_SIZE)) {
             APP_PROF_LOG_PRINT(LEVEL_WARN, "CVI_VENC_GetStream, VencChn(%d) p oversize:%d\n", VencChn, stStream.pstPack[0].u32Len);
         } else {
             stFrameInfo.frameParam.frameLen = 0;
 
-            int iLen = 0;
-            for (CVI_U32 i= 0; i < stStream.u32PackCount; i++)
+            if (u32StreamSize > CVI_MBUF_STREAM_MAX_SIZE)
             {
-                iLen += stStream.pstPack[i].u32Len - stStream.pstPack[i].u32Offset;
-            }
-            if (iLen > CVI_MBUF_STREAM_MAX_SIZE)
-            {
-                stFrameInfo.frameBuf = realloc(stFrameInfo.frameBuf, iLen);
+                stFrameInfo.frameBuf = realloc(stFrameInfo.frameBuf, u32StreamSize);
                 if (NULL == stFrameInfo.frameBuf)
                 {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "realloc malloc fail\n");
                     return NULL;
                 }
-                memset(stFrameInfo.frameBuf, 0, iLen);
+                memset(stFrameInfo.frameBuf, 0, u32StreamSize);
             }
             else
             {
@@ -1449,6 +1459,18 @@ static void *Thread_Streaming_Proc(void *pArgs)
             stFrameInfo.frameParam.frameCodec = pastVencChnCfg->enType;
             stFrameInfo.frameParam.framePts = stStream.pstPack[0].u64PTS;
             stFrameInfo.frameParam.frameTime = time(NULL);
+
+            /* Send the current H.264 access unit directly to RTP/UDP. */
+			if (pastVencChnCfg->enType == PT_H264) {
+#ifdef RTP_SUPPORT
+				if (app_ipcam_Rtp_SendFrame(VencChn, stFrameInfo.frameBuf,
+					stFrameInfo.frameParam.frameLen,
+					stFrameInfo.frameParam.framePts) != CVI_SUCCESS)
+					APP_PROF_LOG_PRINT(LEVEL_DEBUG, "RTP send frame failed.\n");
+#endif
+			}
+
+            /* Send the current stream to MBUF .*/
             app_ipcam_Mbuf_Video_WriteFrame(VencChn, &stFrameInfo);
         }
 
@@ -1580,7 +1602,7 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
         if (!((VencIdx >> s32ChnIdx) & 0x01))
             continue;
 
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "Ven_%d init info\n", VencChn);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_%d init info\n", VencChn);
         APP_PROF_LOG_PRINT(LEVEL_INFO, "VpssGrp=%d VpssChn=%d size_W=%d size_H=%d CodecType=%d cmd_queue_depth=%d save_path=%s\n",
             pstVencChnCfg->VpssGrp, pstVencChnCfg->VpssChn, pstVencChnCfg->u32Width, pstVencChnCfg->u32Height,
             pstVencChnCfg->enType, pstVencChnCfg->u32CmdQueueDepth, pstVencChnCfg->SavePath);
@@ -1709,7 +1731,7 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
         }
     }
 
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc init ------------------> done \n");
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc init ------------------> done \n\n");
 
     return CVI_SUCCESS;
 
@@ -1808,6 +1830,7 @@ int app_ipcam_Venc_Start(APP_VENC_CHN_E VencIdx)
     CVI_S32 s32Ret = CVI_SUCCESS;
     APP_PARAM_SYS_CFG_S *pstSysCfg = app_ipcam_Sys_Param_Get();
 
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc streamimg ------------------> start\n");
     for (VENC_CHN s32ChnIdx = 0; s32ChnIdx < g_pstVencCtx->s32VencChnCnt; s32ChnIdx++) {
         APP_VENC_CHN_CFG_S *pstVencChnCfg = &g_pstVencCtx->astVencChnCfg[s32ChnIdx];
         VENC_CHN VencChn = pstVencChnCfg->VencChn;
@@ -1875,6 +1898,8 @@ int app_ipcam_Venc_Start(APP_VENC_CHN_E VencIdx)
         mStreamTaskThd.bRun_flag = 0;
         return CVI_FAILURE;
     }
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc streamimg ------------------> done\n\n");
+
     return CVI_SUCCESS;
 }
 

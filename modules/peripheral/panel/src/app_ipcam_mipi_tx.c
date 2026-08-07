@@ -22,9 +22,11 @@ CVI_S32 app_ipcam_MipiTx_Enable(
     _NULL_POINTER_CHECK_(pchPanelName, CVI_FAILURE);
     _NULL_POINTER_CHECK_(pstDevCfg, CVI_FAILURE);
     _NULL_POINTER_CHECK_(pstHsTimingCfg, CVI_FAILURE);
-    _NULL_POINTER_CHECK_(pstDsiInitCmds, CVI_FAILURE);
     _NULL_POINTER_CHECK_(ps32DsiInitCmdsSize, CVI_FAILURE);
     _NULL_POINTER_CHECK_(ps32MipiTxFd, CVI_FAILURE);
+    if (*ps32DsiInitCmdsSize > 0) {
+        _NULL_POINTER_CHECK_(pstDsiInitCmds, CVI_FAILURE);
+    }
 
     *ps32MipiTxFd = open(MIPI_TX_NAME, O_RDWR | O_NONBLOCK, 0);
     if (*ps32MipiTxFd == -1) {
@@ -35,27 +37,29 @@ CVI_S32 app_ipcam_MipiTx_Enable(
     // APP_CHK_RET(CVI_MIPI_TX_Disable(*ps32MipiTxFd), "CVI_MIPI_TX_Disable");
     APP_CHK_RET(CVI_MIPI_TX_Cfg(*ps32MipiTxFd, (struct combo_dev_cfg_s*)pstDevCfg), "CVI_MIPI_TX_Cfg");
 
-    for (CVI_S32 i = 0; i < *ps32DsiInitCmdsSize; i++) {
-        struct cmd_info_s stCmdInfo = {
-            .devno = *ps32DevNo,
-            .cmd_size = pstDsiInitCmds[i].size,
-            .data_type = pstDsiInitCmds[i].data_type,
-            .cmd = (void *)pstDsiInitCmds[i].data
-        };
+    if (pstDsiInitCmds != NULL) {
+        for (CVI_S32 i = 0; i < *ps32DsiInitCmdsSize; i++) {
+            struct cmd_info_s stCmdInfo = {
+                .devno = *ps32DevNo,
+                .cmd_size = pstDsiInitCmds[i].size,
+                .data_type = pstDsiInitCmds[i].data_type,
+                .cmd = (void *)pstDsiInitCmds[i].data
+            };
 
-        APP_FUNC_RET_CALLBACK(CVI_MIPI_TX_SendCmd(*ps32MipiTxFd, &stCmdInfo), {
-            if (pstDsiInitCmds[i].delay) {
-                usleep(pstDsiInitCmds[i].delay * 1000);
-            }
-        }, {
-            if (pstDsiInitCmds[i].delay) {
-                usleep(pstDsiInitCmds[i].delay * 1000);
-            }
+            APP_FUNC_RET_CALLBACK(CVI_MIPI_TX_SendCmd(*ps32MipiTxFd, &stCmdInfo), {
+                if (pstDsiInitCmds[i].delay) {
+                    usleep(pstDsiInitCmds[i].delay * 1000);
+                }
+            }, {
+                if (pstDsiInitCmds[i].delay) {
+                    usleep(pstDsiInitCmds[i].delay * 1000);
+                }
 
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "[mipi_tx_send_cmd] didn't return success!\n");
+                APP_PROF_LOG_PRINT(LEVEL_ERROR, "[mipi_tx_send_cmd] didn't return success!\n");
 
-            return CVI_FAILURE;
-        });
+                return CVI_FAILURE;
+            });
+        }
     }
 
     APP_CHK_RET(CVI_MIPI_TX_SetHsSettle(*ps32MipiTxFd, pstHsTimingCfg), "CVI_MIPI_TX_SetHsSettle");

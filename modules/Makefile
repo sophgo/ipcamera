@@ -4,7 +4,9 @@ TOPTARGETS := all
 
 module-$(CONFIG_MODULE_TDL)						+= ai
 module-$(CONFIG_MODULE_PERIPHERAL)				+= peripheral
+ifneq ($(wildcard $(SRCTREE)/modules/record/Makefile),)
 module-$(CONFIG_MODULE_RECORD)					+= record
+endif
 module-$(CONFIG_MODULE_MEDIA)					+= media
 module-$(CONFIG_MODULE_COMMON)					+= common
 module-$(CONFIG_MODULE_DISPLAY)					+= display

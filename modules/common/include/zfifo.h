@@ -48,6 +48,7 @@ void zfifo_uninit(ZFIFO *zfifo);
 ZFIFO_DESC *zfifo_open(ZFIFO *fifo);
 void zfifo_close(ZFIFO_DESC *zfifo_desc);
 int zfifo_writev(ZFIFO_DESC *zfifo_desc, const ZFIFO_NODE *iov, int iovcnt);
+int zfifo_get_status(ZFIFO *zfifo, int *buf_size, int *used_size, int *frame_count);
 int zfifo_readv(ZFIFO_DESC *zfifo_desc, ZFIFO_NODE *iov, int iovcnt, int timeout);
 int zfifo_set_newest_frame(ZFIFO_DESC *zfifo_desc);
 int zfifo_set_oldest_frame(ZFIFO_DESC *zfifo_desc);
@@ -58,4 +59,3 @@ int zfifo_readv_plus(ZFIFO_DESC *zfifo_desc, ZFIFO_NODE *iov, int iovcnt, int ti
 int zfifo_readv_flag_plus(ZFIFO_DESC *zfifo_desc, ZFIFO_NODE *iov, int iovcnt, int timeout);
 int zfifo_readv_next_plus(ZFIFO_DESC *zfifo_desc, ZFIFO_NODE *iov, int iovcnt, int timeout);
 #endif
-
