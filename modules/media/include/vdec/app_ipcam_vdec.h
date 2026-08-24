@@ -33,6 +33,10 @@ typedef struct APP_VDEC_CHN_CFG_T {
     RECT_S      astDispRect;
     VDEC_CHN_ATTR_S astChnAttr;
     VDEC_CHN_PARAM_S astChnParam;
+    CVI_U32              u32MiniBufMode;
+    CVI_U32              u32RefFrameNum;
+    VIDEO_DEC_MODE_E     enDecMode;
+    VIDEO_OUTPUT_ORDER_E enOutputOrder;
 
 } APP_VDEC_CHN_CFG_S;
 

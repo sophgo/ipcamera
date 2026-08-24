@@ -21,6 +21,17 @@ const char *vdec_input_type[APP_VDEC_INPUT_BUTT] = {
     [APP_VDEC_INPUT_RTP]  = "APP_VDEC_INPUT_RTP"
 };
 
+const char *vdec_dec_mode[VIDEO_DEC_MODE_BUTT] = {
+    [VIDEO_DEC_MODE_IPB] = "VIDEO_DEC_MODE_IPB",
+    [VIDEO_DEC_MODE_IP]  = "VIDEO_DEC_MODE_IP",
+    [VIDEO_DEC_MODE_I]   = "VIDEO_DEC_MODE_I"
+};
+
+const char *vdec_output_order[VIDEO_OUTPUT_ORDER_BUTT] = {
+    [VIDEO_OUTPUT_ORDER_DISP] = "VIDEO_OUTPUT_ORDER_DISP",
+    [VIDEO_OUTPUT_ORDER_DEC]  = "VIDEO_OUTPUT_ORDER_DEC"
+};
+
 #ifdef RTSP_SUPPORT
 const char *vdec_rtsp_transport[APP_RTSP_TRANS_BUTT] = {
     [APP_RTSP_TRANS_UDP] = "APP_RTSP_TRANS_UDP",
@@ -167,6 +178,30 @@ int Load_Param_Vdec(const char *file)
         
         Vdec->astVdecChnCfg.astChnParam.u32DisplayFrameNum = ini_getl(tmp_section, "vdec_disp_frm_num", 0, file);
         Vdec->PicVbPool = ini_getl(tmp_section, "PicVbPool", 0, file);
+        Vdec->astVdecChnCfg.u32MiniBufMode = ini_getl(tmp_section, "vdec_mini_buf_mode", 0, file);
+        Vdec->astVdecChnCfg.u32RefFrameNum = ini_getl(tmp_section, "vdec_ref_frame_num", 16, file);
+
+        Vdec->astVdecChnCfg.enDecMode = VIDEO_DEC_MODE_IPB;
+        ini_gets(tmp_section, "vdec_dec_mode", " ", str_name, PARAM_STRING_NAME_LEN, file);
+        ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vdec_dec_mode, VIDEO_DEC_MODE_BUTT, &enum_num);
+        if (ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][vdec_dec_mode] not set, use default IPB.\n", tmp_section);
+        } else {
+            Vdec->astVdecChnCfg.enDecMode = enum_num;
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][vdec_dec_mode] Convert string name [%s] to enum number [%d].\n",
+                tmp_section, str_name, enum_num);
+        }
+
+        Vdec->astVdecChnCfg.enOutputOrder = VIDEO_OUTPUT_ORDER_DISP;
+        ini_gets(tmp_section, "vdec_output_order", " ", str_name, PARAM_STRING_NAME_LEN, file);
+        ret = app_ipcam_Param_Convert_StrName_to_EnumNum(str_name, vdec_output_order, VIDEO_OUTPUT_ORDER_BUTT, &enum_num);
+        if (ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][vdec_output_order] not set, use default DISP.\n", tmp_section);
+        } else {
+            Vdec->astVdecChnCfg.enOutputOrder = enum_num;
+            APP_PROF_LOG_PRINT(LEVEL_INFO, "[%s][vdec_output_order] Convert string name [%s] to enum number [%d].\n",
+                tmp_section, str_name, enum_num);
+        }
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading vdec config ------------------> done \n\n");

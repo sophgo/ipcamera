@@ -29,6 +29,7 @@ module-$(CONFIG_MODULE_TDL_MD)		        += ai_md
 module-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)	+= ai_human_keypoint_detect
 module-$(CONFIG_MODULE_TDL_MOTION)		    += ai_motion
 module-$(CONFIG_MODULE_TDL_SOUND_CLS)	    += ai_babycry
+module-$(CONFIG_MODULE_TDL_AEROEAR_DETECT)	+= ai_aeroear
 module-$(CONFIG_MODULE_TDL_OBJECT_TRACK)	+= ai_object_track
 
 SUBDIRS += $(module-y)

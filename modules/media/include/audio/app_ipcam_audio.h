@@ -125,7 +125,12 @@ int app_ipcam_Audio_AoPlay(char *pAudioFile, AUDIO_AO_PLAY_TYPE_E eAoType);
 int app_ipcam_Audio_AudioReset(APP_PARAM_AUDIO_CFG_T *pstAudioCfg);
 int app_ipcam_Audio_SetRecordStatus(APP_AUDIO_RECORD_T *pstAudioRecord);
 int app_ipcam_Audio_SetPlayStatus(APP_AUDIO_RECORD_T *pstAudioPlay);
+#ifdef TDL_SOUND_CLS
 int app_ipcam_Ai_Cry_Audio_Buffer_Get(CVI_U8 *u8AudioBuffer, CVI_U32 u32FrameSize);
+#endif
+#ifdef TDL_AEROEAR_DETECT
+int app_ipcam_Ai_Aeroear_Audio_Buffer_Get(CVI_U8 *u8AudioBuffer, CVI_U32 u32FrameSize);
+#endif
 
 #ifdef __cplusplus
 }

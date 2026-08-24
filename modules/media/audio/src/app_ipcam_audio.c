@@ -50,6 +50,13 @@ static CVI_U8 *g_pCryBuffer;
 static pthread_mutex_t g_CryMutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+#ifdef TDL_AEROEAR_DETECT
+#define AEROEAR_BUFFER_SECOND 5
+static CVI_U8 *g_pAeroEarBuffer;
+static CVI_U32 g_u32AeroEarBufferLen = 0;
+static pthread_mutex_t g_AeroEarMutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 static RUN_THREAD_PARAM mAudioAiThread;
 static RUN_THREAD_PARAM mAudioAencThread;
 static RUN_THREAD_PARAM mAudioAoThread;
@@ -486,9 +493,9 @@ static CVI_VOID *Thread_AudioAenc_Proc(CVI_VOID *pArgs)
     return NULL;
 }
 
-#ifdef TDL_SOUND_CLS
+#if defined(TDL_SOUND_CLS) || defined(TDL_AEROEAR_DETECT)
 
-static CVI_S32 ai_cry_queue_push(CVI_U8 *pQueueBuffer, CVI_U32 u32BufferLen, CVI_U32 u32DataLen, CVI_U8 *pData)
+static CVI_S32 ai_audio_ringbuf_push(CVI_U8 *pQueueBuffer, CVI_U32 u32BufferLen, CVI_U32 u32DataLen, CVI_U8 *pData)
 {
     _NULL_POINTER_CHECK_(pQueueBuffer, CVI_FAILURE);
     _NULL_POINTER_CHECK_(pData, CVI_FAILURE);
@@ -497,7 +504,7 @@ static CVI_S32 ai_cry_queue_push(CVI_U8 *pQueueBuffer, CVI_U32 u32BufferLen, CVI
     return CVI_SUCCESS;
 }
 
-static CVI_S32 ai_cry_queue_pop(CVI_U8 *pQueueBuffer, CVI_U32 u32BufferLen, CVI_U32 u32DataLen)
+static CVI_S32 ai_audio_ringbuf_pop(CVI_U8 *pQueueBuffer, CVI_U32 u32BufferLen, CVI_U32 u32DataLen)
 {
     _NULL_POINTER_CHECK_(pQueueBuffer, CVI_FAILURE);
 
@@ -513,7 +520,9 @@ static CVI_S32 ai_cry_queue_pop(CVI_U8 *pQueueBuffer, CVI_U32 u32BufferLen, CVI_
 
     return CVI_SUCCESS;
 }
+#endif
 
+#ifdef TDL_SOUND_CLS
 int app_ipcam_Ai_Cry_Audio_Buffer_Get(CVI_U8 *pAudioBuffer, CVI_U32 u32BufferLen)
 {
     _NULL_POINTER_CHECK_(pAudioBuffer, CVI_FAILURE);
@@ -524,6 +533,30 @@ int app_ipcam_Ai_Cry_Audio_Buffer_Get(CVI_U8 *pAudioBuffer, CVI_U32 u32BufferLen
     memcpy(pAudioBuffer, g_pCryBuffer, u32BufferLen);
 
     pthread_mutex_unlock(&g_CryMutex);
+    return CVI_SUCCESS;
+}
+#endif
+
+#ifdef TDL_AEROEAR_DETECT
+int app_ipcam_Ai_Aeroear_Audio_Buffer_Get(CVI_U8 *pAudioBuffer, CVI_U32 u32BufferLen)
+{
+    _NULL_POINTER_CHECK_(pAudioBuffer, CVI_FAILURE);
+    _NULL_POINTER_CHECK_(g_pAeroEarBuffer, CVI_FAILURE);
+
+    pthread_mutex_lock(&g_AeroEarMutex);
+
+    /*
+     * Read from the tail of the ring buffer to get the latest data.
+     * For sliding window operations (u32BufferLen < g_u32AeroEarBufferLen),
+     * this ensures the window covers the newest audio instead of stale data.
+     * When u32BufferLen == g_u32AeroEarBufferLen (first full 5s read),
+     * tail offset = 0, equivalent to the original behavior.
+     */
+    memcpy(pAudioBuffer,
+           g_pAeroEarBuffer + g_u32AeroEarBufferLen - u32BufferLen,
+           u32BufferLen);
+
+    pthread_mutex_unlock(&g_AeroEarMutex);
     return CVI_SUCCESS;
 }
 #endif
@@ -566,6 +599,9 @@ static CVI_VOID *Thread_AudioAi_Proc(CVI_VOID *pArgs)
 
     #ifdef TDL_SOUND_CLS
     CVI_U32 ai_buffer_len = pastAudioCfg->enSamplerate * (CVI_U32)(pastAudioCfg->enBitwidth + 1) * AI_BUFFER_SECOND;
+    #endif
+    #ifdef TDL_AEROEAR_DETECT
+    CVI_U32 aeroear_buffer_len = pastAudioCfg->enSamplerate * (CVI_U32)(pastAudioCfg->enBitwidth + 1) * AEROEAR_BUFFER_SECOND;
     #endif
 
     //AEC will output only one single channel with 2 channels in
@@ -621,9 +657,17 @@ static CVI_VOID *Thread_AudioAi_Proc(CVI_VOID *pArgs)
             #ifdef TDL_SOUND_CLS
             {
                 pthread_mutex_lock(&g_CryMutex);
-                ai_cry_queue_pop(g_pCryBuffer, ai_buffer_len, stNewFrame.u32Len);
-                ai_cry_queue_push(g_pCryBuffer, ai_buffer_len, stNewFrame.u32Len, stNewFrame.u64VirAddr[0]);
+                ai_audio_ringbuf_pop(g_pCryBuffer, ai_buffer_len, stNewFrame.u32Len);
+                ai_audio_ringbuf_push(g_pCryBuffer, ai_buffer_len, stNewFrame.u32Len, stNewFrame.u64VirAddr[0]);
                 pthread_mutex_unlock(&g_CryMutex);
+            }
+            #endif
+            #ifdef TDL_AEROEAR_DETECT
+            {
+                pthread_mutex_lock(&g_AeroEarMutex);
+                ai_audio_ringbuf_pop(g_pAeroEarBuffer, aeroear_buffer_len, stNewFrame.u32Len);
+                ai_audio_ringbuf_push(g_pAeroEarBuffer, aeroear_buffer_len, stNewFrame.u32Len, stNewFrame.u64VirAddr[0]);
+                pthread_mutex_unlock(&g_AeroEarMutex);
             }
             #endif
 
@@ -650,7 +694,7 @@ static CVI_VOID *Thread_AudioAi_Proc(CVI_VOID *pArgs)
             //if (s32Ret != CVI_SUCCESS) {
             //    APP_PROF_LOG_PRINT(LEVEL_ERROR, "Venc streaming push linklist failed!\n");
             //}
-            // test code record ai auido
+            // test code record ai audio
             if (iAiRecordTime)
             {
                 if (fp_rec == NULL)
@@ -1312,6 +1356,11 @@ static CVI_S32 app_ipcam_Audio_AiStop(APP_AUDIO_CFG_S *pstAudioCfg, APP_AUDIO_VQ
             free(g_pCryBuffer);
             g_pCryBuffer = NULL;
             #endif
+            #ifdef TDL_AEROEAR_DETECT
+            free(g_pAeroEarBuffer);
+            g_pAeroEarBuffer = NULL;
+            g_u32AeroEarBufferLen = 0;
+            #endif
         }
 
         for(i = 0; i <= (CVI_S32)pstAudioCfg->u32ChnCnt; i++)
@@ -1490,6 +1539,12 @@ static CVI_S32 app_ipcam_Audio_AiStart(APP_AUDIO_CFG_S *pstAudioCfg, APP_AUDIO_V
         g_pCryBuffer = malloc(pstAudioCfg->enSamplerate * (CVI_U32)(pstAudioCfg->enBitwidth + 1) * AI_BUFFER_SECOND) ;
         if (NULL == g_pCryBuffer)
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "g_pCryBuffer malloc failed!\n");
+        #endif
+        #ifdef TDL_AEROEAR_DETECT
+        g_u32AeroEarBufferLen = pstAudioCfg->enSamplerate * (CVI_U32)(pstAudioCfg->enBitwidth + 1) * AEROEAR_BUFFER_SECOND;
+        g_pAeroEarBuffer = malloc(g_u32AeroEarBufferLen);
+        if (NULL == g_pAeroEarBuffer)
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "g_pAeroEarBuffer malloc failed!\n");
         #endif
     }
 

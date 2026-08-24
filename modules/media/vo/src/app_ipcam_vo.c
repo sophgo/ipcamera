@@ -1,6 +1,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <sched.h>
+#include <pthread.h>
 
 #include "linux/cvi_defines.h"
 #include "linux/cvi_math.h"
@@ -96,12 +98,21 @@ CVI_S32 app_ipcam_Vo_Start_Postproc(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     }
 
     if (pstVoCfg->bBindMode != 1){
+        pthread_attr_t stThreadAttr;
+        struct sched_param stSchedParam = {0};
+
         b_VoRunning[pstVoCfg->s32VoDev] = CVI_TRUE;
-        if (pthread_create(&g_pthVo[pstVoCfg->s32VoDev], CVI_NULL, pfunThreadVo, (CVI_VOID*)pstVoCfg) == 0) {
+        stSchedParam.sched_priority = 80;
+        pthread_attr_init(&stThreadAttr);
+        pthread_attr_setschedpolicy(&stThreadAttr, SCHED_RR);
+        pthread_attr_setschedparam(&stThreadAttr, &stSchedParam);
+        pthread_attr_setinheritsched(&stThreadAttr, PTHREAD_EXPLICIT_SCHED);
+        if (pthread_create(&g_pthVo[pstVoCfg->s32VoDev], &stThreadAttr, pfunThreadVo, (CVI_VOID*)pstVoCfg) == 0) {
             APP_PROF_LOG_PRINT(LEVEL_INFO, "Thread VO is created successfully.\n");
         } else {
             APP_PROF_LOG_PRINT(LEVEL_ERROR, "Thread VO is created failed.\n");
         }
+        pthread_attr_destroy(&stThreadAttr);
     }
 
     return CVI_SUCCESS;

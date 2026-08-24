@@ -222,6 +222,10 @@ static int app_ipcam_Exit(void)
     APP_CHK_RET(app_ipcam_Ai_Cry_Stop(), "Stop Sound cls");
     #endif
 
+    #if defined(AUDIO_SUPPORT) && defined(TDL_AEROEAR_DETECT)
+    APP_CHK_RET(app_ipcam_Ai_Aeroear_Stop(), "Stop Aeroear detect");
+    #endif
+
     #ifdef TDL_OBJECT_TRACK_SUPPORT
     APP_CHK_RET(app_ipcam_Ai_Object_Track_Stop(), "ObjectTrack Stop");
     #endif
@@ -415,6 +419,10 @@ int main(int argc, char *argv[])
 
     #if defined(AUDIO_SUPPORT) && defined(TDL_SOUND_CLS)
     APP_CHK_RET(app_ipcam_Ai_Cry_Start(), "Start Sound cls");
+    #endif
+
+    #if defined(AUDIO_SUPPORT) && defined(TDL_AEROEAR_DETECT)
+    APP_CHK_RET(app_ipcam_Ai_Aeroear_Start(), "Start Aeroear detect");
     #endif
 
     #ifdef TDL_OBJECT_TRACK_SUPPORT

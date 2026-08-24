@@ -463,6 +463,7 @@ int app_ipcam_Vdec_Init(void)
 
     CVI_VDEC_GetModParam(&stModParam);
     stModParam.enVdecVBSource = VB_SOURCE_USER;
+    stModParam.u32MiniBufMode = pstVdecChnCfg->u32MiniBufMode;
     CVI_VDEC_SetModParam(&stModParam);
 
     VdecChn                 = pstVdecChnCfg->VdecChn;
@@ -472,6 +473,7 @@ int app_ipcam_Vdec_Init(void)
     stAttr.u32PicHeight     = pstVdecChnCfg->astChnAttr.u32PicHeight;
     stAttr.u32FrameBufCnt   = pstVdecChnCfg->astChnAttr.u32FrameBufCnt;
     stAttr.u32StreamBufSize = pstVdecChnCfg->astChnAttr.u32PicWidth * pstVdecChnCfg->astChnAttr.u32PicHeight;
+    stAttr.stVdecVideoAttr.u32RefFrameNum = pstVdecChnCfg->u32RefFrameNum;
 
     /* 创建解码通道 */
     s32Ret = CVI_VDEC_CreateChn(VdecChn, &stAttr);
@@ -497,6 +499,8 @@ int app_ipcam_Vdec_Init(void)
 
     stChnParam.enPixelFormat      = pstVdecChnCfg->astChnParam.enPixelFormat;
     stChnParam.u32DisplayFrameNum = pstVdecChnCfg->astChnParam.u32DisplayFrameNum;
+    stChnParam.stVdecVideoParam.enDecMode     = pstVdecChnCfg->enDecMode;
+    stChnParam.stVdecVideoParam.enOutputOrder = pstVdecChnCfg->enOutputOrder;
     /* 设置视频通道参数 */
     s32Ret = CVI_VDEC_SetChnParam(VdecChn, &stChnParam);
     if (s32Ret != CVI_SUCCESS) {

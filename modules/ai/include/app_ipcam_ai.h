@@ -166,6 +166,25 @@ int app_ipcam_Ai_Cry_Start(void);
 CVI_S32 app_ipcam_Ai_Cry_StatusGet(void);
 #endif
 
+#if defined(AUDIO_SUPPORT) && defined(TDL_AEROEAR_DETECT)
+typedef struct APP_PARAM_AI_AEROEAR_CFG_T {
+    CVI_BOOL bEnable;
+    TDLModel model_id;
+    char model_path[MODEL_PATH_LEN];
+    float snr_threshold;
+    float act_threshold;
+} APP_PARAM_AI_AEROEAR_CFG_S;
+
+APP_PARAM_AI_AEROEAR_CFG_S *app_ipcam_Ai_Aeroear_Param_Get(void);
+CVI_VOID app_ipcam_Ai_Aeroear_ProcStatus_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Aeroear_ProcStatus_Get(void);
+CVI_VOID app_ipcam_Ai_Aeroear_Pause_Set(CVI_BOOL flag);
+CVI_BOOL app_ipcam_Ai_Aeroear_Pause_Get(void);
+int app_ipcam_Ai_Aeroear_Stop(void);
+int app_ipcam_Ai_Aeroear_Start(void);
+CVI_S32 app_ipcam_Ai_Aeroear_StatusGet(void);
+#endif
+
 #ifdef TDL_CAPTURE_SUPPORT
 APP_PARAM_AI_CAPTURE_CFG_S *app_ipcam_Ai_Capture_Param_Get(void);
 CVI_BOOL app_ipcam_Ai_Capture_Pause_Get(void);

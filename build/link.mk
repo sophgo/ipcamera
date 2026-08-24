@@ -21,6 +21,7 @@ LIBS-$(CONFIG_MODULE_TDL_CAPTURE)                 += -lapp_paramparse_ai_capture
 LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_paramparse_ai_face
 LIBS-$(CONFIG_MODULE_TDL_MOTION)                  += -lapp_paramparse_ai_motion
 LIBS-$(CONFIG_MODULE_TDL_SOUND_CLS)               += -lapp_paramparse_ai_babycry
+LIBS-$(CONFIG_MODULE_TDL_AEROEAR_DETECT)          += -lapp_paramparse_ai_aeroear
 LIBS-$(CONFIG_MODULE_TDL)                         += -lapp_paramparse_ai
 LIBS-$(CONFIG_MODULE_DISPLAY)                     += -lapp_paramparse_display
 LIBS-$(CONFIG_MODULE_FRMBUF)                      += -lapp_paramparse_frmbuf
@@ -49,6 +50,7 @@ LIBS-$(CONFIG_MODULE_TDL_FD_FACE)                 += -lapp_tdl_fd_face
 LIBS-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)          += -lapp_tdl_human_keypoint_detect
 LIBS-$(CONFIG_MODULE_TDL_MOTION)                  += -lapp_tdl_motion
 LIBS-$(CONFIG_MODULE_TDL_SOUND_CLS)               += -lapp_tdl_sound_cls
+LIBS-$(CONFIG_MODULE_TDL_AEROEAR_DETECT)           += -lapp_tdl_aeroear_detect
 LIBS-$(CONFIG_MODULE_TDL_OBJECT_TRACK)            += -lapp_tdl_object_track
 
 LIBS-$(CONFIG_MODULE_PARAMPARSE)                  += -lapp_paramparse

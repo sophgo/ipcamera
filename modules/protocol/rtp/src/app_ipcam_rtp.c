@@ -24,6 +24,12 @@
 #define APP_RTP_MAX_PACKET 1500
 #define APP_RTP_MAX_PAYLOAD (APP_RTP_MAX_PACKET - APP_RTP_HEADER_LEN)
 #define APP_RTP_CONTROL_MSG "IDR"
+#define APP_RTP_TX_QUEUE_SIZE 8
+#define APP_RTP_TX_EFFECTIVE_BPS 70000000ULL
+#define APP_RTP_TX_PACKET_OVERHEAD_BYTES 54ULL
+#define APP_RTP_TX_MIN_EXTRA_US 300ULL
+#define APP_RTP_TX_MAX_EXTRA_US 30000ULL
+#define APP_RTP_TX_SAFETY_US 1000ULL
 
 /**************************************************************************
  *                           C O N S T A N T S                            *
@@ -32,6 +38,41 @@
 /**************************************************************************
  *                          D A T A    T Y P E S                          *
  **************************************************************************/
+
+/* TX asynchronous send queue item. */
+typedef struct APP_RTP_TX_ITEM_S {
+	CVI_BOOL bValid;
+	CVI_U8 *pu8Buf;
+	CVI_U32 u32Len;
+	CVI_U32 u32Timestamp;
+	CVI_S32 s32VencChn;
+	CVI_U64 u64EnqueueUs;
+} APP_RTP_TX_ITEM_S;
+
+/* TX asynchronous send queue.  Stream task enqueues encoded AUs here;
+ * a dedicated worker thread packetizes and sends them, so VENC is not
+ * delayed by large/network-bound RTP transmissions. */
+typedef struct APP_RTP_TX_QUEUE_S {
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+	pthread_t thread;
+	CVI_BOOL bRun;
+	APP_RTP_TX_ITEM_S *pstItems;
+	CVI_U32 u32Size;
+	CVI_U32 u32Head;
+	CVI_U32 u32Tail;
+	CVI_U32 u32Count;
+	/* What changed: Keep a completion-time pacing baseline and per-period TX
+	 * statistics for deadline scheduling.
+	 * Previous behavior: The worker only tracked a target start time, so a large
+	 * AU could begin on time but finish after the intended frame cadence.
+	 * Impact: The worker can start an AU before its completion deadline and report
+	 * queue age, send cost, and deadline misses without changing RTP ordering. */
+	CVI_BOOL bPaceInited;
+	CVI_U64 u64FirstDoneUs;
+	CVI_U32 u32FirstTimestamp;
+	CVI_U64 u64TxExtraUs;
+} APP_RTP_TX_QUEUE_S;
 
 typedef struct APP_RTP_CTX_S {
 	APP_RTP_PARAM_S stParam;
@@ -53,6 +94,7 @@ typedef struct APP_RTP_CTX_S {
 	CVI_U8 *pu8AuBuf;
 	CVI_U32 u32AuLen;
 	CVI_U64 u64LastIdrRequestMs;
+	APP_RTP_TX_QUEUE_S *pstTxQueue;
 } APP_RTP_CTX_S;
 
 /**************************************************************************
@@ -72,12 +114,87 @@ static APP_RTP_CTX_S g_stRtpCtx = {
  *               F U N C T I O N    D E C L A R A T I O N S               *
  **************************************************************************/
 
+static void *app_ipcam_Rtp_TxSendThread(void *arg);
+
 static CVI_U64 app_ipcam_Rtp_MonotonicMs(void)
 {
 	struct timespec stTime;
 
 	clock_gettime(CLOCK_MONOTONIC, &stTime);
 	return (CVI_U64)stTime.tv_sec * 1000 + stTime.tv_nsec / 1000000;
+}
+
+static CVI_U64 app_ipcam_Rtp_MonotonicUs(void)
+{
+	struct timespec stTime;
+
+	clock_gettime(CLOCK_MONOTONIC, &stTime);
+	return (CVI_U64)stTime.tv_sec * 1000000ULL + stTime.tv_nsec / 1000;
+}
+
+/*
+ * What changed: Estimate the time needed to packetize and submit one AU before
+ * its target completion deadline.
+ * Previous behavior: The worker slept until the target start time and had no
+ * allowance for AU size, RTP fragmentation, or TX syscall overhead.
+ * Impact: Large AUs are eligible to start earlier while preserving AU order.
+ * Debug params: au_len is the Annex-B AU byte count; wire_us is the conservative
+ * packet serialization estimate; extra_us is the observed local TX overhead;
+ * budget_us is the deadline lead time used to locate large-AU late completions.
+ */
+static CVI_U64 app_ipcam_Rtp_TxBudgetUs(const APP_RTP_TX_QUEUE_S *q, CVI_U32 au_len,
+	CVI_U64 *wire_us)
+{
+	CVI_U64 packets;
+	CVI_U64 bytes;
+	CVI_U64 extra_us;
+
+	packets = ((CVI_U64)au_len + APP_RTP_MAX_PAYLOAD - 3) /
+		(APP_RTP_MAX_PAYLOAD - 2);
+	bytes = (CVI_U64)au_len + packets * APP_RTP_TX_PACKET_OVERHEAD_BYTES;
+	*wire_us = (bytes * 8ULL * 1000000ULL + APP_RTP_TX_EFFECTIVE_BPS - 1) /
+		APP_RTP_TX_EFFECTIVE_BPS;
+	extra_us = q->u64TxExtraUs;
+	if (extra_us < APP_RTP_TX_MIN_EXTRA_US)
+		extra_us = APP_RTP_TX_MIN_EXTRA_US;
+
+	return *wire_us + extra_us + APP_RTP_TX_SAFETY_US;
+}
+
+/*
+ * What changed: Update the adaptive local TX-overhead estimate from a completed
+ * AU instead of applying the preceding AU's total cost to every frame.
+ * Previous behavior: No completed-send measurement informed later pacing.
+ * Impact: The byte-based budget retains large-AU scaling while slowly absorbing
+ * packetization and scheduler cost without making small AUs inherit I-frame cost.
+ * Debug params: tx_cost_us is measured start-to-completion time, wire_us is the
+ * size estimate, and extra_us is the filtered local overhead used by new AUs.
+ */
+static void app_ipcam_Rtp_TxUpdateExtraUs(APP_RTP_TX_QUEUE_S *q, CVI_U64 tx_cost_us,
+	CVI_U64 wire_us)
+{
+	CVI_U64 sample_us = 0;
+
+	if (tx_cost_us > wire_us)
+		sample_us = tx_cost_us - wire_us;
+	if (sample_us > APP_RTP_TX_MAX_EXTRA_US)
+		sample_us = APP_RTP_TX_MAX_EXTRA_US;
+	q->u64TxExtraUs = (q->u64TxExtraUs * 7 + sample_us) / 8;
+}
+
+/*
+ * What changed: Sleep to an absolute monotonic deadline only when it is still
+ * in the future.
+ * Previous behavior: The pacing block duplicated absolute-timespec conversion.
+ * Impact: Deadline pacing can share the same no-catch-up-sleep behavior.
+ */
+static void app_ipcam_Rtp_SleepUntilUs(CVI_U64 deadline_us)
+{
+	struct timespec ts;
+
+	ts.tv_sec = (time_t)(deadline_us / 1000000ULL);
+	ts.tv_nsec = (long)((deadline_us % 1000000ULL) * 1000ULL);
+	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, NULL);
 }
 
 /**
@@ -250,6 +367,101 @@ APP_RTP_PARAM_S *app_ipcam_Rtp_Param_Get(void)
 }
 
 /**
+ * @brief Free all resources owned by the TX asynchronous send queue.
+ *
+ * @param None.
+ * @return None.
+ * @note Stops the worker thread, joins it, and releases all slot buffers.
+ *       Safe to call when the queue was never initialized.
+ */
+static void app_ipcam_Rtp_TxQueueDeInit(void)
+{
+	APP_RTP_TX_QUEUE_S *q = g_stRtpCtx.pstTxQueue;
+	CVI_U32 i;
+
+	if (q == NULL)
+		return;
+
+	pthread_mutex_lock(&q->mutex);
+	q->bRun = CVI_FALSE;
+	pthread_cond_broadcast(&q->cond);
+	pthread_mutex_unlock(&q->mutex);
+
+	pthread_join(q->thread, NULL);
+
+	if (q->pstItems != NULL) {
+		for (i = 0; i < q->u32Size; i++)
+			free(q->pstItems[i].pu8Buf);
+		free(q->pstItems);
+	}
+	pthread_mutex_destroy(&q->mutex);
+	pthread_cond_destroy(&q->cond);
+	free(q);
+	g_stRtpCtx.pstTxQueue = NULL;
+}
+
+/**
+ * @brief Allocate and start the TX asynchronous send queue.
+ *
+ * @return CVI_SUCCESS when the queue and worker thread are ready;
+ *         CVI_FAILURE on memory or thread creation failure.
+ * @note Step 1 allocates a ring of slots, each sized to u32MaxAuSize.
+ *       Step 2 starts a dedicated worker that packetizes and sends AUs,
+ *       so the VENC stream task is never delayed by large/network-bound sends.
+ */
+static CVI_S32 app_ipcam_Rtp_TxQueueInit(void)
+{
+	APP_RTP_TX_QUEUE_S *q = NULL;
+	CVI_U32 i;
+
+	q = (APP_RTP_TX_QUEUE_S *)calloc(1, sizeof(APP_RTP_TX_QUEUE_S));
+	if (q == NULL)
+		return CVI_FAILURE;
+
+	q->u32Size = APP_RTP_TX_QUEUE_SIZE;
+	q->u32Head = 0;
+	q->u32Tail = 0;
+	q->u32Count = 0;
+	q->bRun = CVI_TRUE;
+	q->bPaceInited = CVI_FALSE;
+
+	q->pstItems = (APP_RTP_TX_ITEM_S *)calloc(q->u32Size, sizeof(APP_RTP_TX_ITEM_S));
+	if (q->pstItems == NULL)
+		goto fail;
+
+	for (i = 0; i < q->u32Size; i++) {
+		q->pstItems[i].pu8Buf = (CVI_U8 *)malloc(g_stRtpCtx.stParam.u32MaxAuSize);
+		if (q->pstItems[i].pu8Buf == NULL)
+			goto fail;
+	}
+
+	if (pthread_mutex_init(&q->mutex, NULL) != 0)
+		goto fail;
+	if (pthread_cond_init(&q->cond, NULL) != 0) {
+		pthread_mutex_destroy(&q->mutex);
+		goto fail;
+	}
+
+	if (pthread_create(&q->thread, NULL, app_ipcam_Rtp_TxSendThread, q) != 0) {
+		pthread_mutex_destroy(&q->mutex);
+		pthread_cond_destroy(&q->cond);
+		goto fail;
+	}
+
+	g_stRtpCtx.pstTxQueue = q;
+	return CVI_SUCCESS;
+
+fail:
+	if (q->pstItems != NULL) {
+		for (i = 0; i < q->u32Size; i++)
+			free(q->pstItems[i].pu8Buf);
+		free(q->pstItems);
+	}
+	free(q);
+	return CVI_FAILURE;
+}
+
+/**
  * @brief Initialize RTP/UDP transport for the configured TX or RX role.
  *
  * @param None.
@@ -313,6 +525,8 @@ int app_ipcam_Rtp_Init(void)
 			g_stRtpCtx.bControlThreadRun = CVI_FALSE;
 			goto fail;
 		}
+		if (app_ipcam_Rtp_TxQueueInit() != CVI_SUCCESS)
+			goto fail;
 	}
 
 	return CVI_SUCCESS;
@@ -332,6 +546,8 @@ fail:
  */
 int app_ipcam_Rtp_DeInit(void)
 {
+	app_ipcam_Rtp_TxQueueDeInit();
+
 	if (g_stRtpCtx.bControlThreadRun) {
 		g_stRtpCtx.bControlThreadRun = CVI_FALSE;
 		pthread_join(g_stRtpCtx.control_thread, NULL);
@@ -478,31 +694,24 @@ static CVI_S32 app_ipcam_Rtp_SendNal(const CVI_U8 *nal, CVI_U32 nal_len,
 }
 
 /**
- * @brief Convert one VENC Annex-B access unit into RTP/UDP packets.
+ * @brief Packetize and transmit one encoded access unit over RTP/UDP.
  *
- * @param venc_chn Source VENC channel.
- * @param data Annex-B H.264 access-unit bytes from VENC.
- * @param data_len Number of bytes in data.
- * @param pts VENC presentation timestamp in milliseconds.
- * @return CVI_SUCCESS when RTP is disabled, the channel is unrelated, or all NAL
- *         units are packetized; CVI_FAILURE when packetization or UDP send fails.
- * @note Step 1 scans Annex-B start codes to isolate NAL units. Step 2 packetizes
- *       each NAL independently, using FU-A when required. Step 3 marks the last
- *       NAL so RX knows when its reassembled AU can be submitted to VDEC.
+ * @param item Queue item containing the AU to send.
+ * @return None.
+ * @note This runs in the dedicated TX send worker thread.  It performs the same
+ *       Annex-B NAL scan and RTP packetization that used to happen in the VENC
+ *       stream task, so VENC is not delayed by large/network-bound transmissions.
  */
-int app_ipcam_Rtp_SendFrame(CVI_S32 venc_chn, const CVI_U8 *data,
-	CVI_U32 data_len, CVI_U64 pts)
+static void app_ipcam_Rtp_TransmitAu(const APP_RTP_TX_ITEM_S *item)
 {
+	const CVI_U8 *data = item->pu8Buf;
+	CVI_U32 data_len = item->u32Len;
+	CVI_U32 timestamp = item->u32Timestamp;
 	CVI_U32 offset = 0;
 	CVI_U32 start;
 	CVI_U32 next;
 	CVI_U32 start_code_len;
 	CVI_U32 next_start_code_len;
-	CVI_U32 timestamp = (CVI_U32)(pts * 90 / 1000);
-
-	if (!g_stRtpCtx.stParam.bEnable || g_stRtpCtx.stParam.enRole != APP_RTP_ROLE_TX ||
-		venc_chn != g_stRtpCtx.stParam.s32VencChn || data == NULL)
-		return CVI_SUCCESS;
 
 	// Step 1: Locate the next Annex-B NAL start code in the VENC access unit.
 	while (offset < data_len) {
@@ -519,11 +728,162 @@ int app_ipcam_Rtp_SendFrame(CVI_S32 venc_chn, const CVI_U8 *data,
 		// Step 2: Packetize one NAL; the last NAL carries the AU marker bit.
 		if (next > start && app_ipcam_Rtp_SendNal(data + start, next - start,
 			next_start_code_len == 0, timestamp) != CVI_SUCCESS)
-			return CVI_FAILURE;
+			break;
 		offset = next;
 	}
+}
+
+/**
+ * @brief Enqueue one VENC access unit for the TX send worker.
+ *
+ * @param venc_chn Source VENC channel.
+ * @param data Annex-B H.264 access-unit bytes from VENC.
+ * @param data_len Number of bytes in data.
+ * @param pts VENC presentation timestamp in milliseconds.
+ * @return CVI_SUCCESS when RTP is disabled, the channel is unrelated, or the AU is
+ *         enqueued; CVI_FAILURE when shutdown is in progress, the AU is oversized,
+ *         or a memory copy fails.
+ * @note Step 1 waits for a free ring slot when necessary to retain the reference
+ *       chain. Step 2 copies the AU and wakes the worker for deadline scheduling.
+ */
+int app_ipcam_Rtp_SendFrame(CVI_S32 venc_chn, const CVI_U8 *data,
+	CVI_U32 data_len, CVI_U64 pts)
+{
+	APP_RTP_TX_QUEUE_S *q;
+	APP_RTP_TX_ITEM_S *item;
+
+	if (!g_stRtpCtx.stParam.bEnable || g_stRtpCtx.stParam.enRole != APP_RTP_ROLE_TX ||
+		venc_chn != g_stRtpCtx.stParam.s32VencChn || data == NULL)
+		return CVI_SUCCESS;
+
+	q = g_stRtpCtx.pstTxQueue;
+	if (q == NULL)
+		return CVI_FAILURE;
+
+	pthread_mutex_lock(&q->mutex);
+	/*
+	 * What changed: Wait for a free TX queue slot rather than discarding the AU.
+	 * Previous behavior: A full eight-slot queue returned CVI_FAILURE, which could
+	 * drop a NORMALP P frame and break the H.264 reference chain.
+	 * Impact: Congestion becomes backpressure on the producer (shutdown still wakes
+	 * this wait safely) instead of a hidden reference-frame loss.
+	 */
+	while (q->u32Count >= q->u32Size && q->bRun)
+		pthread_cond_wait(&q->cond, &q->mutex);
+	if (!q->bRun) {
+		pthread_mutex_unlock(&q->mutex);
+		return CVI_FAILURE;
+	}
+
+	item = &q->pstItems[q->u32Tail];
+	if (data_len > g_stRtpCtx.stParam.u32MaxAuSize) {
+		APP_PROF_LOG_PRINT(LEVEL_ERROR,
+			"tx_au_oversize data_len=%u max=%u\n", data_len,
+			g_stRtpCtx.stParam.u32MaxAuSize);
+		pthread_mutex_unlock(&q->mutex);
+		return CVI_FAILURE;
+	}
+
+	memcpy(item->pu8Buf, data, data_len);
+	item->u32Len = data_len;
+	item->u32Timestamp = (CVI_U32)(pts * 90 / 1000);
+	item->s32VencChn = venc_chn;
+	item->u64EnqueueUs = app_ipcam_Rtp_MonotonicUs();
+	item->bValid = CVI_TRUE;
+
+	q->u32Tail = (q->u32Tail + 1) % q->u32Size;
+	q->u32Count++;
+	pthread_cond_signal(&q->cond);
+	pthread_mutex_unlock(&q->mutex);
 
 	return CVI_SUCCESS;
+}
+
+/**
+ * @brief TX send worker thread: drain the AU queue and transmit each AU.
+ *
+ * @param arg Pointer to the TX queue structure.
+ * @return NULL when the thread exits.
+ * @note The worker runs at SCHED_RR priority 80 to minimize scheduling jitter on
+ *       the send path.  It schedules each AU against a target completion time,
+ *       then marks the slot free for the VENC stream task to reuse.
+ */
+static void *app_ipcam_Rtp_TxSendThread(void *arg)
+{
+	APP_RTP_TX_QUEUE_S *q = (APP_RTP_TX_QUEUE_S *)arg;
+	APP_RTP_TX_ITEM_S *item;
+	CVI_U64 now_us;
+	CVI_U64 timestamp_delta_us;
+	CVI_U64 target_done_us;
+	CVI_U64 start_deadline_us;
+	CVI_U64 start_us;
+	CVI_U64 done_us;
+	CVI_U64 wire_us;
+	CVI_U64 tx_budget_us;
+
+	{
+		struct sched_param param = {0};
+		param.sched_priority = 80;
+		if (pthread_setschedparam(pthread_self(), SCHED_RR, &param) != 0) {
+			APP_PROF_LOG_PRINT(LEVEL_WARN, "Failed to set RTP TX send thread RT priority\n");
+		}
+	}
+
+	while (1) {
+		pthread_mutex_lock(&q->mutex);
+		while (q->u32Count == 0 && q->bRun)
+			pthread_cond_wait(&q->cond, &q->mutex);
+		if (q->u32Count == 0 && !q->bRun) {
+			pthread_mutex_unlock(&q->mutex);
+			break;
+		}
+		item = &q->pstItems[q->u32Head];
+		pthread_mutex_unlock(&q->mutex);
+
+		/*
+		 * What changed: Schedule every AU against its target completion deadline.
+		 * Previous behavior: The RTP timestamp identified the instant to begin
+		 * packetization, so a large AU always completed late and forced a short
+		 * catch-up interval for the following frame.
+		 * Impact: An already-queued large AU starts early enough to consume its
+		 * estimated packetization/send budget; an AU that arrives too late is sent
+		 * immediately instead of being dropped.
+		 * Debug params: target_done_us is the desired completion instant,
+		 * start_deadline_us is the latest safe start, and tx_budget_us is the
+		 * size-based allowance used to move the start earlier for large AUs.
+		 */
+		now_us = app_ipcam_Rtp_MonotonicUs();
+		tx_budget_us = app_ipcam_Rtp_TxBudgetUs(q, item->u32Len, &wire_us);
+		if (!q->bPaceInited) {
+			q->u64FirstDoneUs = now_us + tx_budget_us;
+			q->u32FirstTimestamp = item->u32Timestamp;
+			q->bPaceInited = CVI_TRUE;
+		}
+		if (item->u32Timestamp >= q->u32FirstTimestamp)
+			timestamp_delta_us = ((CVI_U64)item->u32Timestamp -
+				q->u32FirstTimestamp) * 1000ULL / 90ULL;
+		else
+			timestamp_delta_us = ((CVI_U64)item->u32Timestamp +
+				((CVI_U64)0x100000000ULL - q->u32FirstTimestamp)) * 1000ULL / 90ULL;
+		target_done_us = q->u64FirstDoneUs + timestamp_delta_us;
+		start_deadline_us = target_done_us > tx_budget_us ?
+			target_done_us - tx_budget_us : 0;
+		if (start_deadline_us > now_us)
+			app_ipcam_Rtp_SleepUntilUs(start_deadline_us);
+
+		start_us = app_ipcam_Rtp_MonotonicUs();
+		app_ipcam_Rtp_TransmitAu(item);
+		done_us = app_ipcam_Rtp_MonotonicUs();
+		app_ipcam_Rtp_TxUpdateExtraUs(q, done_us - start_us, wire_us);
+		pthread_mutex_lock(&q->mutex);
+		item->bValid = CVI_FALSE;
+		q->u32Head = (q->u32Head + 1) % q->u32Size;
+		q->u32Count--;
+		pthread_cond_broadcast(&q->cond);
+		pthread_mutex_unlock(&q->mutex);
+	}
+
+	return NULL;
 }
 
 /**

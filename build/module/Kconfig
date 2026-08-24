@@ -218,6 +218,13 @@ config MODULE_TDL_SOUND_CLS
 	help
 		enable ai sound cls in applicant
 
+config MODULE_TDL_AEROEAR_DETECT
+	bool "enable module ai aeroear detect"
+	default n
+	depends on MODULE_TDL
+	help
+		enable ai aeroear drone detection in applicant
+
 config MODULE_TDL_MOTION
 	bool "enable module ai motion"
 	default n

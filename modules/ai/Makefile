@@ -9,6 +9,7 @@ module-$(CONFIG_MODULE_TDL_PD)					+= pd
 module-$(CONFIG_MODULE_TDL_FD_FACE)				+= face
 module-$(CONFIG_MODULE_TDL_HUMAN_KEYPOINT)		+= human_keypoint_detect
 module-$(CONFIG_MODULE_TDL_SOUND_CLS)			+= baby_cry
+module-$(CONFIG_MODULE_TDL_AEROEAR_DETECT)		+= aeroear_detect
 module-$(CONFIG_MODULE_TDL_OBJECT_TRACK)		+= object_track
 
 SUBDIRS += $(module-y)
