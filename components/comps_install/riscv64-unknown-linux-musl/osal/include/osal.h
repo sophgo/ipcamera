@@ -43,6 +43,20 @@ int32_t OSAL_MUTEX_Unlock(OSAL_MUTEX_HANDLE_S mutex);
 	{                                \
 		{"static_r", PTHREAD_MUTEX_RECURSIVE}, PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP}
 #else
+
+#ifdef __arm__
+#define OSAL_MUTEX_INITIALIZER_R                                   \
+	{                                                                  \
+		{"static_r", PTHREAD_MUTEX_RECURSIVE},                         \
+		{                                                              \
+			{                                                          \
+				{                                                      \
+                    PTHREAD_MUTEX_RECURSIVE, 0, 0, 0, 0, 0 				\
+                }                                                      \
+            }                                                          \
+		}                                                              \
+	}
+#else
 #define OSAL_MUTEX_INITIALIZER_R                                   \
 	{                                                                  \
 		{"static_r", PTHREAD_MUTEX_RECURSIVE},                         \
@@ -54,6 +68,7 @@ int32_t OSAL_MUTEX_Unlock(OSAL_MUTEX_HANDLE_S mutex);
             }                                                          \
 		}                                                              \
 	}
+#endif
 #endif
 typedef struct OSAL_COND_ATTR {
 	const char *name;

@@ -27,6 +27,7 @@ typedef struct APP_VDEC_CHN_CFG_T {
     VDEC_CHN_PARAM_S astChnParam;
     VB_SOURCE_E enVdecVBSource;
     VB_POOL     AttachPool;
+    CVI_S32     s32FrameRate;
 } APP_VDEC_CHN_CFG_S;
 
 typedef struct APP_PARAM_VDEC_CTX_T {

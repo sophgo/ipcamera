@@ -7,18 +7,19 @@ TOPSUBDIRS := ipcamera
 export SOC_SEGMENT := $(shell echo $(CHIP_SEGMENT) | tr a-z A-Z)
 export SOC_SEGMENT_LOWER := $(shell echo $(SOC_SEGMENT) | tr A-Z a-z)
 
-ifeq ($(SOC_SEGMENT), CV186AH)
+ifneq ($(filter CV186AH 88A2 BM1688, $(SOC_SEGMENT)),)
 export SOC_NICK_NAME := CV186X
 export SOC_NICK_NAME_LOWER := $(shell echo $(SOC_NICK_NAME) | tr A-Z a-z)
 endif
 
 $(info SOC_SEGMENT=$(SOC_SEGMENT))
+$(info SOC_SEGMENT_LOWER=$(SOC_SEGMENT_LOWER))
 $(info SOC_NICK_NAME=$(SOC_NICK_NAME))
 $(info SOC_NICK_NAME_LOWER=$(SOC_NICK_NAME_LOWER))
 
 ## setup path ##
-ifeq ($(findstring $(SOC_SEGMENT), CV186AH), )
-	$(error UNKNOWN chip series - $(SOC_SEGMENT))
+ifeq ($(filter CV186AH 88A2 BM1688, $(SOC_SEGMENT)),)
+    $(error UNKNOWN chip series - $(SOC_SEGMENT))
 endif
 
 TMP_STRING = $(foreach f,$(TOPSUBDIRS),$(findstring $f,$(MAKECMDGOALS)))
@@ -47,4 +48,14 @@ menuconfig:
 	$(MAKE) -f $(SRCTREE)/build/Makefile.kbuild $@
 
 include $(SRCTREE)/build/build.mk
-.PHONY: $(SUBDIRS)
+
+RECORD_EXPORT_TARGET_MACHINE := $(shell $(CROSS_COMPILE)gcc -dumpmachine)
+RECORD_EXPORT_COMPONENT_DIR := $(SRCTREE)/components/comps_install/$(RECORD_EXPORT_TARGET_MACHINE)/record
+record_component: .config
+	$(MAKE) -C modules/record
+	@mkdir -p $(RECORD_EXPORT_COMPONENT_DIR)/lib $(RECORD_EXPORT_COMPONENT_DIR)/include
+	@cp -f $(TARGET_OUT_DIR)/lib/libapp_recorder.a $(RECORD_EXPORT_COMPONENT_DIR)/lib/
+	@cp -f $(TARGET_OUT_DIR)/lib/libapp_file_recover.a $(RECORD_EXPORT_COMPONENT_DIR)/lib/
+	@cp -a modules/record/include/. $(RECORD_EXPORT_COMPONENT_DIR)/include/
+
+.PHONY: $(SUBDIRS) record_component

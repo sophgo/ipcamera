@@ -45,6 +45,10 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_YOLOV8N_DET_PERSON_VEHICLE),y)
 	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/yolov8n_det_person_vehicle_384_640_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
 endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_CV186X_FASTSAM_SEG),y)
+	@mkdir -p $(APP_INSTALL_DIR)/cv186x/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/cv186x/fastsam_seg_320_320_INT8_cv186x.bmodel $(APP_INSTALL_DIR)/cv186x/
+endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_CLS_ATTRIBUTE_GENDER_AGE_GLASS_EMOTION),y)
 	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/cls_attribute_gender_age_glass_emotion_112_112_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
@@ -80,6 +84,10 @@ endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_YOLOV8N_DET_PERSON_VEHICLE),y)
 	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
 	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/yolov8n_det_person_vehicle_384_640_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
+endif
+ifeq ($(CONFIG_RESOURCE_INSTALL_AI_BM1688_FASTSAM_SEG),y)
+	@mkdir -p $(APP_INSTALL_DIR)/bm1688/
+	@cp -f $(APP_RESOURCE_DIR)/ai_models/bm1688/fastsam_seg_320_320_INT8_bm1688.bmodel $(APP_INSTALL_DIR)/bm1688/
 endif
 
 #FILE  RECOVRY
@@ -141,7 +149,7 @@ ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_JPG),y)
 	@cp -rf $(APP_RESOURCE_DIR)/vdec/1080p.jpg $(APP_INSTALL_DIR)
 endif
 ifeq ($(CONFIG_RESOURCE_INSTALL_VDEC_FILES_MJP),y)
-	@cp -rf $(APP_RESOURCE_DIR)/vdec/1080p.mjp $(APP_INSTALL_DIR)
+	@cp -rf $(APP_RESOURCE_DIR)/vdec/1080p.mjpeg $(APP_INSTALL_DIR)
 endif
 #DPU
 ifeq ($(CONFIG_RESOURCE_INSTALL_DPU_GRIDINFO_L),y)

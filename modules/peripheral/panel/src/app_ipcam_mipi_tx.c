@@ -57,6 +57,7 @@ CVI_S32 app_ipcam_MipiTx_Enable(
     APP_PROF_LOG_PRINT(LEVEL_INFO, "Enable MIPI-TX driver for panel [%s].\n", pchPanelName);
 
     close(*ps32MipiTxFd);
+    *ps32MipiTxFd = -1;
 
     return CVI_SUCCESS;
 }
@@ -64,6 +65,9 @@ CVI_S32 app_ipcam_MipiTx_Enable(
 CVI_S32 app_ipcam_MipiTx_Disable(const CVI_S32* const ps32MipiTxFd)
 {
     _NULL_POINTER_CHECK_(ps32MipiTxFd, CVI_FAILURE);
+
+    if (*ps32MipiTxFd <= 0)
+        return CVI_SUCCESS;
 
     APP_CHK_RET(mipi_tx_disable(*ps32MipiTxFd), "mipi_tx_disable");
 

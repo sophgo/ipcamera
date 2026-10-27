@@ -159,6 +159,9 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg)
     prctl(PR_SET_NAME, TaskName, 0, 0, 0);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "Vdec channel_%d start running\n", VdecChn);
 
+    CVI_U32 u32SendIntervalUs = (pstVdecChnCfg->s32FrameRate > 0)
+                                ? (1000000 / pstVdecChnCfg->s32FrameRate) : 0;
+
     fpStrm = fopen(pstVdecChnCfg->decode_file_name, "rb");
     if (fpStrm == NULL) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR,"open file err, filename:%s\n"
@@ -247,7 +250,7 @@ CVI_VOID *threadSendFramesToDecoder(CVI_VOID *arg)
         stStream.bEndOfStream = CVI_TRUE;
         stStream.bDisplay = 1;
 
-        usleep(20*1000);
+        if (u32SendIntervalUs) usleep(u32SendIntervalUs);
 
 SendAgain:
 #ifdef SHOW_STATISTICS_1

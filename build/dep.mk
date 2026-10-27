@@ -94,6 +94,11 @@ DEFS-$(CONFIG_MULTI_PROCESS_SUPPORT) += -DRPC_MULTI_PROCESS
 #RECORD
 DEFS-$(CONFIG_MODULE_RECORD) += -DRECORD_SUPPORT
 INCS-$(CONFIG_MODULE_RECORD) += -I$(APP_PREBUILT_DIR)/ffmpeg/include
+ifneq ($(wildcard $(SRCTREE)/modules/record/include/record/app_ipcam_record.h),)
+RECORD_INCLUDE_DIR := $(SRCTREE)/modules/record/include
+else
+RECORD_INCLUDE_DIR := $(RECORD_DIR)/include
+endif
 
 #STITCH
 DEFS-$(CONFIG_MODULE_MEDIA_STITCH) += -DSTITCH_SUPPORT
@@ -143,8 +148,8 @@ INCS-$(CONFIG_MODULE_NETWORK)			+= -I$(SRCTREE)/modules/protocol/network/include
 INCS-$(CONFIG_MODULE_RTSP)				+= -I$(SRCTREE)/modules/protocol/rtsp/include
 INCS-$(CONFIG_MODULE_GPIO)				+= -I$(SRCTREE)/modules/peripheral/gpio/include
 INCS-$(CONFIG_MODULE_IRCUT)				+= -I$(SRCTREE)/modules/peripheral/ircut/include
-INCS-$(CONFIG_MODULE_RECORD)			+= -I$(SRCTREE)/modules/record/include/record
-INCS-$(CONFIG_MODULE_RECORD)			+= -I$(SRCTREE)/modules/record/include/file_recover
+INCS-$(CONFIG_MODULE_RECORD)			+= -I$(RECORD_INCLUDE_DIR)/record
+INCS-$(CONFIG_MODULE_RECORD)			+= -I$(RECORD_INCLUDE_DIR)/file_recover
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/display/include
 INCS-$(CONFIG_MODULE_DISPLAY)			+= -I$(SRCTREE)/modules/peripheral/panel/include
 
@@ -171,7 +176,7 @@ else
   $(error "TARGET_MACHINE = $(TARGET_MACHINE) not match??")
 endif
 
-ifeq ("$(SOC_SEGMENT)", "CV186AH")
+ifneq ($(filter CV186AH 88A2 BM1688, $(SOC_SEGMENT)),)
   CFLAGS += -D__CV186AH__
 endif
 

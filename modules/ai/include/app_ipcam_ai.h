@@ -159,11 +159,14 @@ typedef struct APP_PARAM_AI_OBJECT_TRACK_CFG_T
     TDLModel model_id_sot;
     char model_path_det[MODEL_PATH_LEN];
     char model_path_sot[MODEL_PATH_LEN];
+    char model_path_sam[MODEL_PATH_LEN];
     char model_path_cfg[MODEL_PATH_LEN];
     float threshold_occluded;
     float threshold_reappear;
     CVI_U32 lost_timeout_seconds;
     TDLTargetSearchTypeE search_type;
+    CVI_BOOL use_kalman;
+    float tracking_score_threshold;
 } APP_PARAM_AI_OBJECT_TRACK_CFG_S;
 
 typedef struct APP_PARAM_AI_IMG_TXT_CLIP_CFG_T

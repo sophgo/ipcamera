@@ -86,10 +86,10 @@ static CVI_S32 app_ipcam_RtspAttr_Init(VENC_CHN vencChn, CVI_S32 session_id
     }
 #else
     pstAttr->audio_en          = CVI_FALSE;
-    pstAttr->audio_codec       = RTSP_AUDIO_PCM;
-    pstAttr->audio_sample_rate = pstVencChnCfg->u32DstFrameRate * 320;
-    pstAttr->audio_channels    = 1;
-    pstAttr->audio_pernum      = 320;
+    pstAttr->audio_codec       = RTSP_AUDIO_BUTT;
+    pstAttr->audio_sample_rate = 0;
+    pstAttr->audio_channels    = 0;
+    pstAttr->audio_pernum      = 0;
 #endif
 
     pstAttr->timeout = 120;
@@ -127,7 +127,8 @@ static void rtsp_service_media_task(void *arg)
     prctl(PR_SET_NAME, TaskName, 0, 0, 0);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "%s running\n", TaskName);
 
-    CVI_S32 mbufId = ctx->attr.id;
+    // Use venc channel as mbuf pool id (not session_id), so liveN maps to its [sessionN] venc_chn.
+    CVI_S32 mbufId = app_ipcam_Rtsp_Param_Get()->VencChn[ctx->attr.id];
     CVI_MBUF_HANDLE* readerId = CVI_MBUF_CreateReader(mbufId, 1);
 
     CVI_MEDIA_FRAME_INFO_T stReadFrameInfo;
@@ -137,16 +138,6 @@ static void rtsp_service_media_task(void *arg)
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "frameBuf malloc fail\n");
         return ;
     }
-
-#ifndef AUDIO_SUPPORT
-    CVI_S32 audio_null_data_len = 64;
-    CVI_U8 *audio_null_data = (CVI_U8 *)malloc(64);
-    if (audio_null_data == NULL){
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Malloc failed. audio_null_data == NULL. \n");
-        return ;
-    }
-    memset(audio_null_data, 0, audio_null_data_len);
-#endif
 
     // Ensure that the first frame is I-frame
     ctx->i_frame_flag = 1;
@@ -178,17 +169,6 @@ static void rtsp_service_media_task(void *arg)
                 if (s32Ret != CVI_SUCCESS) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_RTSP_WriteFrame failed\n");
                 }
-#ifndef AUDIO_SUPPORT
-                // send audio null data
-                frame.type = FRAME_TYPE_AUDIO;
-                frame.data[0] = audio_null_data;
-                frame.iskey[0] = 1;
-                frame.len[0] = audio_null_data_len;
-                s32Ret = RTSP_SendFrame(ctx->rtsp_ser, &frame);
-                if (s32Ret != CVI_SUCCESS) {
-                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_RTSP_WriteFrame failed\n");
-                }
-#endif
             } else if (stReadFrameInfo.frameParam.frameType == CVI_MEDIA_AFRAME_A) {
                 // send audio data
                 frame.type = FRAME_TYPE_AUDIO;
@@ -202,12 +182,6 @@ static void rtsp_service_media_task(void *arg)
             }
         }
     }
-
-#ifndef AUDIO_SUPPORT
-    if (audio_null_data) {
-        free(audio_null_data);
-    }
-#endif
 
     if (readerId) {
         CVI_MBUF_DestoryReader(readerId);

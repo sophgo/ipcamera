@@ -292,8 +292,19 @@ int Load_Param_Venc(const char *file)
             Venc->astVencChnCfg[i].u32MCUPerECS = ini_getl(tmp_section, "MCUPerECS", 0, file);
             APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] quality=%d\n", i, Venc->astVencChnCfg[i].u32quality);
         } else if (Venc->astVencChnCfg[i].enType == PT_MJPEG) {
-            Venc->astVencChnCfg[i].u32MCUPerECS = ini_getl(tmp_section, "MCUPerECS", 0, file);
-            APP_PROF_LOG_PRINT(LEVEL_INFO, "Venc_chn[%d] MCUPerECS=%d\n", i, Venc->astVencChnCfg[i].u32MCUPerECS);
+            Venc->astVencChnCfg[i].u32SrcFrameRate = ini_getl(tmp_section, "src_framerate", 0, file);
+            Venc->astVencChnCfg[i].u32DstFrameRate = ini_getl(tmp_section, "dst_framerate", 0, file);
+            Venc->astVencChnCfg[i].u32BitRate      = ini_getl(tmp_section, "bit_rate", 0, file);
+            Venc->astVencChnCfg[i].u32MaxBitRate   = ini_getl(tmp_section, "max_bitrate", 0, file);
+            Venc->astVencChnCfg[i].statTime        = ini_getl(tmp_section, "statTime", 0, file);
+            Venc->astVencChnCfg[i].u32quality      = ini_getl(tmp_section, "quality", 0, file);
+            Venc->astVencChnCfg[i].u32MCUPerECS    = ini_getl(tmp_section, "MCUPerECS", 0, file);
+            APP_PROF_LOG_PRINT(LEVEL_INFO,
+                "Venc_chn[%d] MJPEG SrcFR=%d DstFR=%d BR=%d MaxBR=%d statTime=%d quality=%d MCUPerECS=%d\n",
+                i, Venc->astVencChnCfg[i].u32SrcFrameRate, Venc->astVencChnCfg[i].u32DstFrameRate,
+                Venc->astVencChnCfg[i].u32BitRate, Venc->astVencChnCfg[i].u32MaxBitRate,
+                Venc->astVencChnCfg[i].statTime, Venc->astVencChnCfg[i].u32quality,
+                Venc->astVencChnCfg[i].u32MCUPerECS);
         }
     }
 

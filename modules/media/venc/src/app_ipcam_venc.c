@@ -846,8 +846,8 @@ int app_ipcam_Venc_Rc_Attr_Set(VENC_RC_ATTR_S *pstRCAttr, APP_VENC_CHN_CFG_S *ps
         if (pstVencChnCfg->enRcMode == VENC_RC_MODE_MJPEGFIXQP) {
             VENC_MJPEG_FIXQP_S *pstMjpegeFixQp = &pstRCAttr->stMjpegFixQp;
 
-            // 0 use old q-table for forward compatible.
-            pstMjpegeFixQp->u32Qfactor = 0;
+            // MJPEG FIXQP: use ini quality (0 keeps default q-table)
+            pstMjpegeFixQp->u32Qfactor = (pstVencChnCfg->u32quality > 0) ? pstVencChnCfg->u32quality : 0;
             pstMjpegeFixQp->u32SrcFrameRate = SrcFrmRate;
             pstMjpegeFixQp->fr32DstFrameRate = DstFrmRate;
         } else if (pstVencChnCfg->enRcMode == VENC_RC_MODE_MJPEGCBR) {
@@ -1231,6 +1231,9 @@ static void *Thread_StreamTask_Proc(void *pArgs)
     VENC_CHN VencChn = pastVencChnCfg->VencChn;
     CVI_MBUF_HANDLE* readerid = NULL;
 
+    // Thread-local recording handle (avoid UAF from sharing pstVencChnCfg->pFile)
+    FILE *pRecFile = NULL;
+
     CVI_MEDIA_FRAME_INFO_T stReadFrameInfo;
     memset(&stReadFrameInfo.frameParam, 0, sizeof(stReadFrameInfo.frameParam));
 
@@ -1243,14 +1246,14 @@ static void *Thread_StreamTask_Proc(void *pArgs)
     {
         if (access("/tmp/rec", F_OK) == 0)
         {
-            if (pastVencChnCfg->pFile == NULL) {
+            if (pRecFile == NULL) {
                 char szPostfix[8] = {0};
                 char szFilePath[64] = {0};
                 app_ipcam_Postfix_Get(pastVencChnCfg->enType, szPostfix);
                 snprintf(szFilePath, 64, "%s/Venc%d_idx_%d%s", pastVencChnCfg->SavePath, pastVencChnCfg->VencChn, pastVencChnCfg->frameNum++, szPostfix);
                 APP_PROF_LOG_PRINT(LEVEL_INFO, "Update new file name: %s\n", szFilePath);
-                pastVencChnCfg->pFile = fopen(szFilePath, "wb");
-                if (pastVencChnCfg->pFile == NULL) {
+                pRecFile = fopen(szFilePath, "wb");
+                if (pRecFile == NULL) {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "open file err, %s\n", szFilePath);
                     return NULL;
                 }
@@ -1264,9 +1267,9 @@ static void *Thread_StreamTask_Proc(void *pArgs)
                 {
                     APP_PROF_LOG_PRINT(LEVEL_ERROR, "frameBuf malloc fail\n");
                     // Close file if opened before malloc failure
-                    if (pastVencChnCfg->pFile) {
-                         fclose(pastVencChnCfg->pFile);
-                         pastVencChnCfg->pFile = NULL;
+                    if (pRecFile) {
+                         fclose(pRecFile);
+                         pRecFile = NULL;
                     }
                     return NULL;
                 }
@@ -1281,7 +1284,8 @@ static void *Thread_StreamTask_Proc(void *pArgs)
                         if (stReadFrameInfo.frameParam.frameType != CVI_MEDIA_AFRAME_A) {
                             if (stReadFrameInfo.frameParam.frameType == CVI_MEDIA_VFRAME_I) {
                                 APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Found first I-frame (length: %d), starting write.\n", pastVencChnCfg->VencChn, stReadFrameInfo.frameParam.frameLen);
-                                fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameBufLen, 1, pastVencChnCfg->pFile);
+                                // Write real frame length (not buffer capacity) to avoid over-read crash
+                                fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameParam.frameLen, 1, pRecFile);
                                 // Increment fileNum for the first written frame (which is the first I-frame)
                                 pastVencChnCfg->fileNum++;
                                 bFoundFirstIFrame = CVI_TRUE;
@@ -1304,9 +1308,9 @@ static void *Thread_StreamTask_Proc(void *pArgs)
                     free(stReadFrameInfo.frameBuf);
                     stReadFrameInfo.frameBuf = NULL; // Set to NULL after freeing
                     // Close file if opened before loop
-                    if (pastVencChnCfg->pFile) {
-                         fclose(pastVencChnCfg->pFile);
-                         pastVencChnCfg->pFile = NULL;
+                    if (pRecFile) {
+                         fclose(pRecFile);
+                         pRecFile = NULL;
                     }
                     return NULL;
                 }
@@ -1315,7 +1319,7 @@ static void *Thread_StreamTask_Proc(void *pArgs)
             // Now that the first I-frame is written (or the thread stopped), continue reading and writing subsequent frames
             // This part of the code is reached only if pFile is not NULL (meaning a file was opened and first I-frame was found,
             // or a file was already open from a previous iteration) and mStreamTaskThd[VencChn].bRun_flag is true.
-            if (pastVencChnCfg->pFile) {
+            if (pRecFile) {
                 memset(stReadFrameInfo.frameBuf, 0, CVI_MBUF_STREAM_MAX_SIZE);
                 stReadFrameInfo.frameBufLen = CVI_MBUF_STREAM_MAX_SIZE;
 
@@ -1325,7 +1329,8 @@ static void *Thread_StreamTask_Proc(void *pArgs)
                     if (stReadFrameInfo.frameParam.frameType != CVI_MEDIA_AFRAME_A) {
                         // Write all video frames (I, P, B) after the first I-frame has been written.
                         // The first I-frame was handled by the waiting loop.
-                        fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameBufLen, 1, pastVencChnCfg->pFile);
+                        // Write real frame length (same fix as first frame)
+                        fwrite(stReadFrameInfo.frameBuf, stReadFrameInfo.frameParam.frameLen, 1, pRecFile);
                         APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Writing frame type: %d, length: %d\n", pastVencChnCfg->VencChn, stReadFrameInfo.frameParam.frameType, stReadFrameInfo.frameParam.frameLen);
 
                         // Increment fileNum for every video frame written after the first I-frame
@@ -1334,14 +1339,14 @@ static void *Thread_StreamTask_Proc(void *pArgs)
                 }
             }
 
-            if (pastVencChnCfg->pFile)
+            if (pRecFile)
             {
                 // Check if file duration is reached after potentially writing a frame
                 if (pastVencChnCfg->fileNum > pastVencChnCfg->u32Duration) {
                     APP_PROF_LOG_PRINT(LEVEL_INFO, "[venc%d] End save! Duration reached.\n", pastVencChnCfg->VencChn);
                     pastVencChnCfg->fileNum = 0;
-                    fclose(pastVencChnCfg->pFile);
-                    pastVencChnCfg->pFile = NULL;
+                    fclose(pRecFile);
+                    pRecFile = NULL;
                     // Reader and buffer are kept allocated until /tmp/rec disappears or thread stops
                     remove("/tmp/rec"); // Stop recording by removing the flag file
                 }
@@ -1350,10 +1355,10 @@ static void *Thread_StreamTask_Proc(void *pArgs)
         else // if (access("/tmp/rec", F_OK) != 0)
         {
             // If file is open (meaning recording was in progress), close file and cleanup
-            if (pastVencChnCfg->pFile) {
+            if (pRecFile) {
                 APP_PROF_LOG_PRINT(LEVEL_WARN, "[venc%d] Stop saving, /tmp/rec not found.\n", pastVencChnCfg->VencChn);
-                fclose(pastVencChnCfg->pFile);
-                pastVencChnCfg->pFile = NULL;
+                fclose(pRecFile);
+                pRecFile = NULL;
                 // Reader and buffer are kept allocated while thread is running
                 // Reset fileNum when saving stops
                 pastVencChnCfg->fileNum = 0;
@@ -1365,10 +1370,10 @@ static void *Thread_StreamTask_Proc(void *pArgs)
 
     // Final cleanup when thread stops
     APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Thread stopping, performing final cleanup.\n", VencChn);
-    if (pastVencChnCfg->pFile) {
+    if (pRecFile) {
         APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Closing file on thread exit.\n", pastVencChnCfg->VencChn);
-        fclose(pastVencChnCfg->pFile);
-        pastVencChnCfg->pFile = NULL;
+        fclose(pRecFile);
+        pRecFile = NULL;
     }
     if (readerid) {
          APP_PROF_LOG_PRINT(LEVEL_DEBUG, "[venc%d] Destroying reader on thread exit.\n", pastVencChnCfg->VencChn);
@@ -1577,6 +1582,22 @@ static void *Thread_Jpeg_Codec_Proc(void *pArgs)
     VENC_STREAM_S stStream = {0};
     VENC_CHN_STATUS_S stStat = {0};
 
+    CVI_MEDIA_FRAME_INFO_T stFrameInfo;
+    memset(&stFrameInfo.frameParam, 0, sizeof(stFrameInfo.frameParam));
+
+    stFrameInfo.frameBuf = malloc(CVI_MBUF_STREAM_MAX_SIZE);
+    if (NULL == stFrameInfo.frameBuf)
+    {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "frameBuf malloc fail\n");
+        return NULL;
+    }
+
+    CVI_U32 u32MbufCap = pstVencChnCfg->u32Width * pstVencChnCfg->u32Height;
+    if (u32MbufCap < CVI_MBUF_STREAM_MAX_SIZE)
+        u32MbufCap = CVI_MBUF_STREAM_MAX_SIZE;
+    u32MbufCap *= CVI_CAMERA_PRE_RECORD_TIMES;
+    CVI_U32 u32DropCnt = 0;
+
     pstVencChnCfg->bStart = CVI_TRUE;
 
     while (pstVencChnCfg->bStart) {
@@ -1624,9 +1645,67 @@ static void *Thread_Jpeg_Codec_Proc(void *pArgs)
                 CVI_VPSS_ReleaseChnFrame(vpssGrp, vpssChn, &stVencFrame);
             }
 
-            /* save jpeg & mjpeg to flash */
-            _streaming_save_to_flash(pstVencChnCfg, &stStream);
+            /* save jpeg to flash (only JPEG snapshot mode persists via this path) */
+            // Flash-save JPEG only; MJPEG saving handled by Thread_StreamTask_Proc (avoid concurrent UAF)
+            if (pstVencChnCfg->enType == PT_JPEG) {
+                _streaming_save_to_flash(pstVencChnCfg, &stStream);
+            }
 
+            /* write jpeg & mjpeg to mbuf for rtsp live streaming */
+            // Also write JPEG/MJPEG into mbuf pool for RTSP live (each frame is an I-frame)
+            stFrameInfo.frameParam.frameLen = 0;
+
+            int iLen = 0;
+            for (CVI_U32 i= 0; i < stStream.u32PackCount; i++)
+            {
+                iLen += stStream.pstPack[i].u32Len - stStream.pstPack[i].u32Offset;
+            }
+
+            // Skip mbuf write for oversized frames (still flash-saved), rate-limited log
+            if ((CVI_U32)iLen > u32MbufCap)
+            {
+                if ((u32DropCnt++ % 100) == 0)
+                {
+                    APP_PROF_LOG_PRINT(LEVEL_WARN,
+                        "VencChn %d frame too large, skip mbuf: iLen=%d > cap=%u (dropped=%u)\n",
+                        VencChn, iLen, u32MbufCap, u32DropCnt);
+                }
+                goto write_mbuf_fail;
+            }
+
+            if (iLen > CVI_MBUF_STREAM_MAX_SIZE)
+            {
+                stFrameInfo.frameBuf = realloc(stFrameInfo.frameBuf, iLen);
+                if (NULL == stFrameInfo.frameBuf)
+                {
+                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "realloc malloc fail\n");
+                    goto write_mbuf_fail;
+                }
+                memset(stFrameInfo.frameBuf, 0, iLen);
+            }
+            else
+            {
+                memset(stFrameInfo.frameBuf, 0, CVI_MBUF_STREAM_MAX_SIZE);
+            }
+
+            for (CVI_U32 i= 0; i < stStream.u32PackCount; i++)
+            {
+                memcpy(stFrameInfo.frameBuf+stFrameInfo.frameParam.frameLen, stStream.pstPack[i].pu8Addr + stStream.pstPack[i].u32Offset, stStream.pstPack[i].u32Len - stStream.pstPack[i].u32Offset);
+                stFrameInfo.frameParam.frameLen += stStream.pstPack[i].u32Len - stStream.pstPack[i].u32Offset;
+            }
+            stFrameInfo.frameParam.frameIndex = stStream.u32Seq;
+
+            // JPEG/MJPEG has no NALU type; every frame is a complete standalone image, equivalent to a key frame.
+            // Only difference from Thread_Streaming_Proc: there uses StreamStatus_Get for H264/H265 I/P, here always mark I.
+            stFrameInfo.frameParam.frameKeyIndex = stFrameInfo.frameParam.frameIndex;
+            stFrameInfo.frameParam.frameType = CVI_MEDIA_VFRAME_I;
+
+            stFrameInfo.frameParam.frameCodec = pstVencChnCfg->enType;
+            stFrameInfo.frameParam.framePts = stStream.pstPack[0].u64PTS;
+            stFrameInfo.frameParam.frameTime = time(NULL);
+            CVI_MBUF_Video_WriteFrame(VencChn, &stFrameInfo);
+
+        write_mbuf_fail:
             CVI_VENC_ReleaseStream(VencChn, &stStream);
             free(stStream.pstPack);
             stStream.pstPack = NULL;
@@ -1640,6 +1719,10 @@ static void *Thread_Jpeg_Codec_Proc(void *pArgs)
         }
     }
 
+    if (stFrameInfo.frameBuf)
+    {
+        free(stFrameInfo.frameBuf);
+    }
     return (void *) CVI_SUCCESS;
 }
 
@@ -1706,12 +1789,20 @@ int app_ipcam_Venc_Init(APP_VENC_CHN_E VencIdx)
 
         APP_PROF_LOG_PRINT(LEVEL_DEBUG,"u32Profile [%d]\n", pstVencChnAttr->stVencAttr.u32Profile);
 
+        // JPEG/MJPEG mbuf size by resolution (W*H, min 1MB, x2 for RTSP); H264/H265 keep bitrate formula
+        if ((enCodecType == PT_JPEG) || (enCodecType == PT_MJPEG)) {
+            CVI_U32 u32MaxFrame = pstVencChnCfg->u32Width * pstVencChnCfg->u32Height;
+            if (u32MaxFrame < CVI_MBUF_STREAM_MAX_SIZE)
+                u32MaxFrame = CVI_MBUF_STREAM_MAX_SIZE;   // Min 1MB floor, avoid too-small value for low resolution
+            iMbufSize = u32MaxFrame * CVI_CAMERA_PRE_RECORD_TIMES;
+        } else {
         #ifdef AUDIO_SUPPORT
             APP_PARAM_AUDIO_CFG_T *pstAudioCtx = app_ipcam_Audio_Param_Get();
             iMbufSize = ((((pstVencChnCfg->u32BitRate / 8) << 10) +  (pstAudioCtx->astAudioCfg.enSamplerate * 2)) * CVI_CAMERA_PRE_RECORD_TIMES);
         #else
             iMbufSize = (((pstVencChnCfg->u32BitRate / 8) << 10) * CVI_CAMERA_PRE_RECORD_TIMES);
         #endif
+        }
         s32Ret = CVI_MBUF_Init(VencChn, iMbufSize);
         if (s32Ret != CVI_SUCCESS) {
             APP_PROF_LOG_PRINT(LEVEL_ERROR,"CVI_MBUF_Init error %d\n", VencChn);

@@ -236,6 +236,7 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
         if (!track_init) {
             char buf[8] = {0};
             int32_t box[4] = {0};
+            const char *model_path = NULL;
             TDLObject empty_det_meta = {0};
             TDLTargetSearchTypeE search_type = g_pstObjTrackCfg->search_type;
             FILE *pFile = fopen(TRACK_REQUEST_PATH, "r");
@@ -254,15 +255,20 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
                 goto loop_cleanup;
             }
 
-            if (search_type < TDL_REJECT || search_type > TDL_COLOR) {
+            // Raise search_type cap to TDL_FASTSAM(3) and pass model path in FastSAM mode; adapts tdl_sdk 8-arg signature.
+            if (search_type < TDL_REJECT || search_type > TDL_FASTSAM) {
                 search_type = TDL_COLOR;
+            }
+            if (search_type == TDL_FASTSAM) {
+                model_path = g_pstObjTrackCfg->model_path_sam;
             }
 
             app_ipcam_Ai_Object_Track_DefaultBox_Get(box);
             APP_PROF_LOG_PRINT(LEVEL_WARN,
                 "track request[%s] init bbox: x1=%d y1=%d x2=%d y2=%d search_type=%d\n",
                 buf, box[0], box[1], box[2], box[3], search_type);
-            s32Ret = TDL_SetSingleObjectTracking(g_ObjectTrackTDLHandle, image, &empty_det_meta, box, 4, search_type);
+            s32Ret = TDL_SetSingleObjectTracking(g_ObjectTrackTDLHandle, image, &empty_det_meta, box, 4,
+                                                 g_frame_id, search_type, model_path);
             if (s32Ret != CVI_SUCCESS) {
                 APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_SetSingleObjectTracking failed with %#x!\n", s32Ret);
                 remove(TRACK_REQUEST_PATH);
@@ -282,7 +288,10 @@ static CVI_VOID *Thread_Object_Track_Proc(CVI_VOID *pArgs)
                 goto loop_cleanup;
             }
 
-            if (track_meta.info != NULL && g_stObjDraw.info != NULL) {
+            // Treat tracking result below score threshold as target lost, instead of only checking info non-null.
+            if (track_meta.info != NULL &&
+                track_meta.info[0].score >= g_pstObjTrackCfg->tracking_score_threshold &&
+                g_stObjDraw.info != NULL) {
                 SMT_MutexAutoLock(g_Mutex, lock);
 
                 g_stObjDraw.size = 1;
@@ -359,6 +368,14 @@ static CVI_S32 app_ipcam_Ai_Object_Track_Proc_Init(CVI_VOID)
         g_pstObjTrackCfg->model_path_sot, g_pstObjTrackCfg->model_path_cfg, 0);
     if (s32Ret != CVI_SUCCESS) {
         APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_OpenModel SOT failed with %#x!\n", s32Ret);
+        return s32Ret;
+    }
+
+    // Enable SOT Kalman smoothing per ini switch (requires tdl_sdk API, native on 88a2).
+    s32Ret = TDL_SetSingleObjectTrackingUseKalman(g_ObjectTrackTDLHandle,
+                                                  g_pstObjTrackCfg->use_kalman);
+    if (s32Ret != CVI_SUCCESS) {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_SetSingleObjectTrackingUseKalman failed with %#x!\n", s32Ret);
         return s32Ret;
     }
 

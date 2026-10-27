@@ -34,51 +34,56 @@ ipcamera软件基于端侧sdk，需要将ipcamera软件放置于sophpi同级目�
 1. 安装依赖的工具库
 ubuntu推荐安装20.04或者22.04，并需要安装依赖的工具。
 ```bash
-    sudo apt-get update
-    sudo apt-get install -y build-essential ninja-build automake autoconf libtool wget curl git gcc libssl-dev bc slib squashfs-tools android-sdk-libsparse-utils android-sdk-ext4-utils jq cmake python3-distutils tcl scons parallel openssh-client tree python3-dev python3-pip ssh libncurses5 pkg-config lzop bison flex rsync kmod cpio sudo fakeroot dpkg-dev device-tree-compiler u-boot-tools uuid-dev libxml2-dev debootstrap qemu qemu-user-static kpartx binfmt-support git-lfs libisl-dev texlive-xetex libgflags-dev
+sudo apt-get update
+sudo apt-get install -y build-essential ninja-build automake autoconf libtool wget curl git gcc libssl-dev bc slib squashfs-tools android-sdk-libsparse-utils android-sdk-ext4-utils jq cmake python3-distutils tcl scons parallel openssh-client tree python3-dev python3-pip ssh libncurses5 pkg-config lzop bison flex rsync kmod cpio sudo fakeroot dpkg-dev device-tree-compiler u-boot-tools uuid-dev libxml2-dev debootstrap qemu qemu-user-static kpartx binfmt-support git-lfs libisl-dev texlive-xetex libgflags-dev
 ```
 
 2. 配置git账号
 在github建立个人账号，并配置好ssh key,下载代码需要用到个人github账号。
 ```bash
-    git config --global user.name "your_name"
-    git config --global user.email "your_email@example.com"     #这个必须是github账号
-    ssh-keygen -t ed25519 -C "your_email@example.com"
-    cat ~/.ssh/id_ed25519.pub                                   #将公钥加入到github的setting的ssh key中
+git config --global user.name "your_name"
+git config --global user.email "your_email@example.com"     #这个必须是github账号
+ssh-keygen -t ed25519 -C "your_email@example.com"
+cat ~/.ssh/id_ed25519.pub                                   #将公钥加入到github的setting的ssh key中
 ```
 
 3. 安装配置repo
 创建repo安装路径后，需要在profile文件最后增加PATH=~/bin:$PATH，最后安装repo。
 ```bash
-    mkdir ~/bin             #配置repo安装路径
-    vim ~/.profile          #增加环境变量，在文件最后增加PATH=~/bin:$PATH
+mkdir ~/bin             #配置repo安装路径
+vim ~/.profile          #增加环境变量，在文件最后增加PATH=~/bin:$PATH
 ```
 ```bash
-    curl https://storage.googleapis.com/git-repo-downloads/repo > /bin/repo
-    chmod a+x /bin/repo
+curl https://storage.googleapis.com/git-repo-downloads/repo > /bin/repo
+chmod a+x /bin/repo
 ```
 
 4. 下载端侧sdk代码
 ```bash
-    repo init -u https://github.com/sophgo/manifest.git -m release/device.xml      #端侧最新代码
+mkdir -p <WORKSPACE>
+cd <WORKSPACE>
+git clone -b sg200x-evb git@github.com:sophgo/sophpi.git
+./sophpi/scripts/repo_clone.sh --gitclone sophpi/scripts/subtree_a2_release.xml
 ```
 
 5. 编译sdk
+SDK开发快速入门指南地址为：https://github.com/sophgo/sophpi
 ```bash
-    export TPU_REL=1                    # 如果不需要算法功能这一步可以不执行
-    source build/envsetup_soc.sh
-    defconfig device_wevb_emmc         # 选择对应的卡板，这里以device_wevb_emmc为例
-    clean_device_all && build_device_all              # 编译sdk
+export TPU_REL=1                    # 如果不需要算法功能这一步可以不执行
+source build/envsetup_soc.sh
+defconfig device_88a2_wevb_emmc         # 选择对应的卡板，这里以device_88a2_wevb_emmc为例
+clean_device_all && build_device_all              # 编译sdk
 ```
+
 6. 烧录固件
 sdk编译完成后，将在install目录下生成固件，将固件放置在tf卡中，插入板端，重新上电后即可进入升级。关于烧录的具体流程可以参考《裸烧与非裸烧升级使用手册》，地址为：https://developer.sophgo.com/thread/600.html
 
 7. 编译ipcamera程序
 将ipcamera程序与sdk放置在同一目录下，按一下流程即可进行编译，编译完成后的可执行文件ipcamera位置为install目录下。
 ```bash
-    cd ipcamera                         # 进入ipcamera目录
-    make cv186ah_gc4653_wevb_defconfig  # 配置需要编译的组件，这里以cv186ah_gc4653_wevb_defconfig为例，文件在configs目录下
-    make ipcamera clean_all && make ipcamera && make ipcamera install
+cd ipcamera                         # 进入ipcamera目录
+make cv186ah_gc4653_wevb_defconfig  # 配置需要编译的组件，这里以cv186ah_gc4653_wevb_defconfig为例，文件在configs目录下
+make ipcamera clean_all && make ipcamera && make ipcamera install
 ```
 
 ## 3 程序运行
@@ -152,3 +157,19 @@ make menuconfig
 [dpu_config] 配置dpu的属性
 [audio_config] 配置音频功能
 ```
+
+## 6 全功能demo展示
+
+本节以 `resource/parameter/fbm/cv186ah_wevb_autotest.ini` 为例，展示一个**双目 + 双屏显示**的全功能 demo 媒体流程。流程图依据该 ini 的真实参数绘制，数据流由连线表示：
+
+![ipcamera 全功能 demo 媒体流程图](resource/pipeline/full_demo_pipeline.png)
+
+数据流要点（均取自上述 ini）：
+
+- **双目采集**：`sensor0` → ViPipe0/ViChn0，`sensor1` → ViPipe1/ViChn1，均为 GC4653 2560x1440@25、LINEAR/NV21，工作模式 `VI_OFFLINE_VPSS_OFFLINE`。
+- **编码链（sensor0）**：`grp0.chn0`(2560x1440) → `VENC0`(H265, +OSD) → `RTSP session0`；`grp0.chn1/chn2` 内联 GDC ROT90 旋转后预留给 VO；`grp0.chn3` 预留 AI。
+- **编码链（sensor1）**：`grp1.chn0`(640x360, mirror+flip) → `VENC1`(H264) → `RTSP session1`；`VENC2`(JPEG 抓拍) 与 `VENC3`(MJPEG live2) 为 `BIND_DISABLE`，分别主动取 `grp1.chn1`(2560x1440) 与 `grp1.chn2`(1920x1080@25)，`VENC3` → `RTSP session2`。
+- **RTSP 推流**：三路 session 共用端口 `8554`，url 后缀 `live%d`（按 session 序号生成）：`session0/live0`(H265) ← VENC0、`session1/live1`(H264) ← VENC1、`session2/live2`(MJPEG) ← VENC3，访问地址 `rtsp://<ip>:8554/liveN`。
+- **SD 录像**：`[record0_video]` 经 `bindchn=1` 取 `VENC1`(H264) 落盘到 `/mnt/sd/ipcamera/record`（VENC1 同时供给 RTSP1 与录像）。
+- **显示链**：`VDEC chn0`(H264) → `grp2` → `VO dev1` 屏1(HX8394_EVB, ROT90 720x1280)；`VDEC chn2`(MJPEG) → `grp3` → `VO dev0` 屏0(HX8399_1080P, ROT90 1080x1920)。
+- **VB 池**：共 6 个池，图中框内 `[VBx]` 小标签表示各 VI/VPSS 通道 attach 的池编号（颜色对应 ① 列）。

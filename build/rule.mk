@@ -74,6 +74,14 @@ CVI_RTSP_DIR = $(APP_COMPONENTS_DIR)/comps_install/$(TARGET_MACHINE)/rtsp
 #MBUF
 CVI_MBUF_DIR = $(APP_COMPONENTS_DIR)/mbuf
 
+# RECORD
+RECORD_DIR := $(APP_COMPONENTS_DIR)/comps_install/$(TARGET_MACHINE)/record
+ifneq ($(wildcard $(SRCTREE)/modules/record/Makefile),)
+RECORD_LIB_DIR := $(TARGET_OUT_DIR)/lib
+else
+RECORD_LIB_DIR := $(RECORD_DIR)/lib
+endif
+
 # openssl
 ifneq ($(findstring $(TARGET_MACHINE), arm-linux-gnueabihf),)
   OPENSSL_LIB_DIR = $(APP_PREBUILT_DIR)/openssl/lib32bit

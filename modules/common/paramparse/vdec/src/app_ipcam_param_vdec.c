@@ -88,6 +88,7 @@ int Load_Param_Vdec(const char *file)
 
         Vdec->astVdecChnCfg[i].astChnAttr.u32FrameBufCnt   = ini_getl(tmp_section, "frm_buf_cnt", 0, file);
         Vdec->astVdecChnCfg[i].astChnParam.u32DisplayFrameNum = ini_getl(tmp_section, "vdec_disp_frm_num", 0, file);
+        Vdec->astVdecChnCfg[i].s32FrameRate = ini_getl(tmp_section, "frame_rate", -1, file);
         Vdec->astVdecChnCfg[i].astChnAttr.u32PicWidth = Vdec->astVdecChnCfg[i].u32Width;
         Vdec->astVdecChnCfg[i].astChnAttr.u32PicHeight = Vdec->astVdecChnCfg[i].u32Height;
 
@@ -112,6 +113,8 @@ int Load_Param_Vdec(const char *file)
             Vdec->astVdecChnCfg[i].astChnParam.enPixelFormat, Vdec->astVdecChnCfg[i].astChnParam.u32DisplayFrameNum);
         APP_PROF_LOG_PRINT(LEVEL_INFO, "enVdecVBSource=%d AttachPool=%d\n",
             Vdec->astVdecChnCfg[i].enVdecVBSource, Vdec->astVdecChnCfg[i].AttachPool);
+        APP_PROF_LOG_PRINT(LEVEL_INFO, "s32FrameRate=%d (-1:full speed)\n",
+            Vdec->astVdecChnCfg[i].s32FrameRate);
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "loading vdec config ------------------> done \n\n");

@@ -193,6 +193,12 @@ CVI_S32 app_ipcam_Vo_Layer_Start(const APP_PARAM_VO_CFG_T* const pstVoCfg)
 
     APP_CHK_RET(CVI_VO_SetVideoLayerAttr(pstVoCfg->stDstChn.s32DevId, &pstVoCfg->stLayerAttr)
         , "CVI_VO_SetVideoLayerAttr");
+
+    if (pstVoCfg->bAttachEn) {
+        APP_CHK_RET(CVI_VO_AttachLayerVbPool(pstVoCfg->stDstChn.s32DevId, pstVoCfg->u32AttachVbPool)
+            , "CVI_VO_AttachLayerVbPool");
+    }
+
     APP_CHK_RET(CVI_VO_EnableVideoLayer(pstVoCfg->stDstChn.s32DevId), "CVI_VO_EnableVideoLayer");
 
     return CVI_SUCCESS;
@@ -203,6 +209,10 @@ CVI_S32 app_ipcam_Vo_Layer_Stop(const APP_PARAM_VO_CFG_T* const pstVoCfg)
     _NULL_POINTER_CHECK_(pstVoCfg, CVI_FAILURE);
 
     APP_CHK_RET(CVI_VO_DisableVideoLayer(pstVoCfg->stDstChn.s32DevId), "CVI_VO_DisableVideoLayer");
+
+    if (pstVoCfg->bAttachEn) {
+        APP_CHK_RET(CVI_VO_DetachLayerVbPool(pstVoCfg->stDstChn.s32DevId), "CVI_VO_DetachLayerVbPool");
+    }
 
     return CVI_SUCCESS;
 }

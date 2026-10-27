@@ -102,12 +102,12 @@ LIBS-$(CONFIG_MODULE_MEDIA_STITCH)  += -lstitch
 LIBS-$(CONFIG_MODULE_MEDIA_DPU)  += -ldpu -lcvi_ive
 LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/install/SOPHON/lib
 LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/libsophon/install/libsophon-0.4.9/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/opencv-src/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/opencv-src/lib/opencv4/3rdparty
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/zlib-src/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk//build/SOPHON/_deps/curl-src/lib
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/kaldi-native-fbank-build
-LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/SOPHON/_deps/kissfft-build
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/$(CHIP_ARCH)/_deps/opencv-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/$(CHIP_ARCH)/_deps/opencv-src/lib/opencv4/3rdparty
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/$(CHIP_ARCH)/_deps/zlib-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/$(CHIP_ARCH)/_deps/curl-src/lib
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/$(CHIP_ARCH)/_deps/kaldi-native-fbank-build
+LIBS-$(CONFIG_MODULE_AI) += -L$(TOP_DIR)/tdl_sdk/build/$(CHIP_ARCH)/_deps/kissfft-build
 
 IVE := -lcvi_ive
 
@@ -153,6 +153,7 @@ LIBS-$(CONFIG_MODULE_RINGBUF) += -L$(RINGBUFFER_DIR)/lib -lcomp_ringbuffer
 LIBS-$(CONFIG_MODULE_MBUF) += -L$(CVI_MBUF_DIR)/lib -lcomp_mbuf
 
 #RECORD
+LIBS-$(CONFIG_MODULE_RECORD) += -L$(RECORD_LIB_DIR)
 LIBS-$(CONFIG_MODULE_RECORD) += -L$(FFMPEG_LIB_DIR) -lavformat -lavcodec -lavutil -lswresample
 #NETWORK
 LIBS-$(CONFIG_MODULE_NETWORK) += -L$(THTTPD_LIB_DIR) -lthttpd

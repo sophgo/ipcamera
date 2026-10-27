@@ -43,6 +43,8 @@ typedef struct APP_PARAM_VO_CFG_S {
     VO_MODE_E enVoMode;
     ROTATION_E enRotation;
     CVI_U32 u32DisBufLen;
+    CVI_BOOL bAttachEn;
+    CVI_U32 u32AttachVbPool;
     MMF_CHN_S stSrcChn;
     MMF_CHN_S stDstChn;
     CVI_BOOL bBindMode;

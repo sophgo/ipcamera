@@ -193,6 +193,8 @@ int Load_Param_Display(const char * file)
         }
 
         pstDisplayCfg->vo_cfg[i].stVoCfg.u32DisBufLen = ini_getl(tmp_section, "dis_buf_len", 0, file);
+        pstDisplayCfg->vo_cfg[i].stVoCfg.bAttachEn = ini_getl(tmp_section, "attach_en", 0, file);
+        pstDisplayCfg->vo_cfg[i].stVoCfg.u32AttachVbPool = ini_getl(tmp_section, "attach_pool", 0, file);
 
         pstDisplayCfg->vo_cfg[i].stVoCfg.bBindMode = ini_getl(tmp_section, "bind_mode", 0, file);
         if (pstDisplayCfg->vo_cfg[i].stVoCfg.bBindMode) {
@@ -286,7 +288,7 @@ int Load_Param_Display(const char * file)
 
         APP_PROF_LOG_PRINT(LEVEL_INFO, "enPanelName:%d, s32VoDev:%d, u32BgColor:%d, enIntfType:%d, enIntfSync:%d, "
             "x:%d, y:%d, w:%d, h:%d, imgw:%d, imgh:%d, "
-            "u32DispFrmRt:%d, enPixFormat:%d, enVoMode:%d, enRotation:%d, u32DisBufLen:%d, "
+            "u32DispFrmRt:%d, enPixFormat:%d, enVoMode:%d, enRotation:%d, u32DisBufLen:%d, bAttachEn:%d, u32AttachVbPool:%d, "
             "bBindMode:%d, src: modid=%d, devid=%d, chnid=%d, dst: modid=%d, devid=%d, chnid=%d.\n"
             , pstDisplayCfg->vo_cfg[i].enPanelName
             , pstDisplayCfg->vo_cfg[i].stVoCfg.s32VoDev
@@ -304,6 +306,8 @@ int Load_Param_Display(const char * file)
             , pstDisplayCfg->vo_cfg[i].stVoCfg.enVoMode
             , pstDisplayCfg->vo_cfg[i].stVoCfg.enRotation
             , pstDisplayCfg->vo_cfg[i].stVoCfg.u32DisBufLen
+            , pstDisplayCfg->vo_cfg[i].stVoCfg.bAttachEn
+            , pstDisplayCfg->vo_cfg[i].stVoCfg.u32AttachVbPool
             , pstDisplayCfg->vo_cfg[i].stVoCfg.bBindMode
             , pstDisplayCfg->vo_cfg[i].stVoCfg.stSrcChn.enModId
             , pstDisplayCfg->vo_cfg[i].stVoCfg.stSrcChn.s32DevId
