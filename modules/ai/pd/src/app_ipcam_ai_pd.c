@@ -131,50 +131,18 @@ static void app_ipcam_Ai_Param_dump(void)
 }
 
 /**
- * 深拷贝 TDLObject 结构体
- * @param dst 目标对象（需预先分配内存）
+ * 浅拷贝 TDLObject 结构体（只拷贝指针，不分配新内存）
+ * 源对象需由调用方归零或不再使用，避免 double-free
+ * @param dst 目标对象
  * @param src 源对象
- * @return 0成功，-1失败
  */
-static int deep_copy_tdl_object(TDLObject* dst, const TDLObject* src) {
-    // 1. 参数检查
-    if (dst == NULL || src == NULL) {
-        return -1;
-    }
-
-    // 2. 拷贝基本成员
+static void shallow_copy_tdl_object(TDLObject* dst, TDLObject* src) {
     dst->size = src->size;
     dst->width = src->width;
     dst->height = src->height;
-
-    // 3. 处理 TDLObjectInfo 数组
-    if (src->info != NULL && src->size > 0) {
-        // 分配新数组内存
-        dst->info = (TDLObjectInfo*)malloc(src->size * sizeof(TDLObjectInfo));
-        if (dst->info == NULL) {
-            return -1;
-        }
-
-        // 逐个拷贝对象信息
-        for (uint32_t i = 0; i < src->size; i++) {
-            // 拷贝基本成员
-            dst->info[i].box.x1 = src->info[i].box.x1;
-            dst->info[i].box.x2 = src->info[i].box.x2;
-            dst->info[i].box.y1 = src->info[i].box.y1;
-            dst->info[i].box.y2 = src->info[i].box.y2;
-            dst->info[i].score = src->info[i].score;
-            dst->info[i].class_id = src->info[i].class_id;
-            dst->info[i].landmark_size = src->info[i].landmark_size;
-            dst->info[i].obj_type = src->info[i].obj_type;
-
-            // landmark_properity 设为 NULL（不拷贝原数据）
-            dst->info[i].landmark_properity = NULL;
-        }
-    } else {
-        return 0;
-    }
-
-    return 0;
+    dst->info = src->info;
+    src->info = NULL;
+    src->size = 0;
 }
 
 static CVI_S32 app_ipcam_Ai_PD_Proc_Init(CVI_VOID)
@@ -272,6 +240,7 @@ static CVI_VOID *Thread_PD_PROC(CVI_VOID *arg)
         TDL_DestroyImage(image_handle);
 
         if (obj_meta.size == 0) {
+            TDL_ReleaseObjectMeta(&obj_meta);
             continue;
         }
         {
@@ -279,11 +248,9 @@ static CVI_VOID *Thread_PD_PROC(CVI_VOID *arg)
             if (g_stPDObjDraw.info != NULL) {
                 TDL_ReleaseObjectMeta(&g_stPDObjDraw);
             }
-
             memset(&g_stPDObjDraw, 0, sizeof(TDLObject));
-            deep_copy_tdl_object(&g_stPDObjDraw, &obj_meta);
+            shallow_copy_tdl_object(&g_stPDObjDraw, &obj_meta);
         }
-        TDL_ReleaseObjectMeta(&obj_meta);
     }
 
     pthread_exit(NULL);
@@ -300,11 +267,7 @@ int app_ipcam_Ai_PD_ObjDrawInfo_Get(TDLObject *pstAiObj)
     if (g_stPDObjDraw.size == 0) {
         return CVI_SUCCESS;
     } else {
-        memset(pstAiObj, 0, sizeof(TDLObject));
-        deep_copy_tdl_object(pstAiObj, &g_stPDObjDraw);
-        if (g_stPDObjDraw.info != NULL) {
-            TDL_ReleaseObjectMeta(&g_stPDObjDraw);
-        }
+        shallow_copy_tdl_object(pstAiObj, &g_stPDObjDraw);
     }
     return CVI_SUCCESS;
 }

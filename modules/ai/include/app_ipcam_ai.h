@@ -83,8 +83,9 @@ typedef struct APP_PARAM_AI_MD_CFG_T {
     VPSS_CHN VpssChn;
     CVI_U32 u32GrpWidth;
 	CVI_U32 u32GrpHeight;
-    CVI_U32 threshold;
-    CVI_U32 u32BgUpPeriod;
+    float threshold;
+    TDLModel model_id;
+    char model_path[MODEL_PATH_LEN];
     CVI_U32 miniArea;
 } APP_PARAM_AI_MD_CFG_S;
 
@@ -224,8 +225,9 @@ int app_ipcam_Ai_MD_Stop(void);
 int app_ipcam_Ai_MD_ObjDrawInfo_Get(TDLObject *pstMdObj);
 CVI_U32 app_ipcam_Ai_MD_ProcFps_Get(void);
 CVI_S32 app_ipcam_Ai_MD_ProcTime_Get(void);
-CVI_VOID app_ipcam_Ai_MD_Thresold_Set(CVI_U32 value);
-CVI_U32 app_ipcam_Ai_MD_Thresold_Get(void);
+CVI_VOID app_ipcam_Ai_MD_Thresold_Set(float value);
+float app_ipcam_Ai_MD_Thresold_Get(void);
+CVI_S32 app_ipcam_Md_threshold_Set(float threshold);
 CVI_S32 app_ipcam_Ai_MD_StatusGet(void);
 // CVI_VOID app_ipcam_Ai_MD_obj_Free(cvimd_object_t *pstMdObj);
 #endif

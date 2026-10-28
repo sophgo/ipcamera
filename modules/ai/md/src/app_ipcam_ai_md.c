@@ -3,17 +3,16 @@
 #include "stdbool.h"
 #include "stddef.h"
 #include <pthread.h>
+#include <math.h>
 #include <sys/prctl.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include "app_ipcam_ai.h"
-#include "tdl_sdk.h"
 
 /**************************************************************************
  *                              M A C R O S                               *
  **************************************************************************/
-
 SMT_MUTEXAUTOLOCK_INIT(g_MDMutex);
 static pthread_mutex_t g_MdStatusMutex = PTHREAD_MUTEX_INITIALIZER;
 /**************************************************************************
@@ -30,13 +29,13 @@ static pthread_mutex_t g_MdStatusMutex = PTHREAD_MUTEX_INITIALIZER;
 static APP_PARAM_AI_MD_CFG_S g_stMdCfg;
 static APP_PARAM_AI_MD_CFG_S *g_pstMdCfg = &g_stMdCfg;
 
-static volatile CVI_U32 g_MDThreshold = 0;
 static CVI_U32 g_MDFps;
 static CVI_U32 g_MDProc;
+static float g_MDScaleX, g_MDScaleY;
 static volatile bool g_bMDRunning = CVI_FALSE;
 static volatile bool g_bMDPause = CVI_FALSE;
 static pthread_t g_MDThreadHandle;
-static TDLHandle g_MDHandle = NULL;
+static TDLHandle g_MDAiHandle = NULL;
 static TDLObject g_stMDObjDraw;
 /**************************************************************************
  *                 E X T E R N A L    R E F E R E N C E S                 *
@@ -51,14 +50,17 @@ APP_PARAM_AI_MD_CFG_S *app_ipcam_Ai_MD_Param_Get(void)
     return g_pstMdCfg;
 }
 
-CVI_VOID app_ipcam_Ai_MD_Thresold_Set(CVI_U32 value)
+CVI_VOID app_ipcam_Ai_MD_Thresold_Set(float value)
 {
-    g_MDThreshold = value;
+    if (g_MDAiHandle) {
+        TDL_SetModelThreshold(g_MDAiHandle, g_pstMdCfg->model_id, value);
+    }
+    g_pstMdCfg->threshold = value;
 }
 
-CVI_U32 app_ipcam_Ai_MD_Thresold_Get(void)
+float app_ipcam_Ai_MD_Thresold_Get(void)
 {
-    return g_MDThreshold;
+    return g_pstMdCfg->threshold;
 }
 
 CVI_VOID app_ipcam_Ai_MD_ProcStatus_Set(CVI_BOOL flag)
@@ -93,80 +95,87 @@ CVI_S32 app_ipcam_Ai_MD_ProcTime_Get(void)
     return g_MDProc;
 }
 
+static CVI_S32 app_ipcam_Ai_InferenceFunc_Get(TDLModel model_id)
+{
+    switch (model_id)
+    {
+        case TDL_MODEL_TOPFORMER_SEG_MOTION:
+        break;
+
+        default:
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "model id (%d) invalid!\n", model_id);
+            return CVI_FAILURE;
+    }
+
+    return CVI_SUCCESS;
+}
+
 static void app_ipcam_Ai_Param_dump(void)
 {
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "bEnable=%d Grp=%d Chn=%d GrpW=%d GrpH=%d\n", 
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "bEnable=%d Grp=%d Chn=%d GrpW=%d GrpH=%d\n",
         g_pstMdCfg->bEnable, g_pstMdCfg->VpssGrp, g_pstMdCfg->VpssChn, g_pstMdCfg->u32GrpWidth, g_pstMdCfg->u32GrpHeight);
-    APP_PROF_LOG_PRINT(LEVEL_INFO, "threshold=%d miniArea=%d u32BgUpPeriod=%d\n",
-        g_pstMdCfg->threshold, g_pstMdCfg->miniArea, g_pstMdCfg->u32BgUpPeriod);
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "threshold=%f miniArea=%d\n",
+        g_pstMdCfg->threshold, g_pstMdCfg->miniArea);
+    APP_PROF_LOG_PRINT(LEVEL_INFO, "model_id=%d model_path=%s\n", g_pstMdCfg->model_id, g_pstMdCfg->model_path);
 
 }
 
 /**
- * 深拷贝 TDLObject 结构体
- * @param dst 目标对象（需预先分配内存）
+ * 浅拷贝 TDLObject 结构体（只拷贝指针，不分配新内存）
+ * 源对象需由调用方归零或不再使用，避免 double-free
+ * @param dst 目标对象
  * @param src 源对象
- * @return 0成功，-1失败
  */
-static int deep_copy_tdl_object(TDLObject* dst, const TDLObject* src) {
-    // 1. 参数检查
-    if (dst == NULL || src == NULL) {
-        return -1;
-    }
-
-    // 2. 拷贝基本成员
+static void shallow_copy_tdl_object(TDLObject* dst, TDLObject* src) {
     dst->size = src->size;
     dst->width = src->width;
     dst->height = src->height;
-
-    // 3. 处理 TDLObjectInfo 数组
-    if (src->info != NULL && src->size > 0) {
-        // 分配新数组内存
-        dst->info = (TDLObjectInfo*)malloc(src->size * sizeof(TDLObjectInfo));
-        if (dst->info == NULL) {
-            return -1;
-        }
-
-        // 逐个拷贝对象信息
-        for (uint32_t i = 0; i < src->size; i++) {
-            // 拷贝基本成员
-            dst->info[i].box.x1 = src->info[i].box.x1;
-            dst->info[i].box.x2 = src->info[i].box.x2;
-            dst->info[i].box.y1 = src->info[i].box.y1;
-            dst->info[i].box.y2 = src->info[i].box.y2;
-            // dst->info[i].score = src->info[i].score;
-            // dst->info[i].class_id = src->info[i].class_id;
-            // dst->info[i].landmark_size = src->info[i].landmark_size;
-            // dst->info[i].obj_type = src->info[i].obj_type;
-            
-            // landmark_properity 设为 NULL（不拷贝原数据）
-            dst->info[i].landmark_properity = NULL;
-        }
-    } else {
-        return 0;
-    }
-
-    return 0;
+    dst->info = src->info;
+    src->info = NULL;
+    src->size = 0;
 }
 
-static CVI_S32 app_ipcam_Ai_MD_Proc_Init()
+static CVI_S32 app_ipcam_Ai_MD_Proc_Init(CVI_VOID)
 {
-    CVI_S32 s32Ret = CVI_SUCCESS;
-
     APP_PROF_LOG_PRINT(LEVEL_INFO, "AI MD init ------------------> start \n");
 
-    if (g_MDHandle != NULL)
-    {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Ai MD Proc Init but handle is not NULL!\n");
-        return CVI_SUCCESS;
-    }
+    CVI_S32 s32Ret = CVI_SUCCESS;
 
     app_ipcam_Ai_Param_dump();
 
-    g_MDHandle = TDL_CreateHandle(0);
+    if (g_MDAiHandle == NULL)
+    {
+        g_MDAiHandle = TDL_CreateHandle(0);
+        if (s32Ret != CVI_SUCCESS)
+        {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_CreateHandle failed with %#x!\n", s32Ret);
+            return s32Ret;
+        }
+    }
+    else
+    {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_CreateHandle has created\n");
+        return s32Ret;
+    }
+
+    s32Ret = app_ipcam_Ai_InferenceFunc_Get(g_pstMdCfg->model_id);
     if (s32Ret != CVI_SUCCESS)
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "MD CreateHandle failed with %#x!\n", s32Ret);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "unsupported model id: %d \n", g_pstMdCfg->model_id);
+        return s32Ret;
+    }
+
+    s32Ret = TDL_OpenModel(g_MDAiHandle, g_pstMdCfg->model_id, g_pstMdCfg->model_path, NULL, 0);
+    if (s32Ret != CVI_SUCCESS)
+    {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_OpenModel failed with %#x! maybe reset model path\n", s32Ret);
+        return s32Ret;
+    }
+
+    s32Ret = TDL_SetModelThreshold(g_MDAiHandle, g_pstMdCfg->model_id, g_pstMdCfg->threshold);
+    if (s32Ret != CVI_SUCCESS)
+    {
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_SetModelThreshold failed with %#x!\n", s32Ret);
         return s32Ret;
     }
 
@@ -175,125 +184,71 @@ static CVI_S32 app_ipcam_Ai_MD_Proc_Init()
     return CVI_SUCCESS;
 }
 
-static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
+static CVI_VOID *Thread_MD_Proc(CVI_VOID *arg)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
-
-    CVI_CHAR TaskName[64] = {'\0'};
-    sprintf(TaskName, "Thread_MD_Proc");
-    prctl(PR_SET_NAME, TaskName, 0, 0, 0);
     APP_PROF_LOG_PRINT(LEVEL_INFO, "AI MD start running!\n");
 
-    CVI_U32 md_frame = 0;
-    CVI_S32 iTime_start, iTime_proc,iTime_fps;
-    float iTime_gop;
-    iTime_start = GetCurTimeInMsec();
-
-    TDLObject roi = {0};
-    roi.size = 1;
-    roi.info = (TDLObjectInfo *)malloc(sizeof(TDLObjectInfo));
-    if (roi.info == NULL) {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Failed to allocate memory for roi.info\n");
-    }
-    roi.info[0].box.x1 = 0;
-    roi.info[0].box.y1 = 0;
-    roi.info[0].box.x2 = g_pstMdCfg->u32GrpWidth - 1;
-    roi.info[0].box.y2 = g_pstMdCfg->u32GrpHeight - 1;
-
-    CVI_U32 count = 0;
-    CVI_U32 u32BgUpPeriod = g_pstMdCfg->u32BgUpPeriod;
-
-    CVI_U32 miniArea = g_pstMdCfg->miniArea;
-    app_ipcam_Ai_MD_Thresold_Set(g_pstMdCfg->threshold);
-    TDLObject obj_meta;
-    memset(&obj_meta, 0, sizeof(TDLObject));
-    
-    VIDEO_FRAME_INFO_S stVencFrame_back;
-    memset(&stVencFrame_back, 0, sizeof(VIDEO_FRAME_INFO_S));
-    VIDEO_FRAME_INFO_S stVencFrame_det;
-    memset(&stVencFrame_det, 0, sizeof(VIDEO_FRAME_INFO_S));
-
-    TDLImage image_back = NULL;
-    TDLImage image_det = NULL;
+    prctl(PR_SET_NAME, "Thread_MD_Proc");
 
     VPSS_GRP VpssGrp = g_pstMdCfg->VpssGrp;
     VPSS_CHN VpssChn = g_pstMdCfg->VpssChn;
+    CVI_U32 miniArea = g_pstMdCfg->miniArea;
+
+    VIDEO_FRAME_INFO_S stMdFrame = {0};
+    TDLImage image_handle;
+
+    CVI_U32 md_frame = 0;
+    CVI_S32 iTime_start, iTime_proc, iTime_fps;
+    iTime_start = GetCurTimeInMsec();
 
     while (app_ipcam_Ai_MD_ProcStatus_Get()) {
         pthread_mutex_lock(&g_MdStatusMutex);
         s32Ret = app_ipcam_Ai_MD_Pause_Get();
-        
+
         if (s32Ret) {
             pthread_mutex_unlock(&g_MdStatusMutex);
             usleep(1000*1000);
             continue;
         }
-        
-        if ((count % u32BgUpPeriod) == 0)   // 更新背景图
-        {
-            APP_PROF_LOG_PRINT(LEVEL_TRACE, "update BG interval=%d, threshold=%d, miniArea=%d\n",
-            u32BgUpPeriod, g_MDThreshold, miniArea);
-            s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVencFrame_back, 3000);
-            if (s32Ret != CVI_SUCCESS)
-            {
-                APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
-                pthread_mutex_unlock(&g_MdStatusMutex);
-                usleep(100*1000);
-                continue;
-            }
-            image_back = TDL_WrapFrame((void*)&stVencFrame_back, false, false);
+        s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stMdFrame, 3000);
+        if (s32Ret != CVI_SUCCESS) {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) get frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+            pthread_mutex_unlock(&g_MdStatusMutex);
+            usleep(100*1000);
+            continue;
         }
+        image_handle = TDL_WrapFrame((void*)&stMdFrame, false, false);
+
         pthread_mutex_unlock(&g_MdStatusMutex);
+
         iTime_proc = GetCurTimeInMsec();
 
-        s32Ret = CVI_VPSS_GetChnFrame(VpssGrp, VpssChn, &stVencFrame_det, 3000);
+        TDLObject obj_meta;
+        memset(&obj_meta, 0, sizeof(TDLObject));
+        TDL_SegMotionDetection(g_MDAiHandle, g_pstMdCfg->model_id, image_handle, miniArea, &obj_meta);
+        APP_PROF_LOG_PRINT(LEVEL_TRACE, "MD obj: %d \n", obj_meta.size);
+
+        s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stMdFrame);
         if (s32Ret != CVI_SUCCESS)
         {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) get frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
         }
-        image_det = TDL_WrapFrame((void*)&stVencFrame_det, false, false);
-
-        TDL_MotionDetection(g_MDHandle, image_back, image_det, &roi, g_MDThreshold, miniArea, &obj_meta, 0);
-
-        // for(uint32_t i = 0; i < obj_meta.size; i++)
-        // {
-        //     printf( "++++++++++++++ MD obj: %d, box: (%f, %f, %f, %f)\n", 
-        //         i+1, obj_meta.info[i].box.x1, obj_meta.info[i].box.y1, 
-        //         obj_meta.info[i].box.x2, obj_meta.info[i].box.y2);
-        // }
+        TDL_DestroyImage(image_handle);
 
         g_MDProc = GetCurTimeInMsec() - iTime_proc;
-        APP_PROF_LOG_PRINT(LEVEL_TRACE, "MD process takes %d\n", g_MDProc);
         md_frame ++;
         iTime_fps = GetCurTimeInMsec();
-        iTime_gop = (float)(iTime_fps - iTime_start)/1000;
+        float iTime_gop = (float)(iTime_fps - iTime_start)/1000;
         if(iTime_gop >= 1)
         {
             g_MDFps = md_frame/iTime_gop;
             md_frame = 0;
             iTime_start = iTime_fps;
-        }      
+        }
 
-        if (obj_meta.size == 0 || obj_meta.info == NULL) {
+        if (obj_meta.size == 0) {
             TDL_ReleaseObjectMeta(&obj_meta);
-            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_det);
-            if (s32Ret != CVI_SUCCESS)
-            {
-                APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
-            }
-            TDL_DestroyImage(image_det);
-
-            if ((count % u32BgUpPeriod) == (u32BgUpPeriod - 1) )
-            {
-                s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_back);     
-                if (s32Ret != CVI_SUCCESS)
-                {
-                    APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
-                }
-                TDL_DestroyImage(image_back);
-            }
-
-            count = (count == u32BgUpPeriod) ? (1) : (count+1); // 计数+1
             continue;
         }
         {
@@ -302,26 +257,8 @@ static CVI_VOID *Thread_MD_Proc(CVI_VOID *pArgs)
                 TDL_ReleaseObjectMeta(&g_stMDObjDraw);
             }
             memset(&g_stMDObjDraw, 0, sizeof(TDLObject));
-            deep_copy_tdl_object(&g_stMDObjDraw, &obj_meta);
+            shallow_copy_tdl_object(&g_stMDObjDraw, &obj_meta);
         }
-        TDL_ReleaseObjectMeta(&obj_meta);
-
-        if ((count % u32BgUpPeriod) == (u32BgUpPeriod - 1) )
-        {
-            s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_back);
-            if (s32Ret != CVI_SUCCESS)
-            {
-                APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
-            }
-            TDL_DestroyImage(image_back);
-        }
-        s32Ret = CVI_VPSS_ReleaseChnFrame(VpssGrp, VpssChn, &stVencFrame_det);
-        if (s32Ret != CVI_SUCCESS)
-        {
-            APP_PROF_LOG_PRINT(LEVEL_ERROR, "Grp(%d)-Chn(%d) release frame failed with %#x\n", VpssGrp, VpssChn, s32Ret);
-        }
-        TDL_DestroyImage(image_det);
-        count = (count == u32BgUpPeriod) ? (1) : (count+1);     // 计数+1
     }
 
     pthread_exit(NULL);
@@ -338,11 +275,7 @@ int app_ipcam_Ai_MD_ObjDrawInfo_Get(TDLObject *pstMdObj)
     if (g_stMDObjDraw.size == 0) {
         return CVI_SUCCESS;
     } else {
-        memset(pstMdObj, 0, sizeof(TDLObject));
-        deep_copy_tdl_object(pstMdObj, &g_stMDObjDraw);
-        if (g_stMDObjDraw.info != NULL) { 
-            TDL_ReleaseObjectMeta(&g_stMDObjDraw);
-        }
+        shallow_copy_tdl_object(pstMdObj, &g_stMDObjDraw);
     }
     return CVI_SUCCESS;
 }
@@ -373,15 +306,16 @@ int app_ipcam_Ai_MD_Stop(void)
         g_MDThreadHandle = 0;
     }
 
-    s32Ret = TDL_DestroyHandle(g_MDHandle);
+    TDL_CloseModel(g_MDAiHandle, g_pstMdCfg->model_id);
+    s32Ret = TDL_DestroyHandle(g_MDAiHandle);
     if (s32Ret != CVI_SUCCESS)
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "CVI_MD_Destroy_Handle failed with 0x%x!\n", s32Ret);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "TDL_DestroyHandle failed with 0x%x!\n", s32Ret);
         return s32Ret;
     }
     else
     {
-        g_MDHandle = NULL;
+        g_MDAiHandle = NULL;
     }
 
     APP_PROF_LOG_PRINT(LEVEL_INFO, "AI MD Thread exit takes %u ms\n", (GetCurTimeInMsec() - iTime));
@@ -392,6 +326,7 @@ int app_ipcam_Ai_MD_Stop(void)
 int app_ipcam_Ai_MD_Start(void)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
+    APP_VPSS_GRP_CFG_T *pstVpssCfg = &app_ipcam_Vpss_Param_Get()->astVpssGrpCfg[0];
 
     if (!g_pstMdCfg->bEnable)
     {
@@ -408,20 +343,23 @@ int app_ipcam_Ai_MD_Start(void)
     s32Ret = app_ipcam_Ai_MD_Proc_Init();
     if (s32Ret != CVI_SUCCESS)
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Ai_MD_Proc_Init failed with error %d\n", s32Ret);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "app_ipcam_Ai_MD_Proc_Init failed!\n");
         return s32Ret;
     }
+
+    g_MDScaleX = g_MDScaleY = fmax(((float)pstVpssCfg->astVpssChnAttr[0].u32Width / (float)g_pstMdCfg->u32GrpWidth), \
+                                     ((float)pstVpssCfg->astVpssChnAttr[0].u32Height / (float)g_pstMdCfg->u32GrpHeight));
 
     app_ipcam_Ai_MD_ProcStatus_Set(CVI_TRUE);
 
     s32Ret = pthread_create(&g_MDThreadHandle, NULL, Thread_MD_Proc, NULL);
     if (s32Ret != CVI_SUCCESS)
     {
-        APP_PROF_LOG_PRINT(LEVEL_ERROR, "Thread_Motion_Detecte failed with error %d\n", s32Ret);
+        APP_PROF_LOG_PRINT(LEVEL_ERROR, "AI pthread_create failed!\n");
         return s32Ret;
     }
 
-    return s32Ret;
+    return CVI_SUCCESS;
 }
 
 /*****************************************************************
@@ -429,9 +367,21 @@ int app_ipcam_Ai_MD_Start(void)
  * **************************************************************/
 CVI_S32 app_ipcam_Ai_MD_StatusGet(void)
 {
-    return g_MDHandle ? 1 : 0;
+    return g_MDAiHandle ? 1 : 0;
 }
 
-/*****************************************************************
- *  The above API for command test used                 End
- * **************************************************************/
+CVI_S32 app_ipcam_Md_threshold_Set(float threshold)
+{
+    CVI_S32 s32Ret = CVI_SUCCESS;
+
+    if (g_MDAiHandle) {
+        s32Ret = TDL_SetModelThreshold(g_MDAiHandle, g_pstMdCfg->model_id, threshold);
+        if (s32Ret != CVI_SUCCESS)
+        {
+            APP_PROF_LOG_PRINT(LEVEL_ERROR, "%s TDL_SetModelThreshold failed with %#x!\n",g_pstMdCfg->model_path, s32Ret);
+            return s32Ret;
+        }
+    }
+
+    return s32Ret;
+}
